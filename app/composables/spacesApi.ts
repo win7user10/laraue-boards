@@ -18,7 +18,6 @@ export interface SpaceListDto {
     id: number;
     name: string;
     color: string;
-    epicsCount: number;
     canUpdate: boolean;
     canDelete: boolean;
 }

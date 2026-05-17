@@ -2,15 +2,17 @@
   import LnbNavLoader from "~/components/LnbNavLoader.vue";
   import LnbButton from "~/components/LnbButton.vue";
 
-  const props = defineProps({
-    title: { type: String, required: true },
-    applyText: { type: String, required: false },
-    cancelText: { type: String, required: false },
-    fullHeight: { type: Boolean, required: false },
-    determineScroll: { type: Boolean, required: false },
-    disableApply: { type: Boolean, required: false },
-    subtitle: { type: String, required: false },
-  })
+  const props = defineProps<{
+    title: string,
+    applyText?: string,
+    cancelText?: string,
+    fullHeight?: boolean,
+    determineScroll?: boolean,
+    disableApply?: boolean,
+    subtitle?: string,
+    confirmButton?: "ghost" | "primary" | "warn",
+  }>()
+
   const emit = defineEmits<{
     (e: 'close'): void,
     (e: 'cancel'): void,
@@ -78,7 +80,7 @@
               :name="applyText"
               @click="apply"
               :disabled="isLoading || disableApply"
-              type="primary"/>
+              :type="confirmButton ?? 'primary'"/>
 
           </div>
           <div class="modal-loader">

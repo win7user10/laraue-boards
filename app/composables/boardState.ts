@@ -3,6 +3,7 @@ import {ref} from "vue";
 import type {EditStatusRequest} from "~/composables/statusesApi";
 import type {EpicListDto} from "~/composables/spacesApi";
 import {useEpicsApi} from "~/composables/epicsApi";
+import {type OrganizationDto, useOrganizationsApi} from "~/composables/organizationsApi";
 
 const { showToast, appState, updateSpaceId } = useAppState()
 
@@ -20,6 +21,7 @@ export const useBoard = () => {
         searchString: '',
         openedMedia: [] as MediaInfo[],
         openedMediaIndex: 0,
+        organizations: [] as OrganizationListDto[],
     }))
 
     const spaces = computed(() => {
@@ -39,6 +41,16 @@ export const useBoard = () => {
 
         return firstSpace.id;
     })
+
+    const getOrganizations = async () => {
+        if (state.value.organizations?.length > 0)
+            return state.value.organizations;
+
+        const { getOrganizations } = useOrganizationsApi()
+        state.value.organizations = await getOrganizations()
+
+        return state.value.organizations;
+    }
 
     const currentSpace = computed(() => {
         return spaces.value.find(x => x.id === spaceId.value) ?? spaces.value[0]
@@ -432,7 +444,6 @@ export const useBoard = () => {
             id: spaceId,
             name: request.name,
             color: request.color,
-            epicsCount: 0,
             canDelete: spaceInfo.canDelete,
             canUpdate: spaceInfo.canUpdate,
         })
@@ -514,5 +525,6 @@ export const useBoard = () => {
         editSpace,
         deleteSpace,
         anySpaceAvailable,
+        getOrganizations,
     }
 }

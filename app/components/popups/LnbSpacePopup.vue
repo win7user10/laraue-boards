@@ -6,6 +6,7 @@ import LnbCreateSpaceModal from "~/components/modals/LnbCreateSpaceModal.vue";
 import LnbIconBtn from "~/components/icons/LnbIconBtn.vue";
 import LnbEditSpaceModal from "~/components/modals/LnbEditSpaceModal.vue";
 import LnbDeleteSpaceModal from "~/components/modals/LnbDeleteSpaceModal.vue";
+import LnbSpacePopupItem from "~/components/LnbSpacePopupItem.vue";
 
 const emits = defineEmits<{
   (e: 'close'): void,
@@ -93,10 +94,7 @@ const closePopup = () => {
       v-for="s in spaces"
       :active="currentSpace?.id === s.id"
       :key="s.id" @click="setSpaceInternal(s.id)">
-      <div class="space-popup-item">
-        <div class="space-switcher-dot" :style="`background:${s.color}`"></div>
-        <div class="space-popup-item-name">{{s.name}}</div>
-      </div>
+      <LnbSpacePopupItem :color="s.color" :name="s.name" />
       <div class="space-popup-item-controls">
         <LnbIconBtn v-if="s.canUpdate" @click.stop="openEditSpace(s)" :title="t('edit')" icon="edit" icon-size="mini" btn-size="mini" />
         <LnbIconBtn v-if="s.canDelete" @click.stop="openDeleteSpace(s)" :title="t('delete')" icon="delete" icon-size="mini" btn-size="mini" />
@@ -133,9 +131,6 @@ const closePopup = () => {
 .space-popup-add{display:flex;align-items:center;gap:8px;padding: 8px 10px;border-radius:8px;cursor:pointer;font-size:11px;font-weight:600;color:var(--accent);transition:background 0.12s;-webkit-tap-highlight-color:transparent}
 .space-popup-add:hover{background:var(--accent-glow)}
 .space-popup-add svg{width:13px;height:13px}
-.space-switcher-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
-.space-popup-item{display: flex;gap:8px;align-items: center;height: 26px;}
-.space-popup-item-name{font-size:12px;font-weight:600;color:var(--text);flex:1}
 .space-popup-wrapper{justify-content: space-between;}
 .space-popup-item-controls{display: flex;margin-right: -5px;}
 </style>

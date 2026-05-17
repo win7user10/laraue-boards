@@ -23,7 +23,6 @@ const emit = defineEmits<{
       <LnbModalListOpt
         v-for="space in spaces"
         :name="space.name"
-        :sub="space.epicsCount + ' boards'"
         @click="emit('select', space.id)">
         <template #avatar>
           <LnbCardAvatar :color="space.color">

@@ -7,11 +7,12 @@ const emits = defineEmits<{
   (e: 'close'): void,
 }>()
 
-const { getOrganizations, login } = useOrganizationsApi()
+const { login } = useOrganizationsApi()
 const { setOrganizationToken } = useLocalStorageUtils()
 const { appState } = useAppState()
+const { getOrganizations } = useBoard()
 const { setOrganization } = useInitUser()
-const organizations = ref<OrganizationDto[]>([]);
+const organizations = ref<OrganizationListDto[]>([]);
 const updateOrganizations = async () => {
   organizations.value = await getOrganizations();
 }

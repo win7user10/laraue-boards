@@ -18,7 +18,7 @@ import LnbDeleteCategoryModal from "~/components/modals/LnbDeleteCategoryModal.v
 import LnbEditCategoryModal from "~/components/modals/LnbEditCategoryModal.vue";
 import LnbTopbar from "~/components/LnbTopbar.vue";
 import LnbElementWithHelpLink from "~/components/modals/LnbElementWithHelpLink.vue";
-import LnbMassMoveModal from "~/components/modals/LnbMassMoveModal.vue";
+import LnbMassMoveModal from "~/components/modals/movement/LnbMassMoveModal.vue";
 
 const { setCategory, state, anySpaceAvailable } = useBoard()
 const { getDocumentationLink } = useUtils()
@@ -364,7 +364,7 @@ const closeMassMove = () => {
       <LnbFabItem v-if="currentCategory?.canCreateIssues" :title="t('createCard')" @click="openCreateCard">
         <path d="M8 5v6M5 8h6"/>
       </LnbFabItem>
-      <LnbFabItem title="Mass move" @click="openMassMove"> <!--TODO - separated permission to move?? With at start allow only on personal?? -->
+      <LnbFabItem v-if="appState.organization?.canMassMove" title="Mass move" @click="openMassMove">
         <path d="M2 4h8M2 8h8M2 12h8"></path><path d="M12 3l3 3-3 3"></path>
       </LnbFabItem>
     </div>

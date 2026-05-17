@@ -1,14 +1,22 @@
 import {useOrganizationsOrganizationClient, useOrganizationsUserClient} from "~/composables/organizationsClient";
 
+export interface OrganizationListDto {
+    id: number;
+    name: string;
+    color: string;
+    canUpdate: boolean;
+    canDelete: boolean;
+    isPersonal: boolean;
+    canCreateSpaces: boolean;
+}
+
 export interface OrganizationDto {
     id: number;
     name: string;
     color: string;
     canCreateSpaces: boolean;
     canManage: boolean;
-    canUpdate: boolean;
-    canDelete: boolean;
-    isPersonal: boolean;
+    canMassMove: boolean;
 }
 
 export interface CreateOrganizationRequest {
@@ -74,7 +82,7 @@ export const useOrganizationsApi = () => {
     const client = useOrganizationsUserClient()
 
     const getOrganizations = () => {
-        return client<OrganizationDto[]>('/organizations', {
+        return client<OrganizationListDto[]>('/organizations', {
             method: 'GET'
         });
     }

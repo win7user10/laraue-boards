@@ -1,12 +1,16 @@
 <script setup lang="ts">
+  import LnbSwitcherDot from "~/components/LnbSwitcherDot.vue";
+
   defineProps<{
     name: string,
-    sub: string
+    sub?: string,
+    color?: string,
   }>()
 </script>
 
 <template>
   <div class="list-opt">
+    <LnbSwitcherDot v-if="color" :color="color"/>
     <slot name="avatar"></slot>
     <div class="list-opt-info">
       <div class="list-opt-name">{{ name }}</div>

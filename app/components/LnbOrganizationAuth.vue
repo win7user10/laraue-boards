@@ -16,7 +16,7 @@ const { getOrganizations, createOrganization, editOrganization, deleteOrganizati
 const { t } = useI18n()
 const authUser = appState.value.user
 
-const organizations = ref<OrganizationDto[]>([]);
+const organizations = ref<OrganizationListDto[]>([]);
 const updateOrganizations = async () => {
   organizations.value = await getOrganizations();
 }
@@ -47,13 +47,13 @@ const submitJoinCode = async () => {
   }
 }
 
-const editingOrganization = ref<OrganizationDto>()
-const openEditOrganization = (org: OrganizationDto) => {
+const editingOrganization = ref<OrganizationListDto>()
+const openEditOrganization = (org: OrganizationListDto) => {
   editingOrganization.value = org
   modals.editOrganization = true;
 }
 
-const openDeleteOrganization = (org: OrganizationDto) => {
+const openDeleteOrganization = (org: OrganizationListDto) => {
   editingOrganization.value = org
   modals.deleteOrganization = true;
 }
@@ -69,10 +69,9 @@ const createOrganizationInternal = async (request: CreateOrganizationRequest) =>
     name: request.name,
     color: request.color,
     isPersonal: false,
-    canCreateSpaces: true,
     canUpdate: true,
     canDelete: true,
-    canManage: true,
+    canCreateSpaces: true,
   })
   modals.createOrganization = false;
 }

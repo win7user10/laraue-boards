@@ -5,7 +5,7 @@ import LnbModalInput from "~/components/modals/LnbModalInput.vue";
 import type {EditOrganizationRequest} from "~/composables/organizationsApi";
 
 const props = defineProps<{
-  organization: OrganizationDto
+  organization: OrganizationListDto
 }>()
 
 const emit = defineEmits<{
