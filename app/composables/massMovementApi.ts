@@ -21,6 +21,12 @@ export const useMassMovementApi = () => {
         });
     }
 
+    const moveEpic = (epicId: number, newSpaceId: number) => {
+        return client('/mass-movement/epic/' + epicId + '/to-space/' + newSpaceId, {
+            method: 'POST'
+        });
+    }
+
     const getDestinationSpaces = (organizationId: number) => {
         return client<DestinationSpace[]>('/mass-movement/organization/' + organizationId + '/spaces', {
             method: 'GET'
@@ -30,6 +36,7 @@ export const useMassMovementApi = () => {
     return {
         moveSpace,
         moveSpaceEpics,
+        moveEpic,
         getDestinationSpaces,
     }
 }

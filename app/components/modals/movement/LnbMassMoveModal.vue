@@ -8,7 +8,7 @@ const emits = defineEmits<{
   (e: 'close'): void,
 }>()
 
-const { moveSpace, moveSpaceEpics } = useMassMovementApi()
+const { moveSpace, moveSpaceEpics, moveEpic } = useMassMovementApi()
 const { showToast } = useAppState()
 
 const massMoveStep = ref(0); // 0=type, 1=source, 2=target, 3=mapping, 4=confirm
@@ -27,7 +27,7 @@ const MASS_MOVE_TYPES = [
 ];
 
 const massMoveNext = () => {
-  if (massMoveStep.value == 5)
+  if (massMoveStep.value == 3)
     return save();
 
   massMoveStep.value++;
@@ -35,9 +35,14 @@ const massMoveNext = () => {
 
 const save = async () => {
   if (massMoveType.value === 'space')
-    return moveSpace(massMoveSpaceSource.value!.id, massMoveOrganizationTarget.value!.id)
-  if (massMoveType.value === 'spaceEpics')
-    return moveSpaceEpics(massMoveSpaceSource.value!.id, massMoveSpaceTarget.value!.id)
+    await moveSpace(massMoveSpaceSource.value!.id, massMoveOrganizationTarget.value!.id)
+  else if (massMoveType.value === 'spaceEpics')
+    await moveSpaceEpics(massMoveSpaceSource.value!.id, massMoveSpaceTarget.value!.id)
+  else if (massMoveType.value === 'epic')
+    await moveEpic(massMoveEpicSource.value!.id, massMoveSpaceTarget.value!.id)
+
+  // TODO - move this methods to board.ts and make removing from the state
+
   showToast('Move completed', 'success');
   emits('close');
 }
