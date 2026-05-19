@@ -436,6 +436,12 @@ export const useBoard = () => {
         state.value.spaces = await spacesApi.getSpaces()
     }
 
+    const fullReload = async () => {
+        await reloadSpaces();
+        await reloadEpics();
+        await reloadBoard(true);
+    }
+
     const createSpace = async (request: CreateSpaceRequest) => {
         const spacesApi = useSpacesApi()
         const spaceId = await spacesApi.createSpace(request)
@@ -526,5 +532,6 @@ export const useBoard = () => {
         deleteSpace,
         anySpaceAvailable,
         getOrganizations,
+        fullReload,
     }
 }

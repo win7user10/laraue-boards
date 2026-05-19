@@ -32,20 +32,14 @@ const defaultStatus = computed(() => currentCategory.value?.statuses[0]);
 const { t } = useI18n();
 const board = useBoard();
 
-onMounted(() => fullReload());
+onMounted(() => board.fullReload());
 
-watch(() => appState.value.organization!.id, () => fullReload())
+watch(() => appState.value.organization!.id, () => board.fullReload())
 watch(() => state.value.epicId, async () => {
   await board.reloadCategory();
   await board.reloadBoard(true);
 })
 watch(() => board.currentSpace.value, () => loadSpaceData())
-
-const fullReload = async () => {
-  await board.reloadSpaces();
-  await board.reloadEpics();
-  await board.reloadBoard(true);
-}
 
 const spaceAdditionalData = ref<SpaceDto | null>(null)
 const loadSpaceData = async () => {

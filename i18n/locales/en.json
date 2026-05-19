@@ -136,5 +136,26 @@
   "learnAboutOrganizations": "Learn about organizations",
   "learnAboutEpics": "Learn about epics",
   "learnAboutBacklog": "Learn about backlog",
-  "selectEpic": "Select Epic"
+  "selectEpic": "Select Epic",
+
+  "moveEntireSpace": "Move entire space",
+  "moveEntireSpaceDesc": "Moves the space, all its epics and issues to another organization. Default space can not be moved.",
+  "moveEpicsFromSpace": "Move epics from a space",
+  "moveEpicsFromSpaceDesc": "Moves all boards in a space — issues move with them. Backlog is not moving.",
+  "moveSingleEpic": "Move a single epic",
+  "moveSingleEpicDesc": "Moves one board and all its issues to another organization. Backlog can not be moved.",
+  "moveCompleted": "Move completed",
+  "confirmMove": "Confirm Move",
+  "nextArrow": "Next →",
+  "backArrow": "← Back",
+  "sourceStep": "Source",
+  "targetStep": "Target",
+  "confirmStep": "Confirm",
+  "massMoveTitle": "Mass move",
+  "whatToMove": "What do you want to move?",
+  "confirmMoveLabel": "Confirm move",
+  "action": "Action",
+  "source": "Source",
+  "destination": "Destination",
+  "moveWarning": "This action cannot be undone. Members of the destination organization will gain access to moved content according to their permissions."
 }

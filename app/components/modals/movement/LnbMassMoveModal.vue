@@ -8,8 +8,10 @@ const emits = defineEmits<{
   (e: 'close'): void,
 }>()
 
+const { t } = useI18n();
 const { moveSpace, moveSpaceEpics, moveEpic } = useMassMovementApi()
 const { showToast } = useAppState()
+const { fullReload } = useBoard()
 
 const massMoveStep = ref(0); // 0=type, 1=source, 2=target, 3=mapping, 4=confirm
 const massMoveType = ref<string | null>(null); // 'space'|'spaceEpics'|'epic'|'epicIssues'
@@ -21,9 +23,9 @@ const massMoveSpaceTarget = ref<DestinationSpace | null>(null); // selected org 
 const massMoveOrganizationTarget = ref<OrganizationListDto | null>(null); // selected org (null=personal)
 
 const MASS_MOVE_TYPES = [
-  { id: 'space',      title: 'Move entire space',         sub: 'Moves the space, all its epics and issues to another organization. Default space can not be moved.' },
-  { id: 'spaceEpics', title: 'Move epics from a space',   sub: 'Moves all boards in a space — issues move with them. Backlog is not moving.' },
-  { id: 'epic',       title: 'Move a single epic',        sub: 'Moves one board and all its issues to another organization. Backlog can not be moved.' },
+  { id: 'space', title: t('moveEntireSpace'), sub: t('moveEntireSpaceDesc') },
+  { id: 'spaceEpics', title: t('moveEpicsFromSpace'), sub: t('moveEpicsFromSpaceDesc') },
+  { id: 'epic', title: t('moveSingleEpic'), sub: t('moveSingleEpicDesc') },
 ];
 
 const massMoveNext = () => {
@@ -41,7 +43,7 @@ const save = async () => {
   else if (massMoveType.value === 'epic')
     await moveEpic(massMoveEpicSource.value!.id, massMoveSpaceTarget.value!.id)
 
-  // TODO - move this methods to board.ts and make removing from the state
+  await fullReload()
 
   showToast('Move completed', 'success');
   emits('close');
@@ -100,7 +102,7 @@ const massMoveOrganizationTargetLabel = computed(() => {
 });
 
 const getApplyText = computed(() => {
-  return massMoveStep.value === 3 ? 'Confirm Move' : 'Next →';
+  return massMoveStep.value === 3 ? t('confirmMove') : t('nextArrow');
 });
 
 const confirmButton = computed(() => {
@@ -112,9 +114,9 @@ const steps = computed(() => {
   if (massMoveStep.value === 0)
     return result;
 
-  result.push({ name: 'Source' });
-  result.push({ name: 'Target' });
-  result.push({ name: 'Confirm' });
+  result.push({ name: t('sourceStep') });
+  result.push({ name: t('targetStep') });
+  result.push({ name: t('confirmStep') });
 
   return result;
 })
@@ -123,11 +125,11 @@ const steps = computed(() => {
 
 <template>
   <LnbModal
-    title="Mass move"
+    :title="t('massMoveTitle')"
     :applyText="getApplyText"
     @close="emits('close')"
     @cancel="massMoveBack"
-    :cancel-text="massMoveStep > 0 ? '← Back' : undefined"
+    :cancel-text="massMoveStep > 0 ? t('backArrow') : undefined"
     :disable-apply="isNextStepDisabled"
     :confirm-button="confirmButton"
     @apply="massMoveNext">
@@ -148,7 +150,7 @@ const steps = computed(() => {
     <template #default>
       <!-- ── STEP 1: Type ─────────────────────────────────────────────── -->
       <template v-if="massMoveStep === 0">
-        <LnbModalLabel>What do you want to move?</LnbModalLabel>
+        <LnbModalLabel>{{ t('whatToMove') }}</LnbModalLabel>
         <div v-for="t in MASS_MOVE_TYPES" :key="t.id"
           class="mmove-option" :class="{ selected: massMoveType === t.id }"
           @click="massMoveType = t.id">
@@ -195,19 +197,19 @@ const steps = computed(() => {
         <LnbModalLabel>Confirm move</LnbModalLabel>
         <div class="perm-section" style="margin-bottom:12px">
           <div class="mmove-summary-row" style="padding:8px 10px">
-            <div class="mmove-summary-label">Action</div>
+            <div class="mmove-summary-label">{{ t('action') }}</div>
             <div class="mmove-summary-val">
-              {{MASS_MOVE_TYPES.find(t=>t.id===massMoveType)?.title}}
+              {{MASS_MOVE_TYPES.find(t => t.id === massMoveType)?.title}}
             </div>
           </div>
           <div class="mmove-summary-row" style="padding:8px 10px">
-            <div class="mmove-summary-label">Source</div>
+            <div class="mmove-summary-label">{{ t('source') }}</div>
             <div class="mmove-summary-val">
               {{massMoveSourceLabel}}
             </div>
           </div>
           <div class="mmove-summary-row" style="padding:8px 10px">
-            <div class="mmove-summary-label">Destination</div>
+            <div class="mmove-summary-label">{{ t('destination') }}</div>
             <div class="mmove-summary-val" style="color:var(--accent)">
               {{ massMoveOrganizationTargetLabel }}
             </div>
@@ -229,7 +231,7 @@ const steps = computed(() => {
           </template>-->
         </div>
         <div style="font-size:11px;color:var(--orange);background:rgba(210,153,34,0.1);border:1px solid rgba(210,153,34,0.3);border-radius:8px;padding:8px 10px;line-height:1.5;margin-bottom:4px">
-          ⚠ This action cannot be undone. Members of the destination organization will gain access to moved content according to their permissions.
+          ⚠ {{ t('moveWarning') }}
         </div>
       </template>
 
