@@ -137,6 +137,10 @@
   "learnAboutEpics": "Learn about epics",
   "learnAboutBacklog": "Learn about backlog",
   "selectEpic": "Select Epic",
+  "noAvailableSpaces": "No spaces are available",
+  "noAvailableEpicsInSpace": "No epics are available in Space",
+  "issuesNotAvailableForView": "Issues are not available for view",
+  "contactAdminForPermissions": "Please contact organization administrator and ask for permissions",
 
   "moveEntireSpace": "Move entire space",
   "moveEntireSpaceDesc": "Moves the space, all its epics and issues to another organization. Default space can not be moved.",
@@ -157,5 +161,8 @@
   "action": "Action",
   "source": "Source",
   "destination": "Destination",
-  "moveWarning": "This action cannot be undone. Members of the destination organization will gain access to moved content according to their permissions."
+  "moveWarning": "This action cannot be undone. Members of the destination organization will gain access to moved content according to their permissions.",
+  "noAllowedEpicsToMove": "No epics allowed to move",
+  "noAllowedSpacesToMove": "No spaces allowed to move",
+  "selectSpace": "Select space"
 }

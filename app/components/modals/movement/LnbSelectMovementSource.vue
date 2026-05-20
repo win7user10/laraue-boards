@@ -16,6 +16,7 @@ const emit = defineEmits<{
   (e: 'update:epic', value: EpicListDto): void
 }>()
 
+const { t } = useI18n()
 const { spaces } = useBoard()
 const { loadSpaceEpics } = useSpacesApi()
 const allowedSpacesForMove = computed(() => {
@@ -36,7 +37,7 @@ const allowedEpicsForMove = computed(() => {
 
   <!-- Select Space Source -->
   <LnbModalLabel>
-    Select space
+    {{ t('selectSpace') }}
   </LnbModalLabel>
 
   <!-- Spaces -->
@@ -48,8 +49,8 @@ const allowedEpicsForMove = computed(() => {
         :color="s.color"
         sub=""
         @click="emit('update:space', s)" />
-    <div v-if="!allowedSpacesForMove.length" style="text-align:center;padding:16px 0;font-size:12px;color:var(--text3)">
-      No spaces allowed to move
+    <div v-if="!allowedSpacesForMove.length" class="empty">
+      {{ t('noAllowedSpacesToMove') }}
     </div>
   </LnbModalListOpts>
 
@@ -68,8 +69,8 @@ const allowedEpicsForMove = computed(() => {
         :color="s.color"
         sub=""
         @click="emit('update:epic', s)" />
-      <div v-if="!allowedEpicsForMove.length" style="text-align:center;padding:16px 0;font-size:12px;color:var(--text3)">
-        No epics allowed to move
+      <div v-if="!allowedEpicsForMove.length" class="empty">
+        {{ t('noAllowedEpicsToMove') }}
       </div>
     </LnbModalListOpts>
 
@@ -79,4 +80,5 @@ const allowedEpicsForMove = computed(() => {
 
 <style scoped>
   .selected { border-color:var(--accent);background:var(--accent-glow) }
+  .empty { text-align:center;padding:16px 0;font-size:12px;color:var(--text3) }
 </style>

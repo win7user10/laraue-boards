@@ -271,20 +271,20 @@ const closeMassMove = () => {
 
   <template v-if="!anySpaceAvailable">
     <LnbEmptyState
-      title="No spaces are available"
-      subtitle="Please contact organization administrator and ask for permissions"/>
+      :title="t('noAvailableSpaces')"
+      :subtitle="t('contactAdminForPermissions')"/>
   </template>
 
   <template v-if="anySpaceAvailable && !epicTabsAvailable">
     <LnbEmptyState
-        title="No epics are available in Space"
-        subtitle="Please contact organization administrator and ask for permissions"/>
+      :title="t('noAvailableEpicsInSpace')"
+      :subtitle="t('contactAdminForPermissions')"/>
   </template>
 
   <template v-if="anySpaceAvailable && epicTabsAvailable && !state.currentEpic?.canViewIssues">
     <LnbEmptyState
-        title="Issues are not available for view"
-        subtitle="Please contact organization administrator and ask for permissions"/>
+      :title="t('issuesNotAvailableForView')"
+      :subtitle="t('contactAdminForPermissions')"/>
   </template>
 
   <LnbCreateCategoryModal
@@ -358,7 +358,7 @@ const closeMassMove = () => {
       <LnbFabItem v-if="currentCategory?.canCreateIssues" :title="t('createCard')" @click="openCreateCard">
         <path d="M8 5v6M5 8h6"/>
       </LnbFabItem>
-      <LnbFabItem v-if="appState.organization?.canMassMove" title="Mass move" @click="openMassMove">
+      <LnbFabItem v-if="appState.organization?.canMassMove" :title="t('massMoveTitle')" @click="openMassMove">
         <path d="M2 4h8M2 8h8M2 12h8"></path><path d="M12 3l3 3-3 3"></path>
       </LnbFabItem>
     </div>
