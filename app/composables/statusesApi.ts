@@ -13,7 +13,7 @@ export interface EditStatusRequest {
 
 export interface MessageStatusDto {
     name: string;
-    color?: string;
+    color: string;
     id: number;
     count: number;
 }

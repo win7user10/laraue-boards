@@ -20,7 +20,7 @@
   "statusNameExample": "e.g. To Do, In Progress, Done...",
   "statusName": "Status name",
   "categoryNameExample": "e.g. Work, Personal, Design...",
-  "deleteColumnTitle": "Delete Issue?",
+  "deleteColumnTitle": "Delete Column?",
   "deleteColumnConfirm": "The column will be permanently removed. Messages will me moved to the first available status.",
   "columnCreated": "Column created",
   "columnDeleted": "Column deleted",

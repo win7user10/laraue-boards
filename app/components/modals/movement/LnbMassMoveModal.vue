@@ -9,7 +9,7 @@ const emits = defineEmits<{
 }>()
 
 const { t } = useI18n();
-const { moveSpace, moveSpaceEpics, moveEpic } = useMassMovementApi()
+const { moveSpace, moveSpaceEpics, moveEpic } = useMovementApi()
 const { showToast } = useAppState()
 const { fullReload } = useBoard()
 

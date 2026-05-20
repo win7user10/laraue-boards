@@ -19,7 +19,7 @@ const emit = defineEmits<{
 
 const { getOrganizations } = useBoard()
 const { appState } = useAppState()
-const { getDestinationSpaces } = useMassMovementApi()
+const { getDestinationSpaces } = useMovementApi()
 const organizations = await getOrganizations()
 
 const allowedOrganizationsToMove = computed(() => {

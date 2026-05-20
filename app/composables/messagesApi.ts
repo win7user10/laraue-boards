@@ -106,15 +106,6 @@ export const useMessagesApi = () => {
         });
     }
 
-    const move = (messageId: number, statusId: number) => {
-        return client('/issues/' + messageId + '/move', {
-            method: 'PUT',
-            body: {
-                statusId: statusId,
-            }
-        });
-    }
-
     const deleteMessage = (id: number) => {
         return client('/issues/' + id, {
             method: 'DELETE'
@@ -159,7 +150,6 @@ export const useMessagesApi = () => {
 
     return {
         loadIssuesByStatus,
-        move,
         deleteMessage,
         createMessage,
         editMessage,

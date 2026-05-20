@@ -375,8 +375,8 @@ export const useBoard = () => {
         const card = allCards.value.find(m => m.id === cardId);
         if (!card) return;
 
-        const messagesApi = useMessagesApi()
-        await messagesApi.move(card.id, statusId);
+        const movementApi = useMovementApi()
+        await movementApi.moveIssue(card.id, statusId);
 
         // update old column data
         const oldColumnMessages = getMessagesByStatusId(card!.statusId)!
