@@ -8,6 +8,8 @@ export interface OrganizationListDto {
     canDelete: boolean;
     isPersonal: boolean;
     canCreateSpaces: boolean;
+    slug: string;
+    slugPostfix: string;
 }
 
 export interface OrganizationDto {
@@ -17,6 +19,8 @@ export interface OrganizationDto {
     canCreateSpaces: boolean;
     canManage: boolean;
     canMassMove: boolean;
+    slug: string;
+    slugPostfix: string;
 }
 
 export interface CreateOrganizationRequest {
@@ -78,6 +82,12 @@ export interface PermittableEpic {
     isDefault: boolean;
 }
 
+export interface CreateOrganizationResponse {
+    id: number;
+    slug: string;
+    slugPostfix: string;
+}
+
 export const useOrganizationsApi = () => {
     const client = useOrganizationsUserClient()
 
@@ -88,7 +98,7 @@ export const useOrganizationsApi = () => {
     }
 
     const createOrganization = (request: CreateOrganizationRequest) => {
-        return client<number>('/organizations', {
+        return client<CreateOrganizationResponse>('/organizations', {
             method: 'POST',
             body: request
         });

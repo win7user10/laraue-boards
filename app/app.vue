@@ -3,7 +3,6 @@
 import {useAppState} from "~/composables/appState";
 import {onMounted, ref} from "vue";
 import WebApp from "@twa-dev/sdk";
-import LnbTgAuth from "~/components/LnbTgAuth.vue";
 
 let initError = ref<any>(null)
 const configuration = useRuntimeConfig();
@@ -13,8 +12,6 @@ const { initUserWithBearer, tryAuthWithStoredBearer, tryAuthOrganizationWithStor
 const { t, setLocale, locales } = useI18n();
 
 const isAppInitialized = computed(() => appState.value.isAppInitialized)
-const user = computed(() => appState.value.user)
-const organization = computed(() => appState.value.organization)
 
 onMounted(async () => {
   try {
@@ -68,24 +65,10 @@ const setupMiniAppWindow = async () => {
 
     // Telegram provides its own inset for the header bar
     const applyInsets = () => {
-      const isLandscape = window.matchMedia("(orientation: landscape)").matches;
-      const platform = WebApp.platform;
-
       let safeTop = WebApp.safeAreaInset?.top ?? 0;
       let safeBottom = WebApp.safeAreaInset?.bottom ?? 0;
       let safeLeft = WebApp.safeAreaInset?.left ?? 0;
       let safeRight = WebApp.safeAreaInset?.right ?? 0;
-
-      if (platform === "ios") {
-        if (!isLandscape){
-        }
-      }
-
-      // On mobile: use the larger of both (Telegram chrome overlaps)
-      // On desktop: looks like calculates wrong. The hardcoded value.
-      // Logged values:
-      // [tdesktop][0][56] - too big offset
-      // [ios][54][46] - looks great
 
       // contentSafeAreaInset accounts for Telegram's own header chrome
       document.documentElement.style.setProperty('--safe-top', safeTop + 'px');
@@ -104,16 +87,19 @@ const setupMiniAppWindow = async () => {
 
 <template>
   <div id="app">
-    <LnbTgAuth v-if="isAppInitialized && !user && !initError" />
-    <LnbOrganizationAuth v-if="isAppInitialized && user && !organization && !initError"/>
+
+    <div v-if="initError">
+      {{ initError }}
+    </div>
+
     <div v-else-if="!isAppInitialized" class="loader-overlay">
       <div class="loader-logo">Msg<span>board</span></div>
       <div class="loader-bar"><div class="loader-bar-fill"></div></div>
       <div class="loader-text">{{ t('appInitializing') }}</div>
     </div>
-    <span v-else-if="initError">{{initError}}</span>
-    <NuxtPage v-else-if="user" /> <!-- TODO - change condition. Or may be change condition on org Auth component?? -->
-    <span v-else>App is initializing</span>
+
+    <NuxtPage v-else />
+
     <LnbToastStack />
   </div>
 </template>

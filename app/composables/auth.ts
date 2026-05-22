@@ -2,9 +2,17 @@ import {useUserOrganizationPreferencesApi} from "~/composables/userOrganizationP
 import {useOrganizationsApi} from "~/composables/organizationsApi";
 
 export const useAuth = () => {
-    const appState = useAppState()
-    const { setLocale } = useI18n()
     const { setUserToken, deleteUserToken, deleteOrganizationToken, setOrganizationToken } = useLocalStorageUtils()
+
+    const isUserAuthenticated = () => {
+        const { appState } = useAppState()
+        return appState.value.user != null;
+    }
+
+    const isOrganizationSelected = () => {
+        const { appState } = useAppState()
+        return appState.value.organization != null;
+    }
 
     const initUserWithBearer = async (bearerToken: string) => {
         await setUserToken(bearerToken)
@@ -52,14 +60,16 @@ export const useAuth = () => {
     }
 
     const initUserWithUserData = async (user: UserDto) => {
-        appState.setUser(user);
+        const { setUser, setPreferences } = useAppState()
+        setUser(user);
 
         const { loadPreferences } = useUserPreferencesApi()
         const preferences = await loadPreferences();
-        appState.setPreferences(preferences);
+        setPreferences(preferences);
 
         // @ts-ignore
-        return setLocale(user.languageCode);
+        const { $i18n } = useNuxtApp();
+        return $i18n.setLocale(user.languageCode as any);
     }
 
     const initOrganizationWithBearer = async (bearer: string) => {
@@ -71,31 +81,63 @@ export const useAuth = () => {
     }
 
     const initOrganizationWithOrganizationData = async (organization: OrganizationDto) => {
-        appState.setOrganization(organization);
+        const { setOrganization, setUserOrganizationPreferences } = useAppState()
+        setOrganization(organization);
 
         const { loadPreferences } = useUserOrganizationPreferencesApi()
         const preferences = await loadPreferences();
-        appState.setUserOrganizationPreferences(preferences);
+        setUserOrganizationPreferences(preferences);
     }
 
     const logout = async () => {
-        appState.setUser(null);
+        const { setUser } = useAppState()
+        setUser(null);
         await deleteUserToken();
     }
 
     const logoutOrganization = async () => {
-        appState.setOrganization(null);
+        const { setOrganization } = useAppState()
+        setOrganization(null);
         await deleteOrganizationToken();
+    }
+
+    const redirectPath = useState('redirectPath', () => '/')
+    const showLoginUserModal = useState('showLoginModal', () => false)
+    const showLoginOrganizationModal = useState('showLoginModal', () => false)
+
+    const requireUserAuth = (to: ReturnType<typeof useRoute>) => {
+        const { appState } = useAppState()
+        if (!appState.value.user) {
+            redirectPath.value = to.fullPath
+            showLoginUserModal.value = true
+            return false
+        }
+        return true
+    }
+
+    const requireOrganizationAuth = (to: ReturnType<typeof useRoute>) => {
+        const { appState } = useAppState()
+        if (!appState.value.organization) {
+            redirectPath.value = to.fullPath
+            showLoginUserModal.value = true
+            return false
+        }
+        return true
     }
 
     return {
         initUserWithBearer,
         tryAuthWithStoredBearer,
         tryAuthOrganizationWithStoredBearer,
-        initUserWithUserData,
         initOrganizationWithOrganizationData,
         logout,
         logoutOrganization,
         initOrganizationWithBearer,
+        requireUserAuth,
+        requireOrganizationAuth,
+        showLoginUserModal,
+        showLoginOrganizationModal,
+        isUserAuthenticated,
+        isOrganizationSelected,
     }
 }
