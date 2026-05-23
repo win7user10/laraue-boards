@@ -1,9 +1,10 @@
 <script setup lang="ts">
+
   const widgetContainer = ref<HTMLElement | null>(null);
 
-  const { setIsAppInitialized } = useAppState();
+  const { setIsAppInitialized, appState } = useAppState();
   const { setLocale, locales, t } = useI18n();
-  const { initUserWithBearer, isUserAuthenticated } = useAuth();
+  const { initUserWithBearer } = useAuth();
   const configuration = useRuntimeConfig();
   const botName = configuration.public.botName;
 
@@ -19,12 +20,11 @@
   };
 
   onMounted(async () => {
-    console.log("Web-app launch");
+    if (appState.value.isInMiniApp)
+      navigateTo('/organizations')
+
     await trySetLocale();
     tryAddLoginWidget();
-
-    if (isUserAuthenticated())
-      navigateTo('/organizations')
   });
 
   const tryAddLoginWidget = () => {
@@ -54,7 +54,7 @@
 </script>
 
 <template>
-  <LnbAuthScreen>
+  <LnbAuthScreen v-if="!appState.isInMiniApp">
     <div class="login-card">
       <div class="login-logo">msg<span>board</span></div>
       <div class="login-tagline">

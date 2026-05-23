@@ -1,7 +1,7 @@
 <script setup lang="ts">
 
 import {useAppState} from "~/composables/appState";
-import {onMounted, ref} from "vue";
+import {onMounted} from "vue";
 import WebApp from "@twa-dev/sdk";
 
 const { appState } = useAppState();
@@ -62,7 +62,7 @@ const setupMiniAppWindow = async () => {
       <div class="loader-text">{{ t('appInitializing') }}</div>
     </div>
 
-    <NuxtPage v-else />
+    <NuxtPage v-if="isAppInitialized" />
 
     <LnbToastStack />
   </div>

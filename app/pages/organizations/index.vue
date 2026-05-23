@@ -22,7 +22,9 @@ const updateOrganizations = async () => {
   organizations.value = await getOrganizations();
 }
 
-await updateOrganizations()
+onMounted(() => {
+  return updateOrganizations()
+})
 
 const modals = reactive({
   createOrganization: false,
@@ -107,6 +109,7 @@ const moveJoinByCode = () => {
       </LnbElementWithHelpLink>
       <div class="org-select-sub">{{ t('selectWhereYouWantToWork') }}</div>
     </div>
+    <LnbNavLoader />
     <div class="org-select-body">
       <!-- User's organizations -->
       <div v-for="org in organizations" :key="org.id" class="org-item" @click="loginOrg(org.id)">

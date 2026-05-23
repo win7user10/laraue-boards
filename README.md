@@ -61,3 +61,14 @@ NUXT_PUBLIC_MESSAGES_BASE_ADDRESS=https://f9f3-194-154-26-10.ngrok-free.app/api/
 2. If setup is correct you will see the empty screen. Actually page is loading now, but ngrok speed is limited.
 You can check ngrok window for logs to ensure loading in progress.
 3. If No Content is received for backend queries, check the CORS setup
+4. Use the next script in `nuxt.config.ts` to add a button to bottom right corner that allow see browser console inside the Mini App:
+```
+app: {
+  head: {
+    script: [
+      { src: 'https://cdn.jsdelivr.net/npm/eruda' },
+      { innerHTML: 'eruda.init();' }
+    ]
+  }
+}
+```
