@@ -1,7 +1,7 @@
 import {DefaultPagination} from "~/composables/pagination";
 import {ref} from "vue";
 import type {EditStatusRequest} from "~/composables/statusesApi";
-import type {EpicListDto} from "~/composables/spacesApi";
+import {type EpicListDto, useSpacesApi} from "~/composables/spacesApi";
 import {useEpicsApi} from "~/composables/epicsApi";
 import {type OrganizationDto, useOrganizationsApi} from "~/composables/organizationsApi";
 
@@ -445,13 +445,13 @@ export const useBoard = () => {
     const createSpace = async (request: CreateSpaceRequest) => {
         const spacesApi = useSpacesApi()
         const spaceId = await spacesApi.createSpace(request)
-        const spaceInfo = await spacesApi.getSpace(spaceId)
         state.value.spaces.push({
             id: spaceId,
             name: request.name,
             color: request.color,
-            canDelete: spaceInfo.canDelete,
-            canUpdate: spaceInfo.canUpdate,
+            canDelete: true,
+            canUpdate: true,
+            canCreateEpics: true,
             key: request.key,
         })
         showToast(t('spaceCreated'), 'success', request.name)
@@ -505,6 +505,10 @@ export const useBoard = () => {
         return spaces.value.length > 0
     })
 
+    const epicTabsAvailable = computed(() => {
+        return epics.value.length > 0 || currentSpace.value?.canCreateEpics
+    })
+
     return {
         state: readonly(state),
         reloadBoard,
@@ -541,5 +545,6 @@ export const useBoard = () => {
         anySpaceAvailable,
         getOrganizations,
         fullReload,
+        epicTabsAvailable,
     }
 }

@@ -7,10 +7,10 @@ import LnbModalInput from "~/components/modals/LnbModalInput.vue";
 
 const emit = defineEmits<{
   (e: 'close'): void,
-  (e: 'create', value: CreateCategoryRequest): void
+  (e: 'create', value: number): void
 }>()
 
-const { currentSpace } = useBoard()
+const { currentSpace, createCategory } = useBoard()
 const { t } = useI18n();
 
 const { getRandomColor } = useAppState();
@@ -21,8 +21,9 @@ const newCategory = ref<CreateCategoryRequest>({
   spaceId: currentSpace.value!.id
 })
 
-const createCategory = () => {
-  emit("create", newCategory.value)
+const createCategoryInternal = async () => {
+  const id = await createCategory(newCategory.value);
+  emit("create", id)
 }
 
 </script>
@@ -33,16 +34,19 @@ const createCategory = () => {
     :title="t('newCategoryBoard')"
     @close="emit('close')"
     @cancel="emit('close')"
-    @apply="createCategory">
+    @apply="createCategoryInternal">
+
     <LnbModalLabel>{{ t('categoryName') }}</LnbModalLabel>
     <LnbModalInput
       focus
-      @enter="createCategory"
+      @enter="createCategoryInternal"
       v-model="newCategory.name"
       :placeholder="t('categoryNameExample')"/>
+
     <LnbModalLabel>{{ t('color') }}</LnbModalLabel>
     <LnbColorPicker
       v-model="newCategory.color"/>
+
   </LnbModal>
 </template>
 

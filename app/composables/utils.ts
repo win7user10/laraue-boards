@@ -62,6 +62,10 @@ export const useUtils = () => {
         return {} as { [key: string]: string[] }
     }
 
+    const getOrganizationKey = (organization: OrganizationDto) => {
+        return `${organization.slug}-${organization.slugPostfix}`
+    }
+
     return {
         formatDate,
         getImageUrl,
@@ -72,5 +76,6 @@ export const useUtils = () => {
         deleteFlag,
         getDocumentationLink,
         getEmptyErrorsObject,
+        getOrganizationKey,
     }
 }
