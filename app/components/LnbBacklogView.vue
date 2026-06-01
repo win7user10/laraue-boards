@@ -12,7 +12,7 @@ const emits = defineEmits<{
   (e: 'openEdit', message: MessageListDto): void,
 }>()
 
-const { state } = useBoard()
+const { state, loadNextCards } = useBoard()
 
 const backlog = computed(() => {
   return state.value.messages.length > 0
@@ -40,7 +40,9 @@ const { t } = useI18n();
     </template>
     <template v-else-if="statusId">
       <LnbSection :title="t('unassignedTitle')">
-        <LnbScrollArea :statusId="statusId">
+        <LnbScrollArea
+          :load-next="() => loadNextCards(statusId!)"
+          :can-load-more="() => backlogMessagesResult?.hasNext ?? false">
           <LnbCard
               v-for="msg in backlogMessagesResult?.data"
               :deleteButton="!!state.currentEpic?.canDeleteIssues"

@@ -56,9 +56,14 @@ export const useBoard = () => {
         return spaces.value.find(x => x.id === spaceId.value) ?? spaces.value[0]
     })
 
-    const setCategory = (id: number) => {
+    const trySetCategory = (id: number) => {
         state.value.searchString = ''
+
+        if (!state.value.epics.find(x => x.id === id))
+            return false;
+
         state.value.epicId = id
+        return true;
     }
 
     const search = async(searchString: string) => {
@@ -118,9 +123,6 @@ export const useBoard = () => {
             return
         const spacesApi = useSpacesApi()
         state.value.epics = await spacesApi.loadSpaceEpics(spaceId.value);
-        const firstEpic = epics.value[0];
-        if (firstEpic)
-            state.value.epicId = firstEpic.id;
     }
 
     const epics = computed(() => {
@@ -509,13 +511,18 @@ export const useBoard = () => {
         return epics.value.length > 0 || currentSpace.value?.canCreateEpics
     })
 
+    const getOrganizationKey = () => {
+        const utils = useUtils()
+        return utils.getOrganizationKey(appState.value.organization!)
+    }
+
     return {
         state: readonly(state),
         reloadBoard,
         reloadEpics,
         reloadCategory,
         createCategory,
-        setCategory,
+        trySetCategory,
         editCategory,
         deleteCategory,
         epics,
@@ -546,5 +553,6 @@ export const useBoard = () => {
         getOrganizations,
         fullReload,
         epicTabsAvailable,
+        getOrganizationKey,
     }
 }

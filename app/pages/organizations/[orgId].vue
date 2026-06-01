@@ -9,7 +9,7 @@ import LnbTopbar from "~/components/LnbTopbar.vue";
 import LnbMassMoveModal from "~/components/modals/movement/LnbMassMoveModal.vue";
 import LnbNav from "~/components/LnbNav.vue";
 
-const { setCategory, state, epicTabsAvailable, currentSpace } = useBoard()
+const { state, epicTabsAvailable, currentSpace, getOrganizationKey } = useBoard()
 const { appState } = useAppState()
 const currentCategory = computed(() => state.value.currentEpic);
 const defaultStatus = computed(() => currentCategory.value?.statuses[0]);
@@ -24,16 +24,25 @@ const board = useBoard();
 const { loginOrganization } = useAuth();
 
 onMounted(async () => {
-  const orgKey = (params.id as string).split("-")
+  const orgId = params.orgId;
+  if (!orgId) {
+    console.log("Org parameter is not found")
+    return navigateTo('/organizations');
+  }
+
+  const orgKey = (orgId as string).split("-")
 
   const slug = orgKey[0];
   const slugPostfix = orgKey[1];
+
+  console.log(slug, slugPostfix)
 
   const organization = appState.value.organization!;
   // Current org opening, do nothing, just reloading the board
   if (organization.slug === slug && organization.slugPostfix === slugPostfix) {
     console.log("Use auth of selected org")
     await board.reloadSpaces()
+    await board.reloadEpics()
     return;
   }
 
@@ -44,6 +53,7 @@ onMounted(async () => {
     console.log("Change auth to available org")
     await loginOrganization(organizationToSwitch.id)
     await board.reloadSpaces()
+    await board.reloadEpics()
     return;
   }
 
@@ -77,10 +87,10 @@ const closeCreateCategory = () => {
 const createCategoryInternal = (id: number) => {
   closeCreateCategory();
   closeFab();
-  setCategory(id);
-}
 
-const epics = board.epics;
+  const key = getOrganizationKey()
+  return navigateTo(`/organizations/${key}/boards/${id}`)
+}
 
 const openCreateCard = () => {
   modal.createCard = true;

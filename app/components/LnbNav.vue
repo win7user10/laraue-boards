@@ -7,8 +7,7 @@ defineProps<{
   canCreateEpics?: boolean,
 }>()
 
-const { epics, state, setCategory } = useBoard();
-const { getOrganizationKey } = useUtils();
+const { epics, state, getOrganizationKey } = useBoard();
 const { appState } = useAppState();
 const route = useRoute();
 const { t } = useI18n();
@@ -31,18 +30,22 @@ const goToStats = () => {
   return navigateTo(organizationsUrl.value);
 }
 
+const isEpicRoute = computed(() => {
+  return route.path.startsWith(organizationsUrl.value + '/boards');
+})
+
 const goToIssues = () => {
   return navigateTo(organizationsUrl.value + '/issues');
 }
 
-const goToEpics = () => {
-  return navigateTo(organizationsUrl.value + '/boards');
-}
-
 const organizationsUrl = computed(() => {
-  const key = getOrganizationKey(appState.value.organization!)
+  const key = getOrganizationKey()
   return `/organizations/${key}`
 })
+
+const setEpicInternal = (id: number) => {
+  return navigateTo(organizationsUrl.value + '/boards/' + id);
+}
 
 const navMode = computed(() => {
   switch (route.path) {
@@ -50,8 +53,10 @@ const navMode = computed(() => {
       return 'stats'
     case organizationsUrl.value + '/boards':
       return 'epics'
-    default:
+    case organizationsUrl.value + '/issues':
       return 'issues'
+    default:
+      return null;
   }
 });
 </script>
@@ -69,33 +74,26 @@ const navMode = computed(() => {
         <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8" cy="8" r="5"/><path d="M5.5 8l2 2 3-3"/></svg>
         <span class="nav-mode-label">Issues</span>
       </div>
-      <div class="nav-mode-sep"></div>
-      <div class="nav-mode-btn epics" :class="{active: navMode === 'epics'}" @click="goToEpics">
-        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="12" height="12" rx="2"/><path d="M2 7h12"/></svg>
-        <span class="nav-mode-label">Epics</span>
-      </div>
     </div>
 
     <!-- NAV TABS -->
-    <template v-if="navMode === 'epics'">
-      <div class="nav-divider"></div>
-      <div class="nav-tabs">
-        <div
-            v-for="cat in epics"
-            class="nav-tab"
-            :class="{active: epicId === cat.id}"
-            :style="epicId === cat.id ? `--dot-color:${cat.color}` : ''"
-            @click="setCategory(cat.id)">
-          <span class="dot" :style="`background:${cat.color}`"></span>
-          {{ cat.name }}
-        </div>
-        <div v-if="canCreateEpics" class="nav-tab-add" :title="t('addEpic')" @click="openCreateCategory">
-          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M8 3v10M3 8h10"/>
-          </svg>
-        </div>
+    <div class="nav-divider"></div>
+    <div class="nav-tabs">
+      <div
+          v-for="cat in epics"
+          class="nav-tab"
+          :class="{active: isEpicRoute && epicId === cat.id}"
+          :style="epicId === cat.id ? `--dot-color:${cat.color}` : ''"
+          @click="setEpicInternal(cat.id)">
+        <span class="dot" :style="`background:${cat.color}`"></span>
+        {{ cat.name }}
       </div>
-    </template>
+      <div v-if="canCreateEpics" class="nav-tab-add" :title="t('addEpic')" @click="openCreateCategory">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M8 3v10M3 8h10"/>
+        </svg>
+      </div>
+    </div>
 
     <!-- Board nav controls: search + sort — pinned to right edge -->
     <div class="nav-controls">

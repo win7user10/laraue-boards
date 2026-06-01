@@ -1,22 +1,17 @@
 <script setup lang="ts">
 
-import {useBoard} from "~/composables/boardState";
-
 const props = defineProps<{
-  statusId: number;
+  loadNext: () => Promise<void>;
+  canLoadMore: () => boolean;
 }>()
 
-const board = useBoard();
 const scrollableEl = ref(null);
 
 useInfiniteScroll(scrollableEl, async () => {
-  await board.loadNextCards(props.statusId);
+  await props.loadNext();
 }, {
   distance: 90,
-  canLoadMore: () => board.state.value.messages
-      .find(s => s.statusId === props.statusId)
-      ?.items
-      .hasNext ?? false
+  canLoadMore: () => props.canLoadMore()
 });
 </script>
 

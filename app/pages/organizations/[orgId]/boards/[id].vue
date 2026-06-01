@@ -8,9 +8,10 @@ import LnbDeleteCategoryModal from "~/components/modals/LnbDeleteCategoryModal.v
 import LnbIconBtn from "~/components/icons/LnbIconBtn.vue";
 import LnbElementWithHelpLink from "~/components/modals/LnbElementWithHelpLink.vue";
 
-const { editCard, deleteCard, editCategory, deleteCategory, state, dbMessagesCount, anySpaceAvailable, epicTabsAvailable, reloadEpics, currentSpace } = useBoard()
+const { editCard, deleteCard, editCategory, deleteCategory, state, dbMessagesCount, reloadEpics, currentSpace, trySetCategory } = useBoard()
 const { t } = useI18n()
 const { getDocumentationLink } = useUtils()
+const { params } = useRoute()
 
 const modal = reactive({
   editCard: false,
@@ -21,8 +22,15 @@ const modal = reactive({
   deleteCategory: false,
 });
 
+const getEpicId = () => {
+  return Number.parseInt(params.id as string);
+}
+
+const epicNotFound = ref(false)
+
 watch(() => currentSpace.value, async () => {
   await reloadEpics()
+  epicNotFound.value = !trySetCategory(getEpicId())
 }, { immediate: true })
 
 const openEditCard = (message: MessageListDto) => {
@@ -62,7 +70,6 @@ const deleteCardInternal = async () => {
   await deleteCard(assignMsg.value!.id)
   closeDelete();
 }
-
 
 const openEditCategory = () => {
   modal.editCategory = true;
@@ -143,22 +150,10 @@ const currentCategory = computed(() => state.value.currentEpic);
     </template>
   </template>
 
-  <template v-if="!anySpaceAvailable">
+  <template v-if="epicNotFound">
     <LnbEmptyState
-        :title="t('noAvailableSpaces')"
-        :subtitle="t('contactAdminForPermissions')"/>
-  </template>
-
-  <template v-if="anySpaceAvailable && !epicTabsAvailable">
-    <LnbEmptyState
-        :title="t('noAvailableEpicsInSpace')"
-        :subtitle="t('contactAdminForPermissions')"/>
-  </template>
-
-  <template v-if="anySpaceAvailable && epicTabsAvailable && !state.currentEpic?.canViewIssues">
-    <LnbEmptyState
-        :title="t('issuesNotAvailableForView')"
-        :subtitle="t('contactAdminForPermissions')"/>
+        title="Oops! The board is not exists or not accessible"
+        subtitle="Use navigation to move to available boards or contact your admin to get the permissions"/>
   </template>
 
   <LnbMoveCardModal

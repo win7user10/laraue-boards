@@ -129,7 +129,9 @@ const searchString = computed(() => board.state.value.searchString);
             btnSize="mini"
             iconSize="small" />
         </div>
-        <LnbScrollArea :statusId="status.id">
+        <LnbScrollArea
+          :load-next="() => board.loadNextCards(status.id)"
+          :can-load-more="() => board.state.value.messages.find(s => s.statusId === status.id)?.items.hasNext ?? false">
           <div class="col-drag-inner" v-sortable="{ statusId: status.id, onCardMoved }">
             <LnbCard
               v-for="msg in cardsByStatus[status.id]?.data"
@@ -151,7 +153,7 @@ const searchString = computed(() => board.state.value.searchString);
         </div>
       </div>
 
-      <div  v-if="board.state.value.currentEpic?.canUpdate" class="add-col-btn" @click="modal.createStatus = true">
+      <div v-if="board.state.value.currentEpic?.canUpdate" class="add-col-btn" @click="modal.createStatus = true">
         <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" style="width:14px;height:14px">
           <path d="M8 3v10M3 8h10"/>
         </svg>
