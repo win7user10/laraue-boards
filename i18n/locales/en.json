@@ -150,6 +150,7 @@
   "stats": "Stats",
   "home": "Home",
   "homeTitle": "All organization issues",
+  "navigateToEpic": "Navigate to epic",
 
   "moveEntireSpace": "Move entire space",
   "moveEntireSpaceDesc": "Moves the space, all its epics and issues to another organization. Default space can not be moved.",

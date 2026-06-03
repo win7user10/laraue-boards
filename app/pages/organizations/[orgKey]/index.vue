@@ -91,8 +91,7 @@ const updateIssue = (source: SearchIssueDto, value: EditCardRequest) => {
         :can-load-more="() => searchResults?.hasNextPage ?? false">
         <LnbCard
           v-for="searchResult in searchResults!.data"
-          :deleteButton="false"
-          :assignButton="false"
+          navigateToEpicButton
           :highlightText="request.searchString"
           :message="searchResult"
           @update="updateIssue(searchResult, $event)">

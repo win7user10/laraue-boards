@@ -8,9 +8,10 @@
 
   const props = defineProps<{
     message: MessageListDto,
-    assignButton: Boolean,
-    deleteButton: Boolean,
-    highlightText?: String,
+    assignButton?: boolean,
+    deleteButton?: boolean,
+    navigateToEpicButton?: boolean,
+    highlightText?: string,
   }>()
 
   const emits = defineEmits<{
@@ -19,7 +20,7 @@
 
   const { getImageUrl } = useUtils()
   const { t } = useI18n();
-  const { openMedia, deleteCard, editCard } = useBoard();
+  const { openMedia, deleteCard, editCard, getOrganizationKey } = useBoard();
 
   const hlTextChunks = computed<TextChunk[]>(() => {
     const content = props.message.content ?? '';
@@ -111,6 +112,12 @@
   const closeAssignToCategory = () => {
     modal.assign = false;
   }
+
+  const getEpicUrl = computed(() => {
+    const organizationKey = getOrganizationKey();
+    const spaceKey = props.message.key.split('-')[0]
+    return `/organizations/${organizationKey}/spaces/${spaceKey}/${props.message.epicId}`
+  })
 </script>
 
 <template>
@@ -152,6 +159,15 @@
     <div class="card-footer">
       <slot name="footer"></slot>
       <div class="card-actions">
+        <nuxt-link v-if="props.navigateToEpicButton"
+          :to="getEpicUrl">
+          <LnbIconBtn
+            :title="t('navigateToEpic')"
+            btnSize="small"
+            iconSize="mini"
+            bordered
+            icon="logout" />
+        </nuxt-link>
         <LnbIconBtn
           v-if="assignButton"
           :title="t('assignToBoard')"
