@@ -11,7 +11,7 @@ const emits = defineEmits<{
 const { t } = useI18n();
 const { moveSpace, moveSpaceEpics, moveEpic } = useMovementApi()
 const { showToast } = useAppState()
-const { fullReload } = useBoard()
+const { getOrganizationKey } = useBoard()
 
 const massMoveStep = ref(0); // 0=type, 1=source, 2=target, 3=mapping, 4=confirm
 const massMoveType = ref<string | null>(null); // 'space'|'spaceEpics'|'epic'|'epicIssues'
@@ -43,10 +43,10 @@ const save = async () => {
   else if (massMoveType.value === 'epic')
     await moveEpic(massMoveEpicSource.value!.id, massMoveSpaceTarget.value!.id)
 
-  await fullReload()
-
   showToast('Move completed', 'success');
   emits('close');
+
+  return navigateTo(`/organizations/${getOrganizationKey()}`)
 }
 
 const massMoveBack = () => {

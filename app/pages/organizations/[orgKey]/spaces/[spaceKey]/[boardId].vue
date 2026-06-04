@@ -4,8 +4,9 @@ import LnbEditCategoryModal from "~/components/modals/LnbEditCategoryModal.vue";
 import LnbDeleteCategoryModal from "~/components/modals/LnbDeleteCategoryModal.vue";
 import LnbIconBtn from "~/components/icons/LnbIconBtn.vue";
 import LnbElementWithHelpLink from "~/components/modals/LnbElementWithHelpLink.vue";
+import LnbCreateCardModal from "~/components/modals/LnbCreateCardModal.vue";
 
-const { editCategory, deleteCategory, state, dbMessagesCount, reloadEpics, currentSpace, trySetCategory, isLoading, search } = useBoard()
+const { editCategory, deleteCategory, state, dbMessagesCount, reloadEpics, currentSpace, trySetCategory, isLoading, search, createCard } = useBoard()
 const { t } = useI18n()
 const { getDocumentationLink } = useUtils()
 const { params } = useRoute()
@@ -14,6 +15,7 @@ const modal = reactive({
   search: false,
   editCategory: false,
   deleteCategory: false,
+  createIssue: false,
 });
 
 const getEpicId = () => {
@@ -33,6 +35,19 @@ const openEditCategory = () => {
 
 const closeEditCategory = () => {
   modal.editCategory = false;
+}
+
+const openCreateIssue = () => {
+  modal.createIssue = true;
+}
+
+const closeCreateIssue = () => {
+  modal.createIssue = false;
+}
+
+const createIssueInternal = async (request: CreateCardRequest) => {
+  await createCard(request);
+  closeCreateIssue();
 }
 
 const editCategoryInternal = async (request: EditCategoryRequest) => {
@@ -94,6 +109,13 @@ const searchInternal = async (value: string) => {
           icon="edit"
           @click="openEditCategory" />
         <LnbIconBtn
+          v-if="currentCategory?.canCreateIssues && isBacklog"
+          :title="t('createCard')"
+          btnSize="medium"
+          iconSize="medium"
+          icon="add"
+          @click="openCreateIssue" />
+        <LnbIconBtn
           v-if="currentCategory?.canDelete"
           type="danger"
           btnSize="medium"
@@ -127,6 +149,12 @@ const searchInternal = async (value: string) => {
     @close="closeDeleteCategory"
     @delete="deleteCategoryInternal"
     v-if="modal.deleteCategory"/>
+
+  <LnbCreateCardModal
+    @close="closeCreateIssue"
+    @create="createIssueInternal"
+    :status-id="currentCategory!.statuses[0]!.id"
+    v-if="modal.createIssue"/>
 
 </template>
 

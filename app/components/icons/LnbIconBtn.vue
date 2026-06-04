@@ -6,7 +6,7 @@
     type: {type: String as PropType<'primary' | 'danger'>, required: false, default: 'primary'},
     btnSize: {type: String as PropType<'mini' | 'small' | 'medium'>, required: true },
     iconSize: {type: String as PropType<'mini' | 'small' | 'medium'>, required: true },
-    icon: {type: String as PropType<'clear' | 'delete' | 'edit' | 'move' | 'search' | 'logout'>, required: true },
+    icon: {type: String as PropType<'clear' | 'delete' | 'edit' | 'move' | 'search' | 'logout' | 'add'>, required: true },
     bordered: {type: Boolean, default: false},
   })
 

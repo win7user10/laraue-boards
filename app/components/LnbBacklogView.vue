@@ -28,9 +28,9 @@ const { t } = useI18n();
   <LnbView>
     <template v-if="backlogMessagesResult?.data.length === 0">
       <LnbEmptyState
-          v-if="backlogMessagesResult?.data.length === 0"
-          :title="t('backlogEmpty')"
-          :subtitle="t('backlogEmptySubtitle')"/>
+        v-if="backlogMessagesResult?.data.length === 0"
+        :title="t('backlogEmpty')"
+        :subtitle="t('backlogEmptySubtitle')"/>
     </template>
     <template v-else-if="statusId">
       <LnbSection :title="t('unassignedTitle')">

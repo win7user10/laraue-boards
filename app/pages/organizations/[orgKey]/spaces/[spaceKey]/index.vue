@@ -96,7 +96,7 @@ const computedSummaries = computed(() => {
       </div>
       </LnbSection>
     </LnbView>
-    <LnbEmptyState title="Result is empty" subtitle="No epics to show here"/>
+    <LnbEmptyState v-else title="Result is empty" subtitle="No epics to show here"/>
   </template>
   <template v-else>
     <LnbEmptyState title="Oops. Space is not found" subtitle="It can be deleted or never exists. Or you don't have permissions."/>
