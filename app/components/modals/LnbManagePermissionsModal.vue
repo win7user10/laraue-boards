@@ -18,427 +18,403 @@ const props = defineProps<{
 
 const { t } = useI18n()
 
-const GLOBAL_PERMS = [
-  {
-    id: ChildrenAccessLevel.Read,
-    name: t('readAbbreviation'),
-  },
-  {
-    id: ChildrenAccessLevel.Create,
-    name: t('createAbbreviation'),
-  },
-  {
-    id: ChildrenAccessLevel.Update,
-    name: t('updateAbbreviation'),
-  },
-  {
-    id: ChildrenAccessLevel.Delete,
-    name: t('deleteAbbreviation'),
-  }
-];
+const GLOBAL_READ_PERM    = [{ id: 0,  name: t('readAbbreviation') }]
+const GLOBAL_SPACES_PERMS = [{ id: 1,  name: t('createAbbreviation') }, { id: 2,  name: t('updateAbbreviation') }, { id: 3,  name: t('deleteAbbreviation') }]
+const GLOBAL_EPICS_PERMS  = [{ id: 4,  name: t('createAbbreviation') }, { id: 5,  name: t('updateAbbreviation') }, { id: 6,  name: t('deleteAbbreviation') }]
+const GLOBAL_ISSUES_PERMS = [{ id: 7,  name: t('createAbbreviation') }, { id: 8,  name: t('updateAbbreviation') }, { id: 9,  name: t('deleteAbbreviation') }]
 
-const CHILD_PERMS = [
-  {
-    id: ChildrenAccessLevel.Read,
-    name: `${t('readAbbreviation')} (${t('issueAbbreviation')})`,
-  },
-  {
-    id: ChildrenAccessLevel.Create,
-    name: `${t('createAbbreviation')} (${t('issueAbbreviation')})`,
-  },
-  {
-    id: ChildrenAccessLevel.Update,
-    name: `${t('updateAbbreviation')} (${t('issueAbbreviation')})`,
-  },
-  {
-    id: ChildrenAccessLevel.Delete,
-    name: `${t('deleteAbbreviation')} (${t('issueAbbreviation')})`,
-  }
-];
+const DIRECT_READ_PERM    = [{ id: 13, name: t('readAbbreviation') }]
+const DIRECT_SELF_PERMS   = [{ id: 11, name: t('updateAbbreviation') }, { id: 12, name: t('deleteAbbreviation') }]
+const DIRECT_EPICS_PERMS  = [{ id: 4,  name: t('createAbbreviation') }, { id: 5,  name: t('updateAbbreviation') }, { id: 6,  name: t('deleteAbbreviation') }]
+const DIRECT_ISSUES_PERMS = [{ id: 7,  name: t('createAbbreviation') }, { id: 8,  name: t('updateAbbreviation') }, { id: 9,  name: t('deleteAbbreviation') }]
 
-const SELF_PERMS = [
-  {
-    id: EntityAccessLevel.Read,
-    name: t('readAbbreviation'),
-  },
-  {
-    id: EntityAccessLevel.Update,
-    name: t('updateAbbreviation'),
-  },
-  {
-    id: EntityAccessLevel.Delete,
-    name: t('deleteAbbreviation'),
-  }
-];
+const GLOBAL_KEY_MAP: Record<number, keyof GlobalAccessLevel> = {
+  0: 'canRead',
+  1: 'canCreateSpaces',
+  2: 'canUpdateSpaces',
+  3: 'canDeleteSpaces',
+  4: 'canCreateEpics',
+  5: 'canUpdateEpics',
+  6: 'canDeleteEpics',
+  7: 'canCreateIssues',
+  8: 'canUpdateIssues',
+  9: 'canDeleteIssues',
+}
 
-const CHILDREN_TYPE = 'children';
-const SELF_TYPE = 'self';
-const CHILD_AND_SELF_PERMS = [
-  ...SELF_PERMS.map(x => { return { id: x.id, name: x.name, type: SELF_TYPE } }),
-  ...CHILD_PERMS.map(x => { return { id: x.id, name: x.name, type: CHILDREN_TYPE } }),
-];
+const DIRECT_KEY_MAP: Record<number, keyof DirectSpaceAccessLevel> = {
+  13: 'canRead',
+  11: 'canUpdate',
+  12: 'canDelete',
+  4:  'canCreateEpics',
+  5:  'canUpdateEpics',
+  6:  'canDeleteEpics',
+  7:  'canCreateIssues',
+  8:  'canUpdateIssues',
+  9:  'canDeleteIssues',
+}
+
+// Global inheritance maps
+const EPIC_INHERITED_FROM_SPACES: Partial<Record<keyof GlobalAccessLevel, keyof GlobalAccessLevel>> = {
+  canCreateEpics: 'canCreateSpaces',
+  canUpdateEpics: 'canUpdateSpaces',
+  canDeleteEpics: 'canDeleteSpaces',
+}
+
+const ISSUE_INHERITED_FROM_SPACES: Partial<Record<keyof GlobalAccessLevel, keyof GlobalAccessLevel>> = {
+  canCreateIssues: 'canCreateSpaces',
+  canUpdateIssues: 'canUpdateSpaces',
+  canDeleteIssues: 'canDeleteSpaces',
+}
+
+const ISSUE_INHERITED_FROM_EPICS: Partial<Record<keyof GlobalAccessLevel, keyof GlobalAccessLevel>> = {
+  canCreateIssues: 'canCreateEpics',
+  canUpdateIssues: 'canUpdateEpics',
+  canDeleteIssues: 'canDeleteEpics',
+}
+
+const SELF_KEY_TO_GLOBAL: Partial<Record<keyof DirectSpaceAccessLevel, keyof GlobalAccessLevel>> = {
+  canUpdate: 'canUpdateSpaces',
+  canDelete: 'canDeleteSpaces',
+}
+
+const DIRECT_EPIC_KEY_TO_GLOBAL: Partial<Record<keyof DirectSpaceAccessLevel, keyof GlobalAccessLevel>> = {
+  canCreateEpics: 'canCreateEpics',
+  canUpdateEpics: 'canUpdateEpics',
+  canDeleteEpics: 'canDeleteEpics',
+}
+
+const DIRECT_ISSUE_KEY_TO_GLOBAL: Partial<Record<keyof DirectSpaceAccessLevel, keyof GlobalAccessLevel>> = {
+  canCreateIssues: 'canCreateIssues',
+  canUpdateIssues: 'canUpdateIssues',
+  canDeleteIssues: 'canDeleteIssues',
+}
+
+// Direct inheritance maps (same-operation, top-down)
+// epic key → space key that would inherit into it
+const EPIC_INHERITED_FROM_DIRECT_SPACE: Partial<Record<keyof DirectSpaceAccessLevel, keyof DirectSpaceAccessLevel>> = {
+  canUpdateEpics: 'canUpdate',
+  canDeleteEpics: 'canDelete',
+}
+
+const ISSUE_INHERITED_FROM_DIRECT_SPACE: Partial<Record<keyof DirectSpaceAccessLevel, keyof DirectSpaceAccessLevel>> = {
+  canUpdateIssues: 'canUpdate',
+  canDeleteIssues: 'canDelete',
+}
+
+const ISSUE_INHERITED_FROM_DIRECT_EPIC: Partial<Record<keyof DirectSpaceAccessLevel, keyof DirectSpaceAccessLevel>> = {
+  canCreateIssues: 'canCreateEpics',
+  canUpdateIssues: 'canUpdateEpics',
+  canDeleteIssues: 'canDeleteEpics',
+}
 
 const ADMIN_PERMS = [
   {
     name: t('organization'),
     perms: [
-      {
-        id: AdminAccessLevel.UpdateOrganization,
-        name: t('update'),
-      },
-      {
-        id: AdminAccessLevel.DeleteOrganization,
-        name: t('delete'),
-      }
+      { id: AdminAccessLevel.UpdateOrganization, name: t('update') },
+      { id: AdminAccessLevel.DeleteOrganization, name: t('delete') },
     ],
   },
   {
     name: t('permissions'),
     perms: [
-      {
-        id: AdminAccessLevel.Manage,
-        name: t('manage'),
-      }
-    ]
-  }
-];
+      { id: AdminAccessLevel.Manage, name: t('manage') },
+    ],
+  },
+]
 
 const permissions = ref(await getUserPermissions(props.member.organizationUserId))
-const permittedRows = computed(() => {
-  return props.permittableEntities;
-})
 
-const toggleFlag = <T extends number>(currentValue: T, valueToToggle: T) => {
-  if (hasFlag(currentValue, valueToToggle))
-    return deleteFlag(currentValue, valueToToggle)
-  return addFlag(currentValue, valueToToggle)
+const permittedRows = computed(() => props.permittableEntities)
+
+// ── Global ────────────────────────────────────────────────────────────────────
+
+const getGlobalBool = (id: number): boolean => {
+  const key = GLOBAL_KEY_MAP[id]
+  if (!key) return false
+  return permissions.value.global[key] as boolean
 }
 
-const isGlobalSpacesInherited = (level: ChildrenAccessLevel) => {
-  if (isValueInherited(permissions.value.global.spaces, level))
-    return true;
-  if (level === ChildrenAccessLevel.Read)
-    return isGlobalEpicsInherited(level) || hasFlag(permissions.value.global.issues, ChildrenAccessLevel.Read) || hasFlag(permissions.value.global.epics, ChildrenAccessLevel.Read);
-  return false;
+const toggleGlobal = (id: number) => {
+  const key = GLOBAL_KEY_MAP[id]
+  if (!key) return
+      ;(permissions.value.global as any)[key] = !permissions.value.global[key]
 }
 
-const isGlobalEpicsInherited = (level: ChildrenAccessLevel) => {
-  if (isValueInherited(permissions.value.global.epics, level))
-    return true;
-  if (level === ChildrenAccessLevel.Read)
-    return isGlobalIssuesInherited(level) || hasFlag(permissions.value.global.issues, ChildrenAccessLevel.Read);
-  return false;
+const isGlobalReadInherited = (): boolean =>
+    permissions.value.global.canCreateSpaces ||
+    permissions.value.global.canUpdateSpaces ||
+    permissions.value.global.canDeleteSpaces ||
+    permissions.value.global.canCreateEpics  ||
+    permissions.value.global.canUpdateEpics  ||
+    permissions.value.global.canDeleteEpics  ||
+    permissions.value.global.canCreateIssues ||
+    permissions.value.global.canUpdateIssues ||
+    permissions.value.global.canDeleteIssues
+
+const isGlobalEpicsInherited = (id: number): boolean => {
+  const key = GLOBAL_KEY_MAP[id]
+  if (!key) return false
+  return !!permissions.value.global[EPIC_INHERITED_FROM_SPACES[key]!]
 }
 
-const isGlobalIssuesInherited = (level: ChildrenAccessLevel) => isValueInherited(permissions.value.global.issues, level)
-
-const toggleGlobalSpaces = (level: ChildrenAccessLevel) => {
-  permissions.value.global.spaces = toggleFlag(permissions.value.global.spaces, level)
+const isGlobalIssuesInherited = (id: number): boolean => {
+  const key = GLOBAL_KEY_MAP[id]
+  if (!key) return false
+  return !!permissions.value.global[ISSUE_INHERITED_FROM_SPACES[key]!] ||
+      !!permissions.value.global[ISSUE_INHERITED_FROM_EPICS[key]!]
 }
 
-const toggleGlobalEpics = (level: ChildrenAccessLevel) => {
-  permissions.value.global.epics = toggleFlag(permissions.value.global.epics, level)
-}
+// ── Direct ────────────────────────────────────────────────────────────────────
 
-const toggleGlobalIssues = (level: ChildrenAccessLevel) => {
-  permissions.value.global.issues = toggleFlag(permissions.value.global.issues, level)
-}
+const hasDirectSpacePermission = (spaceId: number): boolean =>
+    !!permissions.value.direct[spaceId]
 
-const isSpaceSelfAccessInherited = (spaceId: number, level: EntityAccessLevel) => {
-  const castedLevel = level as unknown as ChildrenAccessLevel
-  if (hasFlag(permissions.value.global.spaces, castedLevel) || isGlobalSpacesInherited(castedLevel))
-    return true;
-  if (!hasDirectSpacePermission(spaceId))
-    return false;
-  const value = permissions.value.direct[spaceId]!.self;
-  if (level === EntityAccessLevel.Read)
-    return shouldAddReadForEntity(value);
-  return false;
-}
-
-const isSpaceEpicsInherited = (spaceId: number, level: ChildrenAccessLevel) => {
-  if (hasFlag(permissions.value.global.epics, level) || isGlobalEpicsInherited(level))
-    return true;
-  if (!hasDirectSpacePermission(level))
-    return false;
-  if (isValueInherited(permissions.value.direct[spaceId]!.epics, level) || isSpaceIssuesInherited(spaceId, level))
-    return true;
-  return level === ChildrenAccessLevel.Read && hasFlag(permissions.value.direct[spaceId]!.issues, level);
-}
-const isSpaceIssuesInherited = (spaceId: number, level: ChildrenAccessLevel) => {
-  if (hasFlag(permissions.value.global.issues, level) || isGlobalIssuesInherited(level))
-    return true;
-  if (!hasDirectSpacePermission(level))
-    return false;
-  return isValueInherited(permissions.value.direct[spaceId]!.issues, level)
-};
-
-const isSpaceEpicChecked = (spaceId: number, epicId: number, level: number, type: string) => {
-  return type == CHILDREN_TYPE
-      ? hasFlag(permissions.value.direct[spaceId]!.directEpics[epicId]!.issues, level)
-      : hasFlag(permissions.value.direct[spaceId]!.directEpics[epicId]!.self, level)
-}
-
-const isSpaceEpicInherited = (spaceId: number, epicId: number, level: number, type: string) => {
-  if (type == CHILDREN_TYPE && (hasFlag(permissions.value.global.issues, level) || isGlobalIssuesInherited(level)))
-    return true;
-  if (type == SELF_TYPE && (hasFlag(permissions.value.global.epics, level) || isGlobalEpicsInherited(level)))
-    return true;
-
-  if (!hasDirectEpicPermission(spaceId, epicId))
-    return false;
-  return type == CHILDREN_TYPE
-    ? isValueInherited(permissions.value.direct[spaceId]!.directEpics[epicId]!.issues, level)
-    : isValueOfEntityInherited(permissions.value.direct[spaceId]!.directEpics[epicId]!.self, level)
-}
-
-const isValueInherited = (valueToCheck: ChildrenAccessLevel, level: ChildrenAccessLevel) => {
-  if (level === ChildrenAccessLevel.Read)
-    return shouldAddRead(valueToCheck);
-  return false;
-}
-
-const isValueOfEntityInherited = (valueToCheck: EntityAccessLevel, level: EntityAccessLevel) => {
-  if (level === EntityAccessLevel.Read)
-    return shouldAddReadForEntity(valueToCheck);
-  return false;
-}
-
-const toggleSpaceSelfAccess = (spaceId: number, level: EntityAccessLevel) => {
-  const space = getOrAddSpacePermission(spaceId);
-  space.self = toggleFlag(space.self, level)
-}
-
-const toggleSpaceEpicsAccess = (spaceId: number, level: ChildrenAccessLevel) => {
-  const space = getOrAddSpacePermission(spaceId);
-  space.epics = toggleFlag(space.epics, level)
-}
-
-const toggleSpaceIssuesAccess = (spaceId: number, level: ChildrenAccessLevel) => {
-  const space = getOrAddSpacePermission(spaceId);
-  space.issues = toggleFlag(space.issues, level)
-}
-
-const toggleSpaceEpicAccess = (spaceId: number, epicId: number, level: number, type: string) => {
-  const epic = getOrAddSpaceEpicPermission(spaceId, epicId);
-  if (type == CHILDREN_TYPE)
-    epic.issues = toggleFlag(epic.issues, level)
-  else
-    epic.self = toggleFlag(epic.self, level)
-}
-
-const getOrAddSpacePermission = (spaceId: number) => {
+const getOrAddSpacePermission = (spaceId: number): DirectSpaceAccessLevel => {
   if (!hasDirectSpacePermission(spaceId))
     permissions.value.direct[spaceId] = {
-      epics: ChildrenAccessLevel.None,
-      issues: ChildrenAccessLevel.None,
-      self: EntityAccessLevel.None,
-      directEpics: {}
-    };
+      canRead:         false,
+      canUpdate:       false,
+      canDelete:       false,
+      canCreateEpics:  false,
+      canUpdateEpics:  false,
+      canDeleteEpics:  false,
+      canCreateIssues: false,
+      canUpdateIssues: false,
+      canDeleteIssues: false,
+    }
   return permissions.value.direct[spaceId]!
 }
 
-const getOrAddSpaceEpicPermission = (spaceId: number, epicId: number) => {
-  const space = getOrAddSpacePermission(spaceId);
-  if (!hasDirectEpicPermission(spaceId, epicId))
-    space.directEpics[epicId] = {
-      issues: ChildrenAccessLevel.None,
-      self: EntityAccessLevel.None,
-    }
-  return space.directEpics[epicId]!
+const getDirectBool = (spaceId: number, id: number): boolean => {
+  const key = DIRECT_KEY_MAP[id]
+  if (!key || !hasDirectSpacePermission(spaceId)) return false
+  return permissions.value.direct[spaceId]![key] as boolean
 }
 
-const hasDirectSpacePermission = (spaceId: number) => {
-  const value = permissions.value.direct[spaceId];
-  return !!value;
+const toggleDirect = (spaceId: number, id: number) => {
+  const key = DIRECT_KEY_MAP[id]
+  if (!key) return
+  const space = getOrAddSpacePermission(spaceId)
+  ;(space as any)[key] = !space[key]
 }
 
-const hasDirectEpicPermission = (spaceId: number, epicId: number) => {
-  if (!hasDirectSpacePermission(spaceId))
-    return false;
-  const value = permissions.value.direct[spaceId]!.directEpics[epicId];
-  return !!value;
+const isDirectReadInherited = (spaceId: number): boolean => {
+  if (permissions.value.global.canRead || isGlobalReadInherited()) return true
+  if (!hasDirectSpacePermission(spaceId)) return false
+  const s = permissions.value.direct[spaceId]!
+  return s.canUpdate       ||
+      s.canDelete       ||
+      s.canCreateEpics  ||
+      s.canUpdateEpics  ||
+      s.canDeleteEpics  ||
+      s.canCreateIssues ||
+      s.canUpdateIssues ||
+      s.canDeleteIssues
 }
 
-const shouldAddRead = (level: ChildrenAccessLevel) => {
-  return hasFlag(level, ChildrenAccessLevel.Create) || hasFlag(level, ChildrenAccessLevel.Update) || hasFlag(level, ChildrenAccessLevel.Delete)
+const isDirectSelfInherited = (_spaceId: number, id: number): boolean => {
+  const key = DIRECT_KEY_MAP[id]
+  if (!key) return false
+  return !!permissions.value.global[SELF_KEY_TO_GLOBAL[key]!]
 }
 
-const shouldAddReadForEntity = (level: EntityAccessLevel) => {
-  return hasFlag(level, EntityAccessLevel.Update) || hasFlag(level, EntityAccessLevel.Delete)
+const isDirectEpicsInherited = (spaceId: number, id: number): boolean => {
+  const key = DIRECT_KEY_MAP[id]
+  if (!key) return false
+  if (isGlobalEpicsInherited(id)) return true
+  if (!!permissions.value.global[DIRECT_EPIC_KEY_TO_GLOBAL[key]!]) return true
+  if (!hasDirectSpacePermission(spaceId)) return false
+  const spaceKey = EPIC_INHERITED_FROM_DIRECT_SPACE[key]
+  return !!spaceKey && !!permissions.value.direct[spaceId]![spaceKey]
 }
 
-const disabledForDefaultEntity = (level: ChildrenAccessLevel) => {
-  return level == ChildrenAccessLevel.Delete
+const isDirectIssuesInherited = (spaceId: number, id: number): boolean => {
+  const key = DIRECT_KEY_MAP[id]
+  if (!key) return false
+  if (isGlobalIssuesInherited(id)) return true
+  if (!!permissions.value.global[DIRECT_ISSUE_KEY_TO_GLOBAL[key]!]) return true
+  if (!hasDirectSpacePermission(spaceId)) return false
+  const s = permissions.value.direct[spaceId]!
+  const spaceKey = ISSUE_INHERITED_FROM_DIRECT_SPACE[key]
+  if (!!spaceKey && !!s[spaceKey]) return true
+  const epicKey = ISSUE_INHERITED_FROM_DIRECT_EPIC[key]
+  return !!epicKey && !!s[epicKey]
 }
 
-enum PermissionTab {
-  Global,
-  Direct,
-  Admin,
+// ── Admin (bitflags) ──────────────────────────────────────────────────────────
+
+const toggleAdminFlag = (id: number) => {
+  if (hasFlag(permissions.value.admin, id))
+    permissions.value.admin = deleteFlag(permissions.value.admin, id)
+  else
+    permissions.value.admin = addFlag(permissions.value.admin, id)
 }
+
+// ── Tabs / expand ─────────────────────────────────────────────────────────────
+
+enum PermissionTab { Global, Direct, Admin }
 
 const tab = ref(PermissionTab.Global)
-
 const expandedSpaces = ref<Set<number>>(new Set())
 
-const toggleDirectSpace = (id: number) => {
-  return expandedSpaces.value.has(id) ? expandedSpaces.value.delete(id) : expandedSpaces.value.add(id)
-}
+const toggleDirectSpace = (id: number) =>
+    expandedSpaces.value.has(id)
+        ? expandedSpaces.value.delete(id)
+        : expandedSpaces.value.add(id)
 
 </script>
 
 <template>
   <LnbModal
-    title="Edit Permissions"
-    @close="emit('close')"
-    @cancel="emit('close')"
-    @apply="emit('update', permissions)"
-    apply-text="Save">
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px; margin-top:14px;">
+      :title="t('editPermissions')"
+      @close="emit('close')"
+      @cancel="emit('close')"
+      @apply="emit('update', permissions)"
+      :apply-text="t('save')">
+
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;margin-top:14px;">
       <LnbCardAvatar :color="member.color">
         {{ props.member.initials?.toUpperCase() }}
       </LnbCardAvatar>
       <div>
-        <div style="font-size:13px;font-weight:700;color:var(--text)"> {{ member.firstName }} {{member.lastName}} </div>
-        <div style="font-size:10px;color:var(--text3)">@{{member.username}} · {{ getRoleKey(member) }}</div>
+        <div style="font-size:13px;font-weight:700;color:var(--text)">{{ member.firstName }} {{ member.lastName }}</div>
+        <div style="font-size:10px;color:var(--text3)">@{{ member.username }} · {{ getRoleKey(member) }}</div>
       </div>
     </div>
 
-    <!-- Three tabs -->
+    <!-- Tabs -->
     <div style="display:flex;gap:4px;margin-bottom:12px">
-      <div class="org-panel-tab" :class="{active: tab === PermissionTab.Global }" @click="tab = PermissionTab.Global">Organization</div>
-      <div class="org-panel-tab" :class="{active: tab === PermissionTab.Direct }" @click="tab = PermissionTab.Direct">Direct</div>
-      <div class="org-panel-tab" :class="{active: tab === PermissionTab.Admin }" @click="tab = PermissionTab.Admin">Administrative</div>
+      <div class="org-panel-tab" :class="{ active: tab === PermissionTab.Global }" @click="tab = PermissionTab.Global">
+        {{ t('organization') }}
+      </div>
+      <div class="org-panel-tab" :class="{ active: tab === PermissionTab.Direct }" @click="tab = PermissionTab.Direct">
+        {{ t('bySpace') }}
+      </div>
+      <div class="org-panel-tab" :class="{ active: tab === PermissionTab.Admin  }" @click="tab = PermissionTab.Admin">
+        {{ t('administrative') }}
+      </div>
     </div>
 
+    <!-- ── Global tab ── -->
     <div v-if="tab === PermissionTab.Global">
-
       <div style="font-size:11px;color:var(--text3);background:var(--surface3);border-radius:8px;padding:8px 10px;margin-bottom:12px;line-height:1.5">
-        ✦ Grants apply to <strong style="color:var(--text2)">all</strong> spaces, epics and issues in the organization.
-        <br>✦ Granting <strong style="color:var(--accent)">Read</strong> on Issues implies navigation access to all Spaces and Epics.
+        {{ t('globalTitle') }}
+        <br> {{ t('globalReadDescription') }}
       </div>
 
       <div class="perm-section">
-        <!-- Column headers: C R U D -->
-        <LnbPermissionSectionTitle title="Children Access" :column-names="GLOBAL_PERMS.map(x => x.name)" />
-
-        <!-- Spaces row -->
+        <LnbPermissionSectionTitle :title="t('read')" :column-names="GLOBAL_READ_PERM.map(x => x.name)" />
         <LnbPermissionSectionRow
-          title="Spaces"
-          :columns="GLOBAL_PERMS"
-          :checked="id => hasFlag(permissions.global.spaces, id)"
-          :inherited="id => isGlobalSpacesInherited(id)"
-          @change="id => toggleGlobalSpaces(id)"/>
+            :title="t('all')"
+            :columns="GLOBAL_READ_PERM"
+            :checked="id => getGlobalBool(id)"
+            :inherited="_ => isGlobalReadInherited()"
+            @change="id => toggleGlobal(id)" />
 
-        <!-- Epics row -->
+        <LnbPermissionSectionTitle :title="t('modification')" :column-names="GLOBAL_SPACES_PERMS.map(x => x.name)" />
         <LnbPermissionSectionRow
-          title="Epics"
-          :columns="GLOBAL_PERMS"
-          :checked="id => hasFlag(permissions.global.epics, id)"
-          :inherited="id => isGlobalEpicsInherited(id)"
-          @change="id => toggleGlobalEpics(id)"/>
+            :title="t('spaces')"
+            :columns="GLOBAL_SPACES_PERMS"
+            :checked="id => getGlobalBool(id)"
+            :inherited="_ => false"
+            @change="id => toggleGlobal(id)" />
 
-        <!-- Issues row -->
         <LnbPermissionSectionRow
-          title="Issues"
-          :columns="GLOBAL_PERMS"
-          :checked="id => hasFlag(permissions.global.issues, id)"
-          :inherited="id => isGlobalIssuesInherited(id)"
-          @change="id => toggleGlobalIssues(id)"/>
+            :title="t('epics')"
+            :columns="GLOBAL_EPICS_PERMS"
+            :checked="id => getGlobalBool(id)"
+            :inherited="id => isGlobalEpicsInherited(id)"
+            @change="id => toggleGlobal(id)" />
 
+        <LnbPermissionSectionRow
+            :title="t('issues')"
+            :columns="GLOBAL_ISSUES_PERMS"
+            :checked="id => getGlobalBool(id)"
+            :inherited="id => isGlobalIssuesInherited(id)"
+            @change="id => toggleGlobal(id)" />
       </div>
     </div>
 
+    <!-- ── Direct tab ── -->
     <div v-if="tab === PermissionTab.Direct">
-
       <div style="font-size:10px;color:var(--text3);margin-bottom:10px;line-height:1.5;background:var(--surface3);padding:8px 10px;border-radius:8px">
-        ✦ C/U/D are explicit — granting Update on Issues does not affect Epics.
-        <br>✦ Granting <strong style="color:var(--accent)">Read</strong> on Issues or Epics automatically gives read-only navigation access to the parent Space.
+        {{ t('directTitle') }}
+        <br> {{ t('directDescription') }}
       </div>
 
-      <div class="perm-section" style="margin-bottom:8px" v-for="permission in permittedRows">
+      <div class="perm-section" style="margin-bottom:8px" v-for="permission in permittedRows" :key="permission.id">
 
-        <!-- Space header row -->
         <div style="display:flex;align-items:center;padding:8px 10px;background:var(--surface3);cursor:pointer;border-bottom:1px solid var(--border)"
-          @click="toggleDirectSpace(permission.id)">
+             @click="toggleDirectSpace(permission.id)">
           <div style="display:flex;align-items:center;gap:6px;flex:1;min-width:0">
             <div style="width:9px;height:9px;border-radius:50%;flex-shrink:0" :style="{ background: permission.color }"></div>
             <div style="font-size:12px;font-weight:700;color:var(--text)">{{ permission.name }}</div>
           </div>
-          <div class="perm-expand-btn" :class="{open: expandedSpaces.has(permission.id)}">
+          <div class="perm-expand-btn" :class="{ open: expandedSpaces.has(permission.id) }">
             <svg viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 2l4 3-4 3"/></svg>
-            {{ expandedSpaces.has(permission.id) ? 'hide' : 'show' }}
+            {{ expandedSpaces.has(permission.id) ? t('hide') : t('show') }}
           </div>
         </div>
 
         <template v-if="expandedSpaces.has(permission.id)">
+          <LnbPermissionSectionTitle :title="t('readSpaceEntities')" :column-names="DIRECT_READ_PERM.map(x => x.name)" />
+          <LnbPermissionSectionRow
+              :title="t('all')"
+              :columns="DIRECT_READ_PERM"
+              :checked="id => getDirectBool(permission.id, id)"
+              :inherited="_ => isDirectReadInherited(permission.id)"
+              @change="id => toggleDirect(permission.id, id)" />
 
-          <LnbPermissionSectionTitle title="Self Access" :column-names="SELF_PERMS.map(x => x.name)" />
+          <LnbPermissionSectionTitle :title="t('spaceModification')" :column-names="DIRECT_SELF_PERMS.map(x => x.name)" />
           <LnbPermissionSectionRow
-            title="Space"
-            :columns="SELF_PERMS"
-            :checked="id => hasDirectSpacePermission(permission.id) && hasFlag(permissions.direct[permission.id]!.self, id)"
-            :inherited="id => isSpaceSelfAccessInherited(permission.id, id)"
-            @change="id => toggleSpaceSelfAccess(permission.id, id)"/>
+              :title="t('access')"
+              :columns="DIRECT_SELF_PERMS"
+              :checked="id => getDirectBool(permission.id, id)"
+              :inherited="id => isDirectSelfInherited(permission.id, id)"
+              @change="id => toggleDirect(permission.id, id)" />
 
-          <!-- Global Children in Space -->
-          <LnbPermissionSectionTitle title="Children Access" :column-names="GLOBAL_PERMS.map(x => x.name)" />
+          <LnbPermissionSectionTitle :title="t('childrenModification')" :column-names="DIRECT_EPICS_PERMS.map(x => x.name)" />
           <LnbPermissionSectionRow
-            title="Epics"
-            :columns="GLOBAL_PERMS"
-            :checked="id => hasDirectSpacePermission(permission.id) && hasFlag(permissions.direct[permission.id]!.epics, id)"
-            :inherited="id => isSpaceEpicsInherited(permission.id, id)"
-            @change="id => toggleSpaceEpicsAccess(permission.id, id)"/>
+              :title="t('epics')"
+              :columns="DIRECT_EPICS_PERMS"
+              :checked="id => getDirectBool(permission.id, id)"
+              :inherited="id => isDirectEpicsInherited(permission.id, id)"
+              @change="id => toggleDirect(permission.id, id)" />
           <LnbPermissionSectionRow
-            title="Issues"
-            :columns="GLOBAL_PERMS"
-            :checked="id => hasDirectSpacePermission(permission.id) && hasFlag(permissions.direct[permission.id]!.issues, id)"
-            :inherited="id => isSpaceIssuesInherited(permission.id, id)"
-            @change="id => toggleSpaceIssuesAccess(permission.id, id)" />
-
-          <!-- Direct Epics -->
-          <LnbPermissionSectionTitle title="Direct Epics Access" :column-names="CHILD_AND_SELF_PERMS.map(x => x.name)" />
-          <LnbPermissionSectionRow
-            v-for="e in permission.epics"
-            :key="e.id"
-            :title="e.name + (e.isDefault ? ' (default)' : '')"
-            :color="e.color"
-            :columns="CHILD_AND_SELF_PERMS"
-            :disabled="(id, type) => e.isDefault && type === SELF_TYPE && disabledForDefaultEntity(id)"
-            :checked="(id, type) => hasDirectEpicPermission(permission.id, e.id) && isSpaceEpicChecked(permission.id, e.id, id, type!)"
-            :inherited="(id, type) => isSpaceEpicInherited(permission.id, e.id, id, type!)"
-            @change="(id, type) => toggleSpaceEpicAccess(permission.id, e.id, id, type!)"/>
+              :title="t('issues')"
+              :columns="DIRECT_ISSUES_PERMS"
+              :checked="id => getDirectBool(permission.id, id)"
+              :inherited="id => isDirectIssuesInherited(permission.id, id)"
+              @change="id => toggleDirect(permission.id, id)" />
         </template>
 
       </div>
-
     </div>
+
+    <!-- ── Admin tab (bitflags) ── -->
     <div v-if="tab === PermissionTab.Admin" class="perm-section">
-      <template v-for="adminPerm in ADMIN_PERMS">
+      <template v-for="adminPerm in ADMIN_PERMS" :key="adminPerm.name">
         <LnbPermissionSectionTitle :title="adminPerm.name" :column-names="['']" />
         <LnbPermissionSectionRow
-          v-for="perm in adminPerm.perms"
-          :title="perm.name" :columns="[perm]"
-          :checked="id => hasFlag(permissions.admin, id)"
-          :inherited="_ => false"
-          @change="id => permissions.admin = toggleFlag(permissions.admin, id)"
-        />
+            v-for="perm in adminPerm.perms"
+            :key="perm.id"
+            :title="perm.name"
+            :columns="[perm]"
+            :checked="id => hasFlag(permissions.admin, id)"
+            :inherited="_ => false"
+            @change="id => toggleAdminFlag(id)" />
       </template>
     </div>
 
   </LnbModal>
 </template>
-
 <style scoped>
-/* Permissions table */
-/* PERMISSIONS TABLE */
 .perm-section{border:1px solid var(--border);border-radius:var(--radius);margin-bottom:8px;overflow:hidden}
 .perm-expand-btn{display:flex;align-items:center;gap:3px;font-size:10px;font-weight:700;color:var(--text3);cursor:pointer;padding:2px 6px;border-radius:10px;border:1px solid var(--border);background:var(--surface3);transition:all 0.12s;flex-shrink:0;-webkit-tap-highlight-color:transparent}
 .perm-expand-btn:hover{border-color:var(--accent);color:var(--accent)}
 .perm-expand-btn svg{width:9px;height:9px;transition:transform 0.15s}
 .perm-expand-btn.open svg{transform:rotate(90deg)}
-
 .org-panel-tab{padding:5px 12px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid transparent;color:var(--text3);transition:all 0.15s;-webkit-tap-highlight-color:transparent}
 .org-panel-tab.active{background:var(--accent-glow);border-color:var(--accent);color:var(--accent)}
 </style>

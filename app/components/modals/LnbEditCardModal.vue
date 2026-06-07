@@ -34,7 +34,7 @@ onMounted(async () => {
 
 <template>
   <LnbModal
-    :applyText="data ? t('save') : undefined"
+    :applyText="data?.canEdit ? t('save') : undefined"
     :title="''"
     @apply="emit('edit', request)"
     @cancel="emit('close')"

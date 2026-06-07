@@ -86,7 +86,6 @@ const searchString = computed(() => board.state.value.searchString);
 <template>
   <!-- BOARD VIEW -->
   <div class="board-view">
-
     <div class="board-columns"
       v-col-sortable="{
         onColMoved,
@@ -132,7 +131,7 @@ const searchString = computed(() => board.state.value.searchString);
         <LnbScrollArea
           :load-next="() => board.loadNextCards(status.id)"
           :can-load-more="() => board.state.value.messages.find(s => s.statusId === status.id)?.items.hasNext ?? false">
-          <div class="col-drag-inner" v-sortable="{ statusId: status.id, onCardMoved }">
+          <div class="col-drag-inner" v-sortable="{ statusId: status.id, onCardMoved, applySort: board.state.value.currentEpic?.canUpdateIssues }">
             <LnbCard
               v-for="msg in cardsByStatus[status.id]?.data"
               :deleteButton="!!currentCategory?.canDeleteIssues"

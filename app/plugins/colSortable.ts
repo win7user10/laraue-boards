@@ -7,7 +7,6 @@ export default defineNuxtPlugin((nuxtApp) => {
             const { onColMoved, applySort } = binding.value;
             if (!applySort)
                 return;
-
             el._colSortable = Sortable.create(el, {
                 animation: 180,
                 delay: 150,

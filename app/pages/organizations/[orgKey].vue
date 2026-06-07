@@ -7,7 +7,7 @@ import LnbTopbar from "~/components/LnbTopbar.vue";
 import LnbMassMoveModal from "~/components/modals/movement/LnbMassMoveModal.vue";
 import LnbNav from "~/components/LnbNav.vue";
 
-const { state, currentSpace } = useBoard()
+const { state } = useBoard()
 const { appState } = useAppState()
 
 definePageMeta({
@@ -90,9 +90,7 @@ const openMassMove = () => {
 <template>
   <LnbTopbar />
   <LnbNavLoader />
-  <LnbNav
-    :canCreateEpics="currentSpace?.canCreateEpics"
-    :can-create-spaces="appState.organization?.canCreateSpaces"/>
+  <LnbNav />
 
   <NuxtPage/>
 

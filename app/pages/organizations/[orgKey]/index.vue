@@ -82,8 +82,8 @@ const updateIssue = (source: SearchIssueDto, value: EditCardRequest) => {
 
       <LnbFilterPill
         :options="state.spaces"
-        label="Space"
-        no-filter-title="All Spaces"
+        :label="t('space')"
+        :no-filter-title="t('allSpaces')"
         v-model="request.spaceIds"/>
 
       <LnbScrollArea v-if="(searchResults?.data.length ?? 0) > 0"

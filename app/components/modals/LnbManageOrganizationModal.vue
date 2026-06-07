@@ -108,17 +108,17 @@ const { t } = useI18n();
         <div class="member-handle">@{{m.username}}</div>
       </div>
       <div class="member-role" :class="getRoleKey(m)">
-        {{ getRoleKey(m) }}
+        {{ t(getRoleKey(m)) }}
       </div>
       <div class="member-actions">
-        <div class="member-action-btn" v-if="!m.isOwner" title="Edit permissions" @click="openEditPermissions(m)">
+        <div class="member-action-btn" v-if="!m.isOwner" :title="t('editPermissions')" @click="openEditPermissions(m)">
           <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8">
             <rect x="2" y="11" width="3" height="3" rx="0.5"/>
             <rect x="6.5" y="6" width="3" height="8" rx="0.5"/>
             <rect x="11" y="2" width="3" height="12" rx="0.5"/>
           </svg>
         </div>
-        <div class="member-action-btn danger" v-if="!m.isOwner" title="Revoke access" @click="openRevokeAccess(m)">
+        <div class="member-action-btn danger" v-if="!m.isOwner" :title="t('revokeAccess')" @click="openRevokeAccess(m)">
           <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8">
             <path d="M3 8h10M9 4l4 4-4 4"/><path d="M6 3H3v10h3" opacity=".4"/>
           </svg>

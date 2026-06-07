@@ -8,12 +8,9 @@ import LnbEditSpaceModal from "~/components/modals/LnbEditSpaceModal.vue";
 import LnbPopup from "~/components/popups/LnbPopup.vue";
 import LnbIcon from "~/components/icons/LnbIcon.vue";
 
-defineProps<{
-  canCreateEpics?: boolean;
-  canCreateSpaces?: boolean;
-}>();
-
 const { epics, state, getOrganizationKey, deleteSpace } = useBoard();
+const { appState } = useAppState();
+const { getSpace } = useSpacesApi();
 const route = useRoute();
 const { t } = useI18n();
 
@@ -37,6 +34,14 @@ const spaceKey = computed(() =>
 const activeSpace = computed(() => {
   return spaces?.value.find(s => s.key === spaceKey.value)
 });
+
+const spaceData = ref<SpaceDetailsDto>()
+watch(activeSpace, async (newActiveSpace) => {
+  if (newActiveSpace)
+    spaceData.value = await getSpace(newActiveSpace.id)
+  else
+    spaceData.value = undefined
+})
 
 // ── Nav level ─────────────────────────────────────────────────────────────────
 
@@ -135,7 +140,7 @@ const sortBtnRef = ref<HTMLDivElement>();
         </nuxt-link>
 
         <div
-          v-if="canCreateSpaces"
+          v-if="appState.organization?.canCreateSpaces"
           class="nav-add"
           :title="t('createSpace')"
           @click="openCreateSpace">
@@ -158,7 +163,7 @@ const sortBtnRef = ref<HTMLDivElement>();
         </nuxt-link>
 
         <!-- Three-dot space menu -->
-        <div class="nav-space-menu-wrap" v-if="activeSpace?.canUpdate || activeSpace?.canDelete">
+        <div class="nav-space-menu-wrap" v-if="spaceData?.canUpdate || spaceData?.canDelete">
 
           <div
             class="nav-space-menu-btn"
@@ -173,11 +178,11 @@ const sortBtnRef = ref<HTMLDivElement>();
           </div>
 
           <LnbPopup v-if="spaceMenuOpen" :min-width="200" @close="closeSpaceMenu" :parentRef="spaceMenuBtnRef">
-            <div class="nav-space-popup-item" @click="openEditSpace" v-if="activeSpace?.canUpdate">
+            <div class="nav-space-popup-item" @click="openEditSpace" v-if="spaceData?.canUpdate">
               <LnbIcon icon="edit" size="small" />
               {{ t('editSpace') }}
             </div>
-            <div class="nav-space-popup-item danger" @click="openDeleteSpace" v-if="activeSpace?.canDelete">
+            <div class="nav-space-popup-item danger" @click="openDeleteSpace" v-if="spaceData?.canDelete">
               <LnbIcon icon="delete" size="small" />
               {{ t('deleteSpace') }}
             </div>
@@ -206,7 +211,7 @@ const sortBtnRef = ref<HTMLDivElement>();
         </nuxt-link>
 
         <div
-            v-if="canCreateEpics"
+            v-if="spaceData?.canCreateEpics"
             class="nav-add"
             :title="t('addEpic')"
             @click="openCreateCategory">

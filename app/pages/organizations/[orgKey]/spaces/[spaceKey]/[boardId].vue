@@ -82,7 +82,7 @@ const searchInternal = async (value: string) => {
 
 <template>
 
-  <template v-if="state.epics.length > 0 && state.currentEpic?.canViewIssues">
+  <template v-if="state.epics.length > 0">
 
     <LnbBoardHeader>
       <template v-if="currentCategory" #title>
@@ -136,8 +136,8 @@ const searchInternal = async (value: string) => {
 
   <template v-if="epicNotFound">
     <LnbEmptyState
-        title="Oops! The board is not exists or not accessible"
-        subtitle="Use navigation to move to available boards or contact your admin to get the permissions"/>
+      title="Oops! The board is not exists or not accessible"
+      subtitle="Use navigation to move to available boards"/>
   </template>
 
   <LnbEditCategoryModal

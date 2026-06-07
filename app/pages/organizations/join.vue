@@ -23,6 +23,7 @@ onMounted(async() => {
   if (code) {
     joinCode.value = code;
     await submitJoinCode()
+    return navigateTo("/organizations")
   }
 })
 

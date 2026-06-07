@@ -20,7 +20,7 @@ const { t } = useI18n()
 const { spaces } = useBoard()
 const { loadSpaceEpics } = useSpacesApi()
 const allowedSpacesForMove = computed(() => {
-  return props.showOnlyNotDefaultSpaces ? spaces.value.filter(s => s.canDelete) : spaces.value;
+  return props.showOnlyNotDefaultSpaces ? spaces.value.filter(s => !s.isDefault) : spaces.value;
 })
 
 const epics = ref<EpicListDto[]>([])

@@ -4,7 +4,10 @@ export default defineNuxtPlugin((nuxtApp) => {
     // Register a simple directive
     nuxtApp.vueApp.directive('sortable', {
         mounted(el, binding) {
-            const { statusId, onCardMoved } = binding.value;
+            const { statusId, onCardMoved, applySort } = binding.value;
+            if (!applySort)
+                return;
+
             el._sortableInstance = Sortable.create(el, {
                 group: 'cards',
                 sort: false,                  // no reordering within column

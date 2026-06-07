@@ -74,9 +74,6 @@ export const useBoard = () => {
         if (!state.value.epicId)
             return;
 
-        if (!state.value.currentEpic?.canViewIssues)
-            return;
-
         state.value.messages = await messagesApi.loadBoard(
             state.value.epicId,
             DefaultPagination.perPage,
@@ -446,10 +443,8 @@ export const useBoard = () => {
             id: spaceId,
             name: request.name,
             color: request.color,
-            canDelete: true,
-            canUpdate: true,
-            canCreateEpics: true,
             key: request.key,
+            isDefault: false,
         })
         showToast(t('spaceCreated'), 'success', request.name)
     }
