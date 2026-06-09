@@ -2,12 +2,15 @@
   import LnbCreateAttributeModal from "~/components/modals/LnbCreateAttributeModal.vue";
   import LnbIconBtn from "~/components/icons/LnbIconBtn.vue";
   import LnbEditAttributeModal from "~/components/modals/LnbEditAttributeModal.vue";
+  import LnbConfirmDeleteModal from "~/components/modals/LnbConfirmDeleteModal.vue";
 
   const { t } = useI18n();
+  const { deleteAttribute } = useOrganizationsApi();
   const { getAttributes } = useOrganizationsApi()
   const modals = reactive({
     addAttribute: false,
     editAttribute: false,
+    deleteAttribute: false,
   })
 
   const openAddAttribute = () => {
@@ -29,12 +32,20 @@
     modals.editAttribute = false;
   }
 
+  const onConfirmDeleteAttribute = async () => {
+    const id = selected.value!.id
+    await deleteAttribute(id)
+    attributes.value.splice(attributes.value.indexOf(selected.value!), 1)
+    modals.deleteAttribute = false;
+  }
+
   onMounted(() => {
     return fetchAttributes()
   })
 
-  const openDelete = (id: number) => {
-
+  const openDelete = (attribute: AttributeDto) => {
+    selected.value = attribute
+    modals.deleteAttribute = true;
   }
 
   const selected = ref<AttributeDto>()
@@ -93,7 +104,7 @@
       </div>
       <div class="card-actions">
         <LnbIconBtn
-          @click.stop="openDelete(attribute.id)"
+          @click.stop="openDelete(attribute)"
           :title="t('delete')"
           type="danger"
           icon="delete"
@@ -115,6 +126,14 @@
     :attribute="selected!"
     @close="modals.editAttribute = false"
     @edit="onEditAttribute"/>
+
+  <LnbConfirmDeleteModal
+    v-if="modals.deleteAttribute"
+    @close="modals.deleteAttribute = false"
+    title="Delete Attribute"
+    @delete="onConfirmDeleteAttribute">
+    Attribute and all values in issues related to this attribute will be deleted permanently.
+  </LnbConfirmDeleteModal>
 </template>
 
 <style scoped>

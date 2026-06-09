@@ -269,6 +269,13 @@ export const useOrganizationsApi = () => {
         });
     }
 
+    const deleteAttribute = (id: number) => {
+        const organizationsClient = useOrganizationsOrganizationClient()
+        return organizationsClient('/organizations/attributes/' + id, {
+            method: 'DELETE'
+        });
+    }
+
     return {
         getOrganizations,
         createOrganization,
@@ -288,5 +295,6 @@ export const useOrganizationsApi = () => {
         getAttributes,
         createAttribute,
         updateAttribute,
+        deleteAttribute,
     }
 }
