@@ -19,6 +19,7 @@ export interface OrganizationDto {
     canCreateSpaces: boolean;
     canManage: boolean;
     canMassMove: boolean;
+    canManageAttributes: boolean;
     slug: string;
     slugPostfix: string;
 }

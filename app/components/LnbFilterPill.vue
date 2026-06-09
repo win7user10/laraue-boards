@@ -14,7 +14,7 @@
     options: readonly Option[];
     modelValue: Array<number>;
     noFilterTitle: string;
-    label: string;
+    label?: string;
   }>()
 
   const emits = defineEmits<{
@@ -43,7 +43,7 @@
 
 <template>
   <div class="filter" v-if="options.length > 0">
-    <span style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;flex-shrink:0">
+    <span class="filter-label" v-if="props.label">
       {{ props.label }}
     </span>
 
@@ -105,4 +105,5 @@
 .filter-opt .opt-check{width:14px;height:14px;margin-left:auto;flex-shrink:0;color:var(--accent)}
 .filter-wrap{position:relative;display:inline-block}
 .filter{display: flex; align-items: center; gap: 6px; margin-bottom: 8px;}
+.filter-label{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;flex-shrink:0}
 </style>

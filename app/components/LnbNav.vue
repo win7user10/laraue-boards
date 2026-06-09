@@ -226,6 +226,7 @@ const sortBtnRef = ref<HTMLDivElement>();
     <!-- Controls — pinned right -->
     <div class="nav-controls">
       <nuxt-link
+        v-if="appState.organization?.canManageAttributes"
         class="nav-ctrl-btn"
         title="Attributes"
         :to="attributesUrl">

@@ -43,9 +43,26 @@ export interface MessageDetailDto {
     epicColor?: string;
     statusName?: string;
     statusColor?: string;
+    spaceColor: string;
     color: string;
     senderColor: string;
     canEdit: string;
+    key: string;
+    attributeValues: DetailIssueAttributeDto[];
+}
+
+export interface DetailIssueAttributeDto {
+    id: number;
+    type: AttributeType;
+    value: string;
+    color: string;
+    name: string;
+    listValues?: IssueAttributeListValueDto[];
+}
+
+export interface IssueAttributeListValueDto {
+    id: number;
+    name: string;
 }
 
 export interface CreateCardRequest {
