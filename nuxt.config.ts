@@ -1,6 +1,10 @@
 export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
   devtools: { enabled: true },
+  gtag: {
+    enabled: process.env.NODE_ENV === 'production',
+    id: 'G-RGM3JHLBGL'
+  },
   future: {
     compatibilityVersion: 4
   },
@@ -52,5 +56,5 @@ export default defineNuxtConfig({
     },
   },
 
-  modules: ['@nuxtjs/i18n', '@vueuse/nuxt']
+  modules: ['@nuxtjs/i18n', '@vueuse/nuxt', 'nuxt-gtag']
 })
