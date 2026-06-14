@@ -95,11 +95,11 @@ const openMassMove = () => {
   <NuxtPage/>
 
   <LnbMassMoveModal
-      v-if="modal.massMove"
-      @close="closeMassMove"/>
+    v-if="modal.massMove"
+    @close="closeMassMove"/>
 
   <LnbMediaViewer
-      v-if="board.state.value.openedMedia.length > 0" />
+    v-if="board.state.value.openedMedia.length > 0" />
 
   <!-- FAB backdrop -->
   <div class="fab-backdrop" v-if="fabOpen" @click="fabOpen=false"></div>

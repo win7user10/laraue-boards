@@ -132,13 +132,15 @@ export const useMessagesApi = () => {
     const loadBoard = (
         epicId: number,
         take: number,
-        searchString: string) => {
+        searchString: string,
+        filters: {}) => {
         return client<ColumnMessages[]>('/issues/board', {
-            method: 'GET',
-            query: {
+            method: 'POST',
+            body: {
                 epicId: epicId ?? undefined,
                 take: take,
                 searchString: searchString,
+                filters: filters,
             }
         });
     }

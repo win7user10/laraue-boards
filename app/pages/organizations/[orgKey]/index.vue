@@ -128,5 +128,5 @@ const updateIssue = (source: SearchIssueDto, value: IssueEdited) => {
 </template>
 
 <style scoped>
-.filters { display: flex; gap: 10px; }
+.filters { display: flex; gap: 10px; margin-bottom: 8px; }
 </style>

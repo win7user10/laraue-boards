@@ -25,6 +25,7 @@ export const useBoard = () => {
         epicId: null as number | null,
         currentEpic: undefined as EpicDto | undefined,
         searchString: '',
+        filters: {} as { [key: number]: any },
         openedMedia: [] as MediaInfo[],
         openedMediaIndex: 0,
         organizations: [] as OrganizationListDto[],
@@ -67,8 +68,9 @@ export const useBoard = () => {
         return true;
     }
 
-    const search = async(searchString: string) => {
+    const search = async(searchString: string, filters: { [key: number]: any }) => {
         state.value.searchString = searchString;
+        state.value.filters = filters;
         await reloadBoard(false);
     }
 
@@ -83,7 +85,8 @@ export const useBoard = () => {
         state.value.messages = await messagesApi.loadBoard(
             state.value.epicId,
             DefaultPagination.perPage,
-            state.value.searchString)
+            state.value.searchString,
+            state.value.filters)
     }
 
     const openMedia = (media: MediaInfo[], index: number) => {

@@ -62,7 +62,7 @@
       {{ t('attributesTitle') }}
     </template>
     <template #subtitle>
-      {{ attributes.length }} {{ t('customField', attributes.length) }} · org-wide
+      {{ attributes.length }} {{ t('customField', attributes.length) }} · {{ t('orgWide') }}
     </template>
     <template #actions>
       <LnbIconBtn

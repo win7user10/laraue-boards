@@ -9,5 +9,5 @@
 </template>
 
 <style scoped>
-  .filter{display: flex; align-items: center; gap: 6px; margin-bottom: 8px;}
+  .filter{display: flex; align-items: center; gap: 6px;}
 </style>

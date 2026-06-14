@@ -25,7 +25,7 @@
         <slot></slot>
       </div>
       <LnbPopup v-if="epicFilterOpen" :min-width="200" @close="epicFilterOpen = false" :parent-ref="btnRef">
-        <slot name="popup"></slot>
+        <slot :close="() => epicFilterOpen = false" name="popup"></slot>
       </LnbPopup>
     </div>
   </LnbFilter>
