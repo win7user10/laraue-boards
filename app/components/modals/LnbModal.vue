@@ -84,6 +84,8 @@
 /* ── MODAL ── */
 .modal-overlay {
   position: fixed; inset: 0;
+  width: 100vw;
+  max-width: 100vw;
   background: rgba(0,0,0,0.7);
   z-index: 100;
   display: flex;
