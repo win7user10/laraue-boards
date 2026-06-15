@@ -44,48 +44,48 @@
 </script>
 
 <template>
-  <transition name="fade">
-    <div class="modal-overlay" @click.self="close">
-      <div class="modal" :class="{ 'modal-full': fullHeight }">
-        <div class="modal-head">
-          <div class="modal-handle"></div>
-          <div class="modal-title">{{ title }}</div>
-          <div class="modal-subtitle" v-if="subtitle">{{ subtitle }}</div>
-          <slot name="head"></slot>
-        </div>
-        <div class="modal-body">
-          <slot></slot>
-          <div class="modal-btns">
-
-            <LnbButton
-              :name="cancelText ?? t('cancel')"
-              @click="cancel"
-              :disabled="isLoading"
-              type="ghost"/>
-
-            <LnbButton
-              v-if="applyText"
-              :name="applyText"
-              @click="apply"
-              :disabled="isLoading || disableApply"
-              :type="confirmButton ?? 'primary'"/>
-
+  <Teleport to="body">
+    <transition name="fade">
+      <div class="modal-overlay" @click.self="close">
+        <div class="modal" :class="{ 'modal-full': fullHeight }">
+          <div class="modal-head">
+            <div class="modal-handle"></div>
+            <div class="modal-title">{{ title }}</div>
+            <div class="modal-subtitle" v-if="subtitle">{{ subtitle }}</div>
+            <slot name="head"></slot>
           </div>
-          <div class="modal-loader">
-            <LnbNavLoader v-if="isLoading" />
+          <div class="modal-body">
+            <slot></slot>
+            <div class="modal-btns">
+
+              <LnbButton
+                :name="cancelText ?? t('cancel')"
+                @click="cancel"
+                :disabled="isLoading"
+                type="ghost"/>
+
+              <LnbButton
+                v-if="applyText"
+                :name="applyText"
+                @click="apply"
+                :disabled="isLoading || disableApply"
+                :type="confirmButton ?? 'primary'"/>
+
+            </div>
+            <div class="modal-loader">
+              <LnbNavLoader v-if="isLoading" />
+            </div>
           </div>
         </div>
       </div>
-    </div>
-  </transition>
+    </transition>
+  </Teleport>
 </template>
 
 <style scoped>
 /* ── MODAL ── */
 .modal-overlay {
   position: fixed; inset: 0;
-  width: 100vw;
-  max-width: 100vw;
   background: rgba(0,0,0,0.7);
   z-index: 100;
   display: flex;
