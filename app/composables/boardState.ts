@@ -111,7 +111,8 @@ export const useBoard = () => {
             statusId,
             0,
             initialItemsCount,
-            state.value.searchString)
+            state.value.searchString,
+            state.value.filters)
 
         messages.items.data = result.data;
         messages.items.offset = result.offset;
@@ -194,7 +195,8 @@ export const useBoard = () => {
                 statusId,
                 item.offset,
                 DefaultPagination.perPage,
-                state.value.searchString);
+                state.value.searchString,
+                state.value.filters);
 
             item.data.push(...newMessages.data);
             item.offset = newMessages.offset;

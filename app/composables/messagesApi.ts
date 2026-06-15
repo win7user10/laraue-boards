@@ -117,7 +117,8 @@ export const useMessagesApi = () => {
         statusId: number,
         skip: number,
         take: number,
-        searchString: string) => {
+        searchString: string,
+        filters: {}) => {
         return client<BatchResult<MessageListDto>>('/issues/by-status/' + statusId, {
             method: 'GET',
             query: {
@@ -125,6 +126,7 @@ export const useMessagesApi = () => {
                 skip: skip,
                 take: take,
                 searchString: searchString,
+                filters: filters
             }
         });
     }
