@@ -228,7 +228,7 @@ const sortBtnRef = ref<HTMLDivElement>();
       <nuxt-link
         v-if="appState.organization?.canManageAttributes"
         class="nav-ctrl-btn"
-        title="Attributes"
+        :title="t('attributesTitle')"
         :to="attributesUrl">
         <LnbIcon icon="attr" size="small" />
       </nuxt-link>

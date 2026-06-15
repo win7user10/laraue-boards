@@ -3,8 +3,10 @@
   import LnbIconBtn from "~/components/icons/LnbIconBtn.vue";
   import LnbEditAttributeModal from "~/components/modals/LnbEditAttributeModal.vue";
   import LnbConfirmDeleteModal from "~/components/modals/LnbConfirmDeleteModal.vue";
+  import LnbElementWithHelpLink from "~/components/modals/LnbElementWithHelpLink.vue";
 
   const { t } = useI18n();
+  const { getDocumentationLink } = useUtils();
   const { deleteAttribute } = useOrganizationsApi();
   const { getAttributes } = useOrganizationsApi()
   const modals = reactive({
@@ -59,7 +61,9 @@
 
   <LnbBoardHeader>
     <template #title>
-      {{ t('attributesTitle') }}
+      <LnbElementWithHelpLink :link-href="getDocumentationLink('/features/attributes')" :link-title="t('learnAboutAttributes')">
+        {{ t('attributesTitle') }}
+      </LnbElementWithHelpLink>
     </template>
     <template #subtitle>
       {{ attributes.length }} {{ t('customField', attributes.length) }} · {{ t('orgWide') }}
