@@ -1,7 +1,7 @@
 <script setup lang="ts">
 const props = defineProps({
   size: {type: String as PropType<'mini' | 'small' | 'medium'>, required: true },
-  icon: {type: String as PropType<'clear' | 'delete' | 'edit' | 'move' | 'search' | 'logout' | 'add'>, required: true },
+  icon: {type: String as PropType<'clear' | 'delete' | 'edit' | 'move' | 'search' | 'logout' | 'add' | 'attr' | 'sort'>, required: true },
 })
 const size = computed(() => {
   switch (props.size) {
@@ -48,6 +48,13 @@ const size = computed(() => {
     </template>
     <template v-if="icon === 'add'">
       <path d="M8 3v10M3 8h10" />
+    </template>
+    <template v-if="icon === 'attr'">
+      <circle cx="8" cy="8" r="2"></circle>
+      <path d="M8 2v2M8 12v2M2 8h2M12 8h2M3.5 3.5l1.5 1.5M11 11l1.5 1.5M3.5 12.5l1.5-1.5M11 5l1.5-1.5"></path>
+    </template>
+    <template v-if="icon === 'sort'">
+      <path data-v-9a6b4ed4="" d="M3 5h10M5 8h6M7 11h2"></path>
     </template>
   </svg>
 </template>

@@ -15,7 +15,7 @@ const emits = defineEmits<{
 const input = ref(null);
 onMounted(() => {
   if (props.focus)
-    nextTick(() =>(input.value as any)?.focus());
+    nextTick(() => (input.value as any)?.focus());
 })
 watch(() => props.modelValue, (): void => {
   if (props.focus)

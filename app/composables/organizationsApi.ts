@@ -19,9 +19,9 @@ export interface OrganizationDto {
     canCreateSpaces: boolean;
     canManage: boolean;
     canMassMove: boolean;
+    canManageAttributes: boolean;
     slug: string;
     slugPostfix: string;
-    preferences: UserOrganizationPreferencesDto
 }
 
 export interface CreateOrganizationRequest {
@@ -98,7 +98,43 @@ export interface CreateOrganizationResponse {
     slugPostfix: string;
 }
 
-export interface UserOrganizationPreferencesDto {
+export interface UpdateAttributeRequest {
+    name: string;
+    color: string;
+    listValues: UpdateAttributeListValueDto[]
+}
+
+export interface NewAttributeListValueDto{
+    name: string;
+}
+
+export interface UpdateAttributeListValueDto extends NewAttributeListValueDto {
+    id?: number;
+}
+
+export interface AttributeDto {
+    id: number;
+    name: string;
+    color: string;
+    type: AttributeType;
+    listValues: AttributeListValueDto[];
+}
+
+export interface AttributeListValueDto{
+    id: number;
+    name: string;
+}
+
+export enum AttributeType {
+    Text,
+    List,
+}
+
+export interface CreateAttributeRequest {
+    name: string;
+    color: string;
+    type: AttributeType;
+    listValues: NewAttributeListValueDto[];
 }
 
 export const useOrganizationsApi = () => {
@@ -211,6 +247,36 @@ export const useOrganizationsApi = () => {
         });
     }
 
+    const getAttributes = () => {
+        const organizationsClient = useOrganizationsOrganizationClient()
+        return organizationsClient<AttributeDto[]>('/organizations/attributes', {
+            method: 'GET'
+        });
+    }
+
+    const createAttribute = (request: CreateAttributeRequest) => {
+        const organizationsClient = useOrganizationsOrganizationClient()
+        return organizationsClient('/organizations/attributes/', {
+            method: 'POST',
+            body: request,
+        });
+    }
+
+    const updateAttribute = (id: number, request: UpdateAttributeRequest) => {
+        const organizationsClient = useOrganizationsOrganizationClient()
+        return organizationsClient('/organizations/attributes/' + id, {
+            method: 'PUT',
+            body: request,
+        });
+    }
+
+    const deleteAttribute = (id: number) => {
+        const organizationsClient = useOrganizationsOrganizationClient()
+        return organizationsClient('/organizations/attributes/' + id, {
+            method: 'DELETE'
+        });
+    }
+
     return {
         getOrganizations,
         createOrganization,
@@ -227,5 +293,9 @@ export const useOrganizationsApi = () => {
         regenerateJoinCode,
         revokeAccess,
         updateSelectedSpace,
+        getAttributes,
+        createAttribute,
+        updateAttribute,
+        deleteAttribute,
     }
 }

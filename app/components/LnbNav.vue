@@ -25,6 +25,7 @@ const modal = reactive({
 // ── URL helpers ───────────────────────────────────────────────────────────────
 
 const orgUrl = computed(() => `/organizations/${getOrganizationKey()}`);
+const attributesUrl = computed(() => `${orgUrl.value}/attributes`);
 
 const spaces = computed(() => state.value.spaces);
 const spaceKey = computed(() =>
@@ -54,7 +55,6 @@ const navLevel = computed<"home" | "space">(() =>
 const activeChip = computed(() => {
   const path = route.path;
   if (path === orgUrl.value) return "home";
-  if (path === orgUrl.value) return "stats"; // org-level stats fallback
   if (path === `${orgUrl.value}/spaces/${spaceKey.value}`) return "stats";
   if (route.params.boardId) return route.params.boardId as string;
   return null;
@@ -225,14 +225,22 @@ const sortBtnRef = ref<HTMLDivElement>();
 
     <!-- Controls — pinned right -->
     <div class="nav-controls">
-      <div
+      <nuxt-link
+        v-if="appState.organization?.canManageAttributes"
         class="nav-ctrl-btn"
-        ref="sortBtnRef"
-        @click.stop="navSortPopupOpen = !navSortPopupOpen">
-        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8">
-          <path d="M3 5h10M5 8h6M7 11h2"/>
-        </svg>
+        title="Attributes"
+        :to="attributesUrl">
+        <LnbIcon icon="attr" size="small" />
+      </nuxt-link>
+
+      <div
+          class="nav-ctrl-btn"
+          ref="sortBtnRef"
+          title="Sort Epics"
+          @click.stop="navSortPopupOpen = !navSortPopupOpen">
+        <LnbIcon icon="sort" size="small" />
       </div>
+
       <LnbNavSortPopup
         v-if="navSortPopupOpen"
         :parentRef="sortBtnRef"

@@ -5,6 +5,8 @@ import LnbDeleteCategoryModal from "~/components/modals/LnbDeleteCategoryModal.v
 import LnbIconBtn from "~/components/icons/LnbIconBtn.vue";
 import LnbElementWithHelpLink from "~/components/modals/LnbElementWithHelpLink.vue";
 import LnbCreateCardModal from "~/components/modals/LnbCreateCardModal.vue";
+import LnbSection from "~/components/LnbSection.vue";
+import LnbFilters from "~/components/LnbFilters.vue";
 
 const { editCategory, deleteCategory, state, dbMessagesCount, reloadEpics, currentSpace, trySetCategory, isLoading, search, createCard } = useBoard()
 const { t } = useI18n()
@@ -71,13 +73,15 @@ const deleteCategoryInternal = async () => {
 const isBacklog = computed(() => state.value.epics.find(c => state.value.epicId == c.id)?.isDefault);
 const currentCategory = computed(() => state.value.currentEpic);
 
-const showSearch = computed(() => searchString.value || dbMessagesCount.value > 0 || isLoading.value)
-const searchString = ref('')
+const showSearch = computed(() => request.search || dbMessagesCount.value > 0 || isLoading.value)
+const request = reactive({
+  search: '',
+  filters: {} as { [key: string]: any },
+})
 
-const searchInternal = async (value: string) => {
-  searchString.value = value
-  await search(value);
-}
+watch(() => request, async (val) => {
+  await search(val.search, val.filters);
+}, { deep: true });
 </script>
 
 <template>
@@ -99,8 +103,7 @@ const searchInternal = async (value: string) => {
       <template #actions>
         <LnbBoardSearch
           v-if="showSearch"
-          @update:modelValue="searchInternal($event)"
-          :modelValue="searchString"/>
+          v-model="request.search"/>
         <LnbIconBtn
           v-if="currentCategory?.canUpdate"
           :title="t('editBoard')"
@@ -125,6 +128,12 @@ const searchInternal = async (value: string) => {
           @click="openDeleteCategory" />
       </template>
     </LnbBoardHeader>
+
+    <LnbSection>
+      <div class="filter-bar">
+        <LnbFilters v-model="request.filters"/>
+      </div>
+    </LnbSection>
 
     <template v-if="isBacklog">
       <LnbBacklogView />
@@ -159,5 +168,17 @@ const searchInternal = async (value: string) => {
 </template>
 
 <style scoped>
-
+  .filter-bar {
+    display: flex;
+    gap: 6px;
+    padding: 7px 12px;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+    align-items: center;
+  }
+  .filter-bar:empty {
+    display: none;
+  }
 </style>

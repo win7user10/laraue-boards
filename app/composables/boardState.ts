@@ -3,9 +3,15 @@ import {ref} from "vue";
 import type {EditStatusRequest} from "~/composables/statusesApi";
 import {type EpicListDto, useSpacesApi} from "~/composables/spacesApi";
 import {useEpicsApi} from "~/composables/epicsApi";
-import {type OrganizationDto, useOrganizationsApi} from "~/composables/organizationsApi";
+import {useOrganizationsApi} from "~/composables/organizationsApi";
 
 const { showToast, appState } = useAppState()
+
+export interface IssueEdited {
+    id: number,
+    content: string,
+    attributes: IssueListAttributeDto[]
+}
 
 export const useBoard = () => {
     const { t } = useI18n()
@@ -19,6 +25,7 @@ export const useBoard = () => {
         epicId: null as number | null,
         currentEpic: undefined as EpicDto | undefined,
         searchString: '',
+        filters: {} as { [key: number]: any },
         openedMedia: [] as MediaInfo[],
         openedMediaIndex: 0,
         organizations: [] as OrganizationListDto[],
@@ -61,8 +68,9 @@ export const useBoard = () => {
         return true;
     }
 
-    const search = async(searchString: string) => {
+    const search = async(searchString: string, filters: { [key: number]: any }) => {
         state.value.searchString = searchString;
+        state.value.filters = filters;
         await reloadBoard(false);
     }
 
@@ -77,7 +85,8 @@ export const useBoard = () => {
         state.value.messages = await messagesApi.loadBoard(
             state.value.epicId,
             DefaultPagination.perPage,
-            state.value.searchString)
+            state.value.searchString,
+            state.value.filters)
     }
 
     const openMedia = (media: MediaInfo[], index: number) => {
@@ -102,7 +111,8 @@ export const useBoard = () => {
             statusId,
             0,
             initialItemsCount,
-            state.value.searchString)
+            state.value.searchString,
+            state.value.filters)
 
         messages.items.data = result.data;
         messages.items.offset = result.offset;
@@ -185,7 +195,8 @@ export const useBoard = () => {
                 statusId,
                 item.offset,
                 DefaultPagination.perPage,
-                state.value.searchString);
+                state.value.searchString,
+                state.value.filters);
 
             item.data.push(...newMessages.data);
             item.offset = newMessages.offset;
@@ -222,12 +233,12 @@ export const useBoard = () => {
         return id;
     }
 
-    const editCard = async (id: number, value: EditCardRequest) => {
-        const messagesApi = useMessagesApi()
-        await messagesApi.editMessage(id, value);
+    const editCard = async (id: number, value: IssueEdited) => {
         const card = allCards.value.find(x => x.id === id)
-        if (card)
+        if (card) {
             card.content = value.content;
+            card.attributes = value.attributes
+        }
 
         const category = state.value.epics.find(c => c.id === card?.epicId)
         if (category)

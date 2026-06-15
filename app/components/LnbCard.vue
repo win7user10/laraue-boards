@@ -5,6 +5,7 @@
   import LnbEditCardModal from "~/components/modals/LnbEditCardModal.vue";
   import LnbDeleteCardModal from "~/components/modals/LnbDeleteCardModal.vue";
   import LnbMoveCardModal from "~/components/modals/LnbMoveCardModal.vue";
+  import type {IssueEdited} from "~/composables/boardState";
 
   const props = defineProps<{
     message: MessageListDto,
@@ -15,7 +16,7 @@
   }>()
 
   const emits = defineEmits<{
-    (e: 'update', message: EditCardRequest): void,
+    (e: 'update', message: IssueEdited): void,
   }>()
 
   const { getImageUrl } = useUtils()
@@ -99,7 +100,7 @@
     modal.editCard = false;
   }
 
-  const editCardInternal = async (value: EditCardRequest) => {
+  const editCardInternal = async (value: IssueEdited) => {
     await editCard(props.message.id, value);
     emits("update", value);
     closeEditCard();
@@ -158,8 +159,19 @@
     </div>
     <div class="card-footer">
       <slot name="footer"></slot>
+      <span
+        v-for="attribute in message.attributes"
+        class="card-attr-tag"
+        :style="{
+          background: attribute.color + '22',
+          borderColor: attribute.color + '44',
+          color: attribute.color,
+        }">
+        {{ attribute.value }}
+      </span>
       <div class="card-actions">
-        <nuxt-link v-if="props.navigateToEpicButton"
+        <nuxt-link
+          v-if="props.navigateToEpicButton"
           :to="getEpicUrl">
           <LnbIconBtn
             :title="t('navigateToEpic')"
@@ -309,4 +321,5 @@
   .card-media-thumb .play-icon svg{width:22px;height:22px;color:#fff;filter:drop-shadow(0 1px 3px rgba(0,0,0,0.5))}
   .card-media-thumb .media-count{position:absolute;inset:0;background:rgba(0,0,0,0.55);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:#fff}
   .card-media-only{margin-bottom:0}
+  .card-attr-tag{border-radius:4px;padding:2px 6px;font-size:10px;font-weight:600;border:1px solid transparent}
 </style>

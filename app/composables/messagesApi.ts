@@ -9,6 +9,12 @@ export interface MessageListDto {
     key: string;
     senderColor: string;
     media: MediaInfo[];
+    attributes: IssueListAttributeDto[]
+}
+
+export interface IssueListAttributeDto {
+    value: string;
+    color: string;
 }
 
 export interface SearchIssueDto extends MessageListDto{
@@ -43,18 +49,37 @@ export interface MessageDetailDto {
     epicColor?: string;
     statusName?: string;
     statusColor?: string;
+    spaceColor: string;
     color: string;
     senderColor: string;
     canEdit: string;
+    key: string;
+    attributeValues: DetailIssueAttributeDto[];
+}
+
+export interface DetailIssueAttributeDto {
+    id: number;
+    type: AttributeType;
+    value: string;
+    color: string;
+    name: string;
+    listValues?: IssueAttributeListValueDto[];
+}
+
+export interface IssueAttributeListValueDto {
+    id: number;
+    name: string;
 }
 
 export interface CreateCardRequest {
     content: string;
     statusId: number;
+    attributeValues: { [key: number]: string };
 }
 
 export interface EditCardRequest {
     content: string;
+    attributeValues: { [key: number]: string };
 }
 
 export interface SearchRequest {
@@ -63,6 +88,7 @@ export interface SearchRequest {
     perPage: number;
     epicIds: Array<number>;
     spaceIds: Array<number>;
+    filters: { [key: number]: any }
 }
 
 export interface ColumnMessages {
@@ -92,7 +118,8 @@ export const useMessagesApi = () => {
         statusId: number,
         skip: number,
         take: number,
-        searchString: string) => {
+        searchString: string,
+        filters: {}) => {
         return client<BatchResult<MessageListDto>>('/issues/by-status/' + statusId, {
             method: 'GET',
             query: {
@@ -100,6 +127,7 @@ export const useMessagesApi = () => {
                 skip: skip,
                 take: take,
                 searchString: searchString,
+                filters: filters
             }
         });
     }
@@ -107,13 +135,15 @@ export const useMessagesApi = () => {
     const loadBoard = (
         epicId: number,
         take: number,
-        searchString: string) => {
+        searchString: string,
+        filters: {}) => {
         return client<ColumnMessages[]>('/issues/board', {
-            method: 'GET',
-            query: {
+            method: 'POST',
+            body: {
                 epicId: epicId ?? undefined,
                 take: take,
                 searchString: searchString,
+                filters: filters,
             }
         });
     }
