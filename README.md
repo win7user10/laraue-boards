@@ -2,6 +2,10 @@
 
 This [repository](https://github.com/win7user10/Laraue.Apps.StructuredMessages) contains backend for the application.
 
+## Interface examples
+<img width="250" height="540" alt="All issues View" src="https://github.com/user-attachments/assets/91e01273-a8fd-49e6-99be-3466db41b60d" />
+<img width="250" height="540" alt="Board View" src="https://github.com/user-attachments/assets/eda748c6-8595-4555-b9a4-533027c6e2df" />
+
 ## Repository setup
 You should create `.env` file in repository with the following content to proxy FE requests to backend.
 ```
