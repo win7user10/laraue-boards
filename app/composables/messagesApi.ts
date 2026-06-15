@@ -74,6 +74,7 @@ export interface IssueAttributeListValueDto {
 export interface CreateCardRequest {
     content: string;
     statusId: number;
+    attributeValues: { [key: number]: string };
 }
 
 export interface EditCardRequest {

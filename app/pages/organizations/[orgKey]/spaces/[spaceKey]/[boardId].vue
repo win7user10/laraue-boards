@@ -178,4 +178,7 @@ watch(() => request, async (val) => {
     scrollbar-width: none;
     align-items: center;
   }
+  .filter-bar:empty {
+    display: none;
+  }
 </style>

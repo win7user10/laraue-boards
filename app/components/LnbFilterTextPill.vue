@@ -7,6 +7,7 @@ const props = defineProps<{
   label?: string;
 }>()
 
+const { t } = useI18n();
 const emits = defineEmits<{
   (e: 'update:modelValue', value: string): void,
 }>()
@@ -31,7 +32,7 @@ const updateValue = (value: string) => {
         :model-value="modelValue"
         @update:modelValue="updateValue"
         @enter="close"
-        placeholder="Search" />
+        :placeholder="t('search')" />
     </template>
   </LnbFilterPill>
 </template>

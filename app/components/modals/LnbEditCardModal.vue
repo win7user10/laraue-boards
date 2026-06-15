@@ -9,6 +9,7 @@ import LnbIconBtn from "~/components/icons/LnbIconBtn.vue";
 import LnbModalInput from "~/components/modals/LnbModalInput.vue";
 import LnbFilterChips from "~/components/modals/LnbFilterChips.vue";
 import type {IssueEdited} from "~/composables/boardState";
+import LnbModalAttributeInput from "~/components/modals/LnbModalAttributeInput.vue";
 
 const props = defineProps<{
   id: number,
@@ -30,18 +31,18 @@ const request = ref<EditCardRequest>({
 })
 
 const data = ref<MessageDetailDto>()
+onMounted(async () => {
+  data.value = await getMessage(props.id);
+  request.value.content = data.value.content;
+  request.value.attributeValues = Object.fromEntries(filledAttributes.value?.map(a => [a.id, a.value]) ?? []);
+})
+
 const filledAttributes = computed(() => {
   return data.value?.attributeValues.filter(attribute => attribute.value)
 })
 
 const attributes = computed(() => {
   return data.value?.attributeValues
-})
-
-onMounted(async () => {
-  data.value = await getMessage(props.id);
-  request.value.content = data.value.content;
-  request.value.attributeValues = Object.fromEntries(filledAttributes.value?.map(a => [a.id, a.value]) ?? []);
 })
 
 const updateAttributeValue = (id: number, value: string | number | undefined) => {
@@ -94,6 +95,8 @@ const editMode = ref(false)
       </div>
       <LnbIconBtn
         :title="t('editMode')"
+        :active="editMode"
+        v-if="attributes?.length"
         @click="editMode = !editMode"
         icon="edit"
         icon-size="mini"
@@ -139,23 +142,14 @@ const editMode = ref(false)
 
     </LnbDetailMeta>
 
-
     <template v-if="editMode" v-for="attribute in attributes" :key="attribute.id">
-      <LnbModalLabel style="display: flex; align-items: center; gap: 8px;">
-        <LnbSwitcherDot :color="attribute.color" />
-        {{ attribute.name }}
-      </LnbModalLabel>
-      <LnbModalInput
-        v-if="attribute.type == AttributeType.Text"
-        placeholder="Enter Attribute Value..."
-        @enter="edit"
-        :modelValue="request.attributeValues[attribute.id] ?? ''"
-        @update:modelValue="updateAttributeValue(attribute.id, $event)"/>
-      <LnbFilterChips
-        v-if="attribute.type == AttributeType.List"
+      <LnbModalAttributeInput
         :color="attribute.color"
-        :options="attribute.listValues!"
-        :model-value="Number(request.attributeValues[attribute.id])"
+        :name="attribute.name"
+        :type="attribute.type"
+        :model-value="request.attributeValues[attribute.id]"
+        :list-values="attribute.listValues"
+        @enter="edit"
         @update:modelValue="updateAttributeValue(attribute.id, $event)"/>
     </template>
 

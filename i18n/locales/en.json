@@ -164,6 +164,7 @@
   "customField": "custom field | custom fields",
   "attributesTitle": "Attributes",
   "orgWide": "org-wide",
+  "editMode": "Edit Mode",
 
   "moveEntireSpace": "Move entire space",
   "moveEntireSpaceDesc": "Moves the space, all its epics and issues to another organization. Default space can not be moved.",

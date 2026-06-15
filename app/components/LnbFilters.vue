@@ -7,6 +7,7 @@
   const { getAttributes } = useOrganizationsApi()
   const filters = await getAttributes()
 
+  const { t } = useI18n()
   const props = defineProps<{
     modelValue: { [key: string]: any }
   }>()
@@ -32,7 +33,7 @@
       <LnbFilterSelectPill
         :options="filter.listValues!"
         :label="filter.name"
-        no-filter-title="All"
+        :no-filter-title="t('all')"
         :modelValue="modelValue[filter.id] ?? []"
         @update:modelValue="updateValue(filter.id, $event)"/>
     </template>

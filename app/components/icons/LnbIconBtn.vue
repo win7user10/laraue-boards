@@ -8,6 +8,7 @@
     iconSize: {type: String as PropType<'mini' | 'small' | 'medium'>, required: true },
     icon: {type: String as PropType<'clear' | 'delete' | 'edit' | 'move' | 'search' | 'logout' | 'add' | 'attr'>, required: true },
     bordered: {type: Boolean, default: false},
+    active: {type: Boolean, default: false},
   })
 
   const pxSize = computed(() => {
@@ -26,7 +27,7 @@
 
 <template>
   <div
-    :class="['icon-btn', type, { bordered: bordered }]"
+    :class="['icon-btn', type, { bordered: bordered, active: active }]"
     :style="{
       width: pxSize + 'px',
       height: pxSize + 'px',

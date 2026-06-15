@@ -77,6 +77,7 @@ const createAttributeInternal = async () => {
     <LnbModalInput
       :errors="errors['Name']"
       focus
+      @enter="createAttributeInternal"
       v-model="newAttribute.name"
       :placeholder="t('attributeNameExample')"/>
 
