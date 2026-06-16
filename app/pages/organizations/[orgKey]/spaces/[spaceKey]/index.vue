@@ -108,17 +108,12 @@ const computedSummaries = computed(() => {
 .board-summary-card:hover{border-color:var(--border2);box-shadow:0 2px 12px rgba(0,0,0,0.3)}
 .bsc-name{font-size:12px;font-weight:700;color:var(--text);margin-bottom:8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .bsc-progress-wrap{margin-bottom:6px}
-.bsc-progress-bar{height:4px;background:var(--surface3);border-radius:2px;overflow:hidden;margin-bottom:4px;display:flex}
-.bsc-progress-seg{height:100%;transition:width 0.3s}
-.bsc-progress-seg:first-child{border-radius:2px 0 0 2px}
-.bsc-progress-seg:last-child{border-radius:0 2px 2px 0}
-.bsc-progress-seg:only-child{border-radius:2px}
 .bsc-progress-label{font-size:10px;color:var(--text3);font-family:'JetBrains Mono',monospace}
 .bsc-stats{display:flex;gap:6px;flex-wrap:wrap}
 .bsc-stat{display:flex;align-items:center;gap:3px;font-size:10px;font-weight:600}
 .bsc-stat-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
 @media (min-width: 1280px) {
-  .board-summary-grid[data-v-ebf868be] {
+  .board-summary-grid {
     grid-template-columns: repeat(4, 1fr);
   }
 }
