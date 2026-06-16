@@ -55,7 +55,6 @@ const computedSummaries = computed(() => {
           })
         }
       })
-      .filter(x => x.columns.length > 1)
       .sort((x, y) => y.todo - x.todo)
 })
 
