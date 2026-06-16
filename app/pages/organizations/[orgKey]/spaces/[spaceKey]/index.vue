@@ -2,7 +2,10 @@
 import {type CategorySummary, useMessagesApi} from "~/composables/messagesApi";
 const summaries = ref<CategorySummary[]>([]);
 const { getBoardSummary } = useMessagesApi()
+
 const { currentSpace, getOrganizationKey } = useBoard();
+const { appState } = useAppState();
+const { sortEpics } = useUtils();
 
 watch(() => currentSpace.value, async (newValue) => {
   if (newValue)
@@ -36,7 +39,9 @@ const getEpicUrl = (epicId: number) => {
 }
 
 const computedSummaries = computed(() => {
-  return summaries.value
+  const categoryOrder = appState.value.user?.preferences.epicSortOrder;
+  const sorted = sortEpics(summaries.value, categoryOrder)
+  return sorted
       .map((x) => {
         return {
           id: x.id,
@@ -55,7 +60,6 @@ const computedSummaries = computed(() => {
           })
         }
       })
-      .sort((x, y) => y.todo - x.todo)
 })
 
 </script>
@@ -77,13 +81,7 @@ const computedSummaries = computed(() => {
             :to="getEpicUrl(s.id)">
           <div class="bsc-name">{{s.name}}</div>
           <div class="bsc-progress-wrap">
-            <div class="bsc-progress-bar">
-
-              <div class="bsc-progress-seg"
-                   :style="`width:${s.percent}%;background:var(--accent)`">
-              </div>
-            </div>
-            <div class="bsc-progress-label">{{ s.total - s.todo }}/{{ s.total }} {{ t('done') }} · {{ s.percent.toFixed(0) }}%</div>
+            <div class="bsc-progress-label">{{ s.total }} {{ t('cards', s.total) }}</div>
           </div>
           <div class="bsc-stats">
             <div class="bsc-stat" v-for="c in s.columns">
@@ -104,7 +102,7 @@ const computedSummaries = computed(() => {
 
 <style scoped>
 /* BOARD SUMMARY CARDS (backlog dashboard) */
-.board-summary-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:4px}
+.board-summary-grid{display:grid;grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));gap:10px;margin-bottom:4px}
 .board-summary-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px;cursor:pointer;transition:border-color 0.15s,box-shadow 0.15s;position:relative;overflow:hidden;-webkit-tap-highlight-color:transparent;text-decoration: none;}
 .board-summary-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--card-color,var(--accent));border-radius:3px 0 0 3px}
 .board-summary-card:hover{border-color:var(--border2);box-shadow:0 2px 12px rgba(0,0,0,0.3)}
@@ -119,4 +117,9 @@ const computedSummaries = computed(() => {
 .bsc-stats{display:flex;gap:6px;flex-wrap:wrap}
 .bsc-stat{display:flex;align-items:center;gap:3px;font-size:10px;font-weight:600}
 .bsc-stat-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+@media (min-width: 1280px) {
+  .board-summary-grid[data-v-ebf868be] {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
 </style>

@@ -101,13 +101,14 @@ export interface ColumnSummary{
     name: string;
     color: string;
     count: number;
-    sortOrder: number;
 }
 
 export interface CategorySummary {
     id: number;
     name: string;
     color: string;
+    touchedAt: string;
+    isDefault: boolean;
     columns: ColumnSummary[]
 }
 

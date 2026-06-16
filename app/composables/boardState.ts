@@ -15,7 +15,7 @@ export interface IssueEdited {
 
 export const useBoard = () => {
     const { t } = useI18n()
-    const { now } = useUtils();
+    const { now, sortEpics } = useUtils();
 
     const state = useState('boardState', () => ({
         messages: [] as ColumnMessages[],
@@ -129,25 +129,7 @@ export const useBoard = () => {
 
     const epics = computed(() => {
         const categoryOrder = appState.value.user?.preferences.epicSortOrder
-        let data = [...state.value.epics];
-        if (categoryOrder === EpicSortOrder.Alphabetical)
-            data.sort((a, b) => {
-                if (a.isDefault)
-                    return -1;
-                if (b.isDefault)
-                    return 1;
-                return a.name.localeCompare(b.name)
-            });
-        else if (categoryOrder === EpicSortOrder.LastUpdated)
-            data.sort((a, b) => {
-                if (a.isDefault)
-                    return -1;
-                if (b.isDefault)
-                    return 1;
-                return b.touchedAt.localeCompare(a.touchedAt)
-            });
-
-        return data
+        return sortEpics(state.value.epics, categoryOrder)
     })
 
     const createCard = async (value: CreateCardRequest) => {

@@ -66,6 +66,30 @@ export const useUtils = () => {
         return `${organization.slug}-${organization.slugPostfix}`
     }
 
+    const sortEpics = <T extends { isDefault: boolean, touchedAt: string, name: string }>(
+        epics: T[],
+        sortOrder?: EpicSortOrder) => {
+        let data = [...epics];
+        if (sortOrder === EpicSortOrder.Alphabetical)
+            data.sort((a, b) => {
+                if (a.isDefault)
+                    return -1;
+                if (b.isDefault)
+                    return 1;
+                return a.name.localeCompare(b.name)
+            });
+        else if (sortOrder === EpicSortOrder.LastUpdated)
+            data.sort((a, b) => {
+                if (a.isDefault)
+                    return -1;
+                if (b.isDefault)
+                    return 1;
+                return b.touchedAt.localeCompare(a.touchedAt)
+            });
+
+        return data
+    }
+
     return {
         formatDate,
         getImageUrl,
@@ -77,5 +101,6 @@ export const useUtils = () => {
         getDocumentationLink,
         getEmptyErrorsObject,
         getOrganizationKey,
+        sortEpics,
     }
 }
