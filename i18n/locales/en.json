@@ -166,6 +166,7 @@
   "attributesTitle": "Attributes",
   "orgWide": "org-wide",
   "editMode": "Edit Mode",
+  "tryChangeFilters": "Try to change filters to see results",
 
   "moveEntireSpace": "Move entire space",
   "moveEntireSpaceDesc": "Moves the space, all its epics and issues to another organization. Default space can not be moved.",

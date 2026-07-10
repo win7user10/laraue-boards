@@ -5,7 +5,7 @@ import {onMounted} from "vue";
 import WebApp from "@twa-dev/sdk";
 
 const { appState } = useAppState();
-const { t, setLocale, locales } = useI18n();
+const { setLocale, locales } = useI18n();
 
 const isAppInitialized = computed(() => appState.value.isAppInitialized)
 const initError = computed(() => appState.value.initError)

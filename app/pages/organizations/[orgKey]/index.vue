@@ -121,7 +121,7 @@ const updateIssue = (source: SearchIssueDto, value: IssueEdited) => {
 
       <LnbEmptyState v-else
         :title="t('noSearchResults')"
-        subtitle="Try to change filters to see results"/>
+        :subtitle="t('tryChangeFilters')"/>
 
     </LnbSection>
   </LnbView>
