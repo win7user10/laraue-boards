@@ -2,9 +2,9 @@ name: Build and publish Nuxt app
 
 on:
   push:
-    branches: [ "master" ]
+    branches: ['master']
   pull_request:
-    branches: [ "master" ]
+    branches: ['master']
 
 jobs:
   build:
@@ -24,7 +24,8 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
       - name: Run checks
-        run: pnpm lint && pnpm format && pnpm style && pnpm typecheck && pnpm test
+        run:
+          pnpm lint && pnpm format && pnpm style && pnpm typecheck && pnpm test
       - name: Build SSR app
         env:
           NUXT_PUBLIC_BOARDS_API_BASE_URL: ${{ vars.BOARDS_API_BASE_URL }}
@@ -39,6 +40,8 @@ jobs:
           user: ${{ secrets.SSH_USER }} # "user"
           password: ${{ secrets.SSH_PASSWORD }} # "password"
           local: .output/*
-          remote: "/home/laraue/note-to-board-frontend"
+          remote: '/home/laraue/note-to-board-frontend'
           pre_upload: mkdir -p /home/laraue/note-to-board-frontend
-          post_upload: XDG_RUNTIME_DIR=/run/user/$(id -u) systemctl --user restart note-to-board-frontend.service
+          post_upload:
+            XDG_RUNTIME_DIR=/run/user/$(id -u) systemctl --user restart
+            note-to-board-frontend.service

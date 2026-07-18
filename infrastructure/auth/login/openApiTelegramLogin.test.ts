@@ -10,20 +10,15 @@ import { openApiLoginViaTelegramWidget } from './openApiLoginViaTelegramWidget'
 
 afterEach(() => vi.unstubAllGlobals())
 
-test('uses Telegram auth data and forwards scoped bearer tokens', async () => {
-  const tokens = new Map<string, string>()
+test('uses Telegram auth data with cookie credentials', async () => {
   const requests: {
     authorization: null | string
     body: string
+    credentials: RequestCredentials
     url: string
   }[] = []
   vi.stubGlobal('err', err)
   vi.stubGlobal('ok', ok)
-  vi.stubGlobal('localStorage', {
-    getItem: (key: string) => tokens.get(key) ?? null,
-    removeItem: (key: string) => tokens.delete(key),
-    setItem: (key: string, value: string) => tokens.set(key, value),
-  })
   vi.stubGlobal(
     'fetch',
     async (input: Request | string | URL, init?: RequestInit) => {
@@ -32,6 +27,7 @@ test('uses Telegram auth data and forwards scoped bearer tokens', async () => {
       requests.push({
         authorization: request.headers.get('Authorization'),
         body: await request.clone().text(),
+        credentials: request.credentials,
         url: request.url,
       })
       return new Response(
@@ -92,17 +88,20 @@ test('uses Telegram auth data and forwards scoped bearer tokens', async () => {
   assert.equal(requests[2]?.url, 'https://api.example/api/user/auth')
   assert.deepEqual(JSON.parse(requests[2]?.body ?? ''), telegramUser)
 
-  await createApiClient('https://api.example').GET('/api/organizations')
-  assert.equal(requests[3]?.authorization, 'Bearer user-token')
+  const organizationClient = createApiClient('https://api.example')
+  await organizationClient.GET('/api/organizations')
+  assert.equal(requests[3]?.authorization, null)
+  assert.equal(requests[3]?.credentials, 'include')
 
-  tokens.set('organization_bearer', 'stale-organization-token')
   assert.deepEqual(
     await openApiSelectOrganization('https://api.example')({
       organizationId: '7',
     }),
     { ok: true, value: null },
   )
-  assert.equal(requests[4]?.authorization, 'Bearer user-token')
-  await createApiClient('https://api.example').GET('/api/organizations/current')
-  assert.equal(requests[5]?.authorization, 'Bearer organization-token')
+  assert.equal(requests[4]?.authorization, null)
+  assert.equal(requests[4]?.credentials, 'include')
+  await organizationClient.GET('/api/organizations/current')
+  assert.equal(requests[5]?.authorization, null)
+  assert.equal(requests[5]?.credentials, 'include')
 })

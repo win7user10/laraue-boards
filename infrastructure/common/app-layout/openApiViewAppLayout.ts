@@ -1,7 +1,6 @@
 import { DEFAULT_COLOR } from '../../../app/constants/colors'
 import type { ViewAppLayout } from '../../../app/sections/common/app-layout/actions/viewAppLayout'
 import { createApiClient } from '../../api/client'
-import { getUserToken, setOrganizationToken } from '../../auth/tokenStorage'
 import {
   findOrganizationByKey,
   shouldSelectOrganization,
@@ -10,13 +9,12 @@ import {
 export const openApiViewAppLayout =
   (baseUrl: string): ViewAppLayout =>
   async ({ organizationKey }) => {
-    let client = createApiClient(baseUrl)
-    const userClient = createApiClient(baseUrl, getUserToken())
+    const client = createApiClient(baseUrl)
 
     try {
       let [organization, organizations] = await Promise.all([
         client.GET('/api/organizations/current'),
-        userClient.GET('/api/organizations'),
+        client.GET('/api/organizations'),
       ])
       switch (organization.response.status) {
         case 200:
@@ -62,7 +60,7 @@ export const openApiViewAppLayout =
         if (import.meta.server) {
           return err('OrganizationSwitchRequired')
         }
-        const selection = await userClient.POST('/api/organizations/login', {
+        const selection = await client.POST('/api/organizations/login', {
           body: { organizationId: organizationMembership.id },
           parseAs: 'text',
         })
@@ -77,11 +75,6 @@ export const openApiViewAppLayout =
           default:
             return err('TemporarilyUnavailable')
         }
-        if (!selection.data) {
-          return err('TemporarilyUnavailable')
-        }
-        setOrganizationToken(selection.data)
-        client = createApiClient(baseUrl)
         organization = await client.GET('/api/organizations/current')
         switch (organization.response.status) {
           case 200:
@@ -97,7 +90,7 @@ export const openApiViewAppLayout =
       }
 
       const [user, spaces] = await Promise.all([
-        userClient.GET('/api/user'),
+        client.GET('/api/user'),
         client.GET('/api/spaces'),
       ])
       switch (user.response.status) {

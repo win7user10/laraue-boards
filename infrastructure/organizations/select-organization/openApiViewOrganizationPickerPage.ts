@@ -1,12 +1,11 @@
 import type { ViewOrganizationPickerPage } from '../../../app/sections/organizations/select-organization/actions/viewOrganizationPickerPage'
 import { createApiClient } from '../../api/client'
-import { getUserToken } from '../../auth/tokenStorage'
 import { getOrganizationKey } from '../../common/app-layout/organizationSelection'
 
 export const openApiViewOrganizationPickerPage =
   (baseUrl: string): ViewOrganizationPickerPage =>
   async () => {
-    const client = createApiClient(baseUrl, getUserToken())
+    const client = createApiClient(baseUrl)
     try {
       const response = await client.GET('/api/organizations')
       switch (response.response.status) {

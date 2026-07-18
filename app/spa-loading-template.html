@@ -1,0 +1,36 @@
+<div
+  class="spa-loader"
+  role="status"
+  aria-label="Loading application">
+  <span></span>
+</div>
+
+<style>
+  .spa-loader {
+    display: grid;
+    inset: 0;
+    place-items: center;
+    position: fixed;
+  }
+
+  .spa-loader span {
+    animation: spa-loader-spin 1s linear infinite;
+    border: 3px solid var(--color-accent-soft, #eef2ff);
+    border-radius: 50%;
+    border-top-color: var(--color-accent, #3156d3);
+    height: 32px;
+    width: 32px;
+  }
+
+  @keyframes spa-loader-spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .spa-loader span {
+      animation: none;
+    }
+  }
+</style>

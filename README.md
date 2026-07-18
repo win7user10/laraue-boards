@@ -1,85 +1,145 @@
 # Laraue Boards (Frontend)
 
-This [repository](https://github.com/win7user10/Laraue.Apps.StructuredMessages) contains backend for the application.
+The backend for this application lives in the
+[Laraue.Apps.StructuredMessages repository](https://github.com/win7user10/Laraue.Apps.StructuredMessages).
 
 ## Interface examples
-<img width="250" height="540" alt="All issues View" src="https://github.com/user-attachments/assets/91e01273-a8fd-49e6-99be-3466db41b60d" />
-<img width="250" height="540" alt="Board View" src="https://github.com/user-attachments/assets/eda748c6-8595-4555-b9a4-533027c6e2df" />
 
-## Repository setup
-You should create `.env` file in repository with the following content to proxy FE requests to backend.
+<img width="250" height="540" alt="All issues view" src="https://github.com/user-attachments/assets/91e01273-a8fd-49e6-99be-3466db41b60d" />
+<img width="250" height="540" alt="Board view" src="https://github.com/user-attachments/assets/eda748c6-8595-4555-b9a4-533027c6e2df" />
+
+## Local setup
+
+Install dependencies:
+
+```bash
+pnpm install
 ```
-NUXT_PUBLIC_MESSAGES_BASE_ADDRESS=http://localhost:5200/api/
+
+Create `.env` in the repository root:
+
+```env
+NUXT_PUBLIC_BOARDS_API_BASE_URL=http://localhost:5200
+NUXT_PUBLIC_BOT_NAME=msgboard_bot
+NUXT_PUBLIC_TEST_USER_TOKEN=
 ```
+
+The browser calls the backend directly. The API base URL must therefore be the
+backend origin without a trailing `/api` path.
+
+Start the backend on port `5200`, then start the frontend:
+
+```bash
+pnpm dev
+```
+
+The frontend is available at `http://localhost:3000`.
 
 ## Authorization
-### Launch with preauthorized user
-As soon as telegram authorization is not available local without additional setup, the easiest way to launch the app local
-is to set variable `NUXT_PUBLIC_TEST_USER_TOKEN` in `.env` file. The value receiving is described in the backend repository.
 
-### Authorization through real Mini App
-The path is harder, but allows to check the whole authorisation flow locally
+### Local development with test Mini App data
 
-#### Part 1 - launch ngrok
-1. Install ngrok to make you localhost public for web. 
-2. Create `ngrok.yml` config with the following content:
-```yml
+For local development, set `NUXT_PUBLIC_TEST_USER_TOKEN` to valid Telegram Mini
+App `initData` for a test user:
+
+```env
+NUXT_PUBLIC_TEST_USER_TOKEN=<telegram-mini-app-init-data>
+```
+
+Despite its name, this value is not a bearer token. In development mode the
+frontend sends it to the backend Mini App authentication endpoint and stores the
+bearer token returned by the backend. See the backend repository for how to
+obtain valid test `initData`.
+
+### Authorization through a real Telegram Mini App
+
+#### 1. Expose the backend and frontend through ngrok
+
+Create `ngrok.yml`:
+
+```yaml
 version: 3
 agent:
-  authtoken: Your Ngrok Token is Here
+  authtoken: <your-ngrok-token>
 tunnels:
   back:
-    addr: 5200 # Backend address
+    addr: 5200
     proto: http
   front:
-    addr: 3000 # Frontend address
+    addr: 3000
     proto: http
 ```
-3. Run ngrok with a command `ngrok start --all --config ngrok.yml`
 
-#### Part 2 - setup telegram bot
-1. Write @BotFather in Telegram and open their Mini App to manage bots.
-2. Open Mini Apps sections and setup Main App button. Use there ngrok Frontend url like `https://f9f3-194-154-26-10.ngrok-free.app/` 
+Start both tunnels:
 
-#### Part 3 - launch services
-1. Add forwarding frontend URL to the backend CORS. Modify `Laraue.Apps.StructuredMessages.WebApiHost/appsettings.Development.json`.
-to the following format:
+```bash
+ngrok start --all --config ngrok.yml
+```
+
+ngrok displays a separate public URL for each tunnel. Keep both values:
+
+- Frontend URL: the URL of the `front` tunnel.
+- Backend URL: the URL of the `back` tunnel.
+
+#### 2. Configure the application
+
+Allow the frontend URL in the backend development CORS configuration. For
+example:
+
 ```json
 {
   "Cors": {
     "Hosts": [
       "http://localhost:3000",
-      "https://f9f3-194-154-26-10.ngrok-free.app"
-    ]
-  }
-}
-```
-2. Change frontend `.env` to forward requests to the proxied backend URL:
-```
-NUXT_PUBLIC_MESSAGES_BASE_ADDRESS=https://f9f3-194-154-26-10.ngrok-free.app/api/
-```
-3. Drop the authorization token from variable `NUXT_PUBLIC_TEST_USER_TOKEN` in `.env`
-
-#### Part 4 - test the app
-1. Open the Mini App in your bot.
-2. If setup is correct you will see the empty screen. Actually page is loading now, but ngrok speed is limited.
-You can check ngrok window for logs to ensure loading in progress.
-3. If No Content is received for backend queries, check the CORS setup
-4. Use the next script in `nuxt.config.ts` to add a button to bottom right corner that allow see browser console inside the Mini App:
-```
-app: {
-  head: {
-    script: [
-      { src: 'https://cdn.jsdelivr.net/npm/eruda' },
-      { innerHTML: 'eruda.init();' }
+      "https://<frontend-tunnel>.ngrok-free.app"
     ]
   }
 }
 ```
 
-### Authorization through Telegram login widget
-1. First three steps are the same as on [Authorization through real Mini App](#authorization-through-real-mini-app)
-2. Write @BotFather the command /setdomain and select your bot
-3. Send Frontend url as authorization domain, e.g. `47f2-194-154-26-10.ngrok-free.app`
-4. Set the bot name without `@` to variable `NUXT_PUBLIC_BOT_NAME` in `.env`
-5. Open Web url, e.g. https://47f2-194-154-26-10.ngrok-free.app in browser and try to auth via telegram
+Point the frontend directly to the backend tunnel and clear the test `initData`:
+
+```env
+NUXT_PUBLIC_BOARDS_API_BASE_URL=https://<backend-tunnel>.ngrok-free.app
+NUXT_PUBLIC_TEST_USER_TOKEN=
+```
+
+Restart the frontend after changing `.env`.
+
+#### 3. Configure the Telegram bot
+
+In @BotFather, open the bot's Mini App settings and set the Main App URL to the
+frontend tunnel URL, for example: `https://<frontend-tunnel>.ngrok-free.app/`.
+
+Open the Mini App from Telegram. After successful authentication, the app opens
+the organization selection page. Check the browser console, the backend logs,
+and the ngrok request log if authentication fails.
+
+#### Optional: browser console inside Telegram
+
+For temporary debugging, add these entries to the existing `app.head.script`
+array in `nuxt.config.ts`:
+
+```ts
+{ src: 'https://cdn.jsdelivr.net/npm/eruda' },
+{ innerHTML: 'eruda.init();' },
+```
+
+Remove them after debugging.
+
+### Authorization through the Telegram Login Widget
+
+1. Start the frontend and backend ngrok tunnels as described above.
+2. Allow the frontend tunnel URL in backend CORS.
+3. Set `NUXT_PUBLIC_BOARDS_API_BASE_URL` to the backend tunnel URL and clear
+   `NUXT_PUBLIC_TEST_USER_TOKEN`.
+4. Send `/setdomain` to @BotFather, select the bot, and send the frontend tunnel
+   hostname without the protocol, for example
+   `<frontend-tunnel>.ngrok-free.app`.
+5. Set the bot name without `@` in `.env`:
+
+   ```env
+   NUXT_PUBLIC_BOT_NAME=msgboard_bot
+   ```
+
+6. Restart the frontend and open the frontend tunnel URL in a browser.

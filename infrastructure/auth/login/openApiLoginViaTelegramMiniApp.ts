@@ -1,6 +1,5 @@
 import type { LoginViaTelegramMiniApp } from '../../../app/sections/auth/login/actions/loginViaTelegramMiniApp'
 import { createApiClient } from '../../api/client'
-import { setUserToken } from '../tokenStorage'
 
 type TelegramWindow = typeof globalThis & {
   Telegram?: { WebApp?: { initData?: string } }
@@ -28,10 +27,6 @@ export const openApiLoginViaTelegramMiniApp =
       if (!response.response.ok) {
         return err('InvalidTelegramData')
       }
-      if (!response.data) {
-        return err('TemporarilyUnavailable')
-      }
-      setUserToken(response.data)
       return ok({ authenticated: true })
     } catch {
       return err('TemporarilyUnavailable')

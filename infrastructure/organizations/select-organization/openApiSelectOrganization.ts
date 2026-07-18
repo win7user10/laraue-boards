@@ -1,11 +1,10 @@
 import type { SelectOrganization } from '../../../app/sections/organizations/select-organization/actions/selectOrganization'
 import { createApiClient } from '../../api/client'
-import { getUserToken, setOrganizationToken } from '../../auth/tokenStorage'
 
 export const openApiSelectOrganization =
   (baseUrl: string): SelectOrganization =>
   async ({ organizationId }) => {
-    const client = createApiClient(baseUrl, getUserToken())
+    const client = createApiClient(baseUrl)
     try {
       const response = await client.POST('/api/organizations/login', {
         body: { organizationId },
@@ -23,10 +22,6 @@ export const openApiSelectOrganization =
       if (!response.response.ok) {
         return err('TemporarilyUnavailable')
       }
-      if (!response.data) {
-        return err('TemporarilyUnavailable')
-      }
-      setOrganizationToken(response.data)
       return ok(null)
     } catch {
       return err('TemporarilyUnavailable')
