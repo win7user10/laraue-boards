@@ -1,0 +1,40 @@
+import type { LoadCreateIssueStatuses } from '../../../app/sections/issues/create-issue/actions/loadCreateIssueStatuses'
+import { createApiClient } from '../../api/client'
+
+export const openApiLoadCreateIssueStatuses = (
+  baseUrl: string,
+): LoadCreateIssueStatuses => {
+  const client = createApiClient(baseUrl)
+  return async ({ boardId }) => {
+    try {
+      const response = await client.GET('/api/epics/{id}', {
+        params: { path: { id: Number(boardId) } },
+      })
+      switch (response.response.status) {
+        case 200:
+          break
+        case 401:
+        case 403:
+          return err('AccessDenied')
+        case 404:
+          return err('BoardNotFound')
+        default:
+          return err('TemporarilyUnavailable')
+      }
+      if (!response.data) {
+        return err('TemporarilyUnavailable')
+      }
+      if (!response.data.canCreateIssues) {
+        return err('AccessDenied')
+      }
+      return ok({
+        statuses: (response.data.statuses ?? []).map((status) => ({
+          label: status.name,
+          value: String(status.id),
+        })),
+      })
+    } catch {
+      return err('TemporarilyUnavailable')
+    }
+  }
+}
