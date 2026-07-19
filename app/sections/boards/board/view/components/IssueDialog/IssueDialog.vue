@@ -45,9 +45,10 @@ export type IssueDialogViewModel =
   import('./components/IssueDialogContent.vue').IssueDialogViewModel
 
 type MoveOption = { label: string; value: string }
+type AssigneeOption = MoveOption & { color: string; initials: string }
 
 type IssueDialogProps = {
-  assignees: MoveOption[]
+  assignees: AssigneeOption[]
   error: null | string
   loadErrorText: string
   loading: boolean

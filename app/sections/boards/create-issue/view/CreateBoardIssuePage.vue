@@ -60,7 +60,11 @@
 
         <label for="create-board-issue-assignee">Assignee</label>
         <div class="issue-assignee">
-          <span class="avatar">{{ assigneeInitial }}</span>
+          <span
+            class="avatar"
+            :style="{ background: assignee?.color }">
+            {{ assigneeInitial }}
+          </span>
           <select
             id="create-board-issue-assignee"
             v-model="assigneeId"
@@ -123,7 +127,12 @@ export type CreateBoardIssuePageViewModel = {
 }
 
 type CreateBoardIssuePageProps = {
-  assignees: Array<{ label: string; value: string }>
+  assignees: Array<{
+    color: string
+    initials: string
+    label: string
+    value: string
+  }>
   error: null | string
   loadingAssignees: boolean
   spaceKey: string
@@ -152,12 +161,10 @@ defineEmits<{
 const organizationRoutes = useOrganizationRoutes()
 const content = ref('')
 const assigneeId = ref('')
-const assigneeInitial = computed(
-  () =>
-    props.assignees
-      .find((assignee) => assignee.value === assigneeId.value)
-      ?.label.slice(0, 2) || '?',
+const assignee = computed(() =>
+  props.assignees.find((assignee) => assignee.value === assigneeId.value),
 )
+const assigneeInitial = computed(() => assignee.value?.initials || '?')
 const statusId = ref(props.viewModel.statusId)
 const attributeValues = ref<Record<string, string>>({})
 watch(

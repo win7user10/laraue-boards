@@ -111,7 +111,11 @@
 
         <label for="create-issue-assignee">Assignee</label>
         <div class="issue-assignee">
-          <span class="avatar">{{ assigneeInitial }}</span>
+          <span
+            class="avatar"
+            :style="{ background: assignee?.color }">
+            {{ assigneeInitial }}
+          </span>
           <select
             id="create-issue-assignee"
             v-model="assigneeId"
@@ -178,7 +182,7 @@ export type CreateIssuePageViewModel = {
 }
 
 type CreateIssuePageProps = {
-  assignees: CreateIssuePageOption[]
+  assignees: Array<CreateIssuePageOption & { color: string; initials: string }>
   error: null | string
   loadingAssignees: boolean
   loadingBoards: boolean
@@ -212,12 +216,10 @@ const emit = defineEmits<{
 const organizationRoutes = useOrganizationRoutes()
 const content = ref('')
 const assigneeId = ref('')
-const assigneeInitial = computed(
-  () =>
-    props.assignees
-      .find((assignee) => assignee.value === assigneeId.value)
-      ?.label.slice(0, 2) || '?',
+const assignee = computed(() =>
+  props.assignees.find((assignee) => assignee.value === assigneeId.value),
 )
+const assigneeInitial = computed(() => assignee.value?.initials || '?')
 const spaceId = ref(props.viewModel.spaceId)
 const boardId = ref(props.viewModel.boardId)
 const statusId = ref(props.viewModel.statusId)

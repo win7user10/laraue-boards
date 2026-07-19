@@ -42,7 +42,11 @@
 
         <label for="create-backlog-issue-assignee">Assignee</label>
         <div class="issue-assignee">
-          <span class="avatar">{{ assigneeInitial }}</span>
+          <span
+            class="avatar"
+            :style="{ background: assignee?.color }">
+            {{ assigneeInitial }}
+          </span>
           <select
             id="create-backlog-issue-assignee"
             v-model="assigneeId"
@@ -105,7 +109,12 @@ export type CreateBacklogIssuePageViewModel = {
 }
 
 type CreateBacklogIssuePageProps = {
-  assignees: Array<{ label: string; value: string }>
+  assignees: Array<{
+    color: string
+    initials: string
+    label: string
+    value: string
+  }>
   error: null | string
   loadingAssignees: boolean
   submitting: boolean
@@ -133,12 +142,10 @@ defineEmits<{
 const organizationRoutes = useOrganizationRoutes()
 const content = ref('')
 const assigneeId = ref('')
-const assigneeInitial = computed(
-  () =>
-    props.assignees
-      .find((assignee) => assignee.value === assigneeId.value)
-      ?.label.slice(0, 2) || '?',
+const assignee = computed(() =>
+  props.assignees.find((assignee) => assignee.value === assigneeId.value),
 )
+const assigneeInitial = computed(() => assignee.value?.initials || '?')
 const statusId = computed(() => props.viewModel.statusId)
 const attributeValues = ref<Record<string, string>>({})
 </script>

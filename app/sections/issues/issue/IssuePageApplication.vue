@@ -60,7 +60,9 @@ useHead({
   ),
 })
 const saving = ref(false)
-const assignees = ref<Array<{ label: string; value: string }>>([])
+const assignees = ref<
+  Array<{ color: string; initials: string; label: string; value: string }>
+>([])
 const loadingAssignees = ref(false)
 const loadingStatuses = ref(false)
 const statuses = ref<Array<{ id: string; name: string }>>([])

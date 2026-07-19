@@ -46,7 +46,9 @@ const page = computed(() =>
     : null,
 )
 const formError = ref<null | string>(null)
-const assignees = ref<Array<{ label: string; value: string }>>([])
+const assignees = ref<
+  Array<{ color: string; initials: string; label: string; value: string }>
+>([])
 const loadingAssignees = ref(false)
 const loadingBoards = ref(false)
 const loadingStatuses = ref(false)

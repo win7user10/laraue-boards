@@ -164,7 +164,12 @@ import BoardScrollMap from './components/BoardScrollMap/BoardScrollMap.vue'
 const props = defineProps<{
   filtering: boolean
   filterValue: BoardPageFilterValue
-  issueAssignees: Array<{ label: string; value: string }>
+  issueAssignees: Array<{
+    color: string
+    initials: string
+    label: string
+    value: string
+  }>
   issueDialogVisible: boolean
   issueError: null | string
   issueLoadErrorText: string

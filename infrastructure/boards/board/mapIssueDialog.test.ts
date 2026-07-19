@@ -4,6 +4,7 @@ import { mapIssueDialog } from './mapIssueDialog'
 
 const issue: Parameters<typeof mapIssueDialog>[0] = {
   assignee: 'Assigned User',
+  assigneeColor: '#123456',
   assigneeId: '11111111-1111-1111-1111-111111111111',
   assigneeInitial: 'AU',
   attributeValues: [
@@ -23,6 +24,7 @@ const issue: Parameters<typeof mapIssueDialog>[0] = {
   epicName: 'Board',
   id: 5,
   key: 'DEV-1',
+  ownerColor: '#654321',
   ownerDisplayName: 'User',
   ownerInitials: 'U',
   spaceColor: '#444444',
@@ -40,5 +42,7 @@ test('maps a board issue dialog independently', () => {
 
   assert.equal(result.issueKey, 'DEV-1')
   assert.equal(result.assignee, 'Assigned User')
+  assert.equal(result.assigneeColor, '#123456')
+  assert.equal(result.ownerColor, '#654321')
   assert.equal(result.attributes[0]?.type, 'list')
 })
