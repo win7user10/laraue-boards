@@ -1,4 +1,4 @@
-type CreateBacklogIssueResult = { issueId: string }
+type CreateBacklogIssueResult = { issueKey: string }
 
 type CreateBacklogIssueError =
   | 'AccessDenied'

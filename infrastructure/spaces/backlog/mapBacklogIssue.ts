@@ -10,8 +10,7 @@ export const mapBacklogIssue = (
   boardName: issue.epic.name,
   canMove: issue.canEdit,
   content: issue.content ?? '',
-  id: String(issue.id),
-  key: issue.key,
+  issueKey: issue.key,
   status: issue.status?.name ?? 'Backlog',
   statusColor: issue.status?.color ?? '#98a2b3',
 })

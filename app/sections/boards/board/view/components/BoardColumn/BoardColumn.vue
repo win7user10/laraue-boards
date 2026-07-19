@@ -21,11 +21,11 @@
       </p>
       <IssueCard
         v-for="issue in viewModel.issues"
-        :key="issue.id"
-        :disabled="!canMoveIssues || movingIssueIds.has(issue.id)"
-        :moving="movingIssueIds.has(issue.id)"
+        :key="issue.issueKey"
+        :disabled="!canMoveIssues || movingIssueKeys.has(issue.issueKey)"
+        :moving="movingIssueKeys.has(issue.issueKey)"
         :view-model="issue"
-        @move-to-backlog="emit('moveToBacklog', issue.id)"
+        @move-to-backlog="emit('moveToBacklog', issue.issueKey)"
         @open-issue="emit('openIssue', $event)" />
       <div
         v-if="viewModel.hasNext"
@@ -69,13 +69,13 @@ const props = defineProps<{
   canMoveIssues: boolean
   loadingMore: boolean
   loadMoreError: null | string
-  movingIssueIds: Set<string>
+  movingIssueKeys: Set<string>
   viewModel: BoardColumnViewModel
 }>()
 const emit = defineEmits<{
   loadMore: []
-  moveToBacklog: [issueId: string]
-  openIssue: [issueId: string]
+  moveToBacklog: [issueKey: string]
+  openIssue: [issueKey: string]
 }>()
 
 const element = ref<HTMLElement>()

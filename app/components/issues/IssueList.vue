@@ -27,7 +27,7 @@
     :class="{ 'results-stale': filtering }">
     <IssueListRow
       v-for="issue in issues"
-      :key="issue.id"
+      :key="issue.issueKey"
       :assignee="issue.assignee"
       :assignee-color="issue.assigneeColor"
       :assignee-initial="issue.assigneeInitial"
@@ -35,15 +35,15 @@
       :board-name="issue.boardName"
       :can-move="issue.canMove"
       :content="issue.content"
-      :issue-key="issue.key"
-      :selected="selected.has(issue.id)"
+      :issue-key="issue.issueKey"
+      :selected="selected.has(issue.issueKey)"
       :space-color="issue.spaceColor"
       :space-name="issue.spaceName"
       :status="issue.status"
       :status-color="issue.statusColor"
-      :to="organizationRoutes.issue(issue.id)"
-      @move="openMoveDialog([issue.id])"
-      @toggle-selection="toggleSelection(issue.id)" />
+      :to="organizationRoutes.issue(issue.issueKey)"
+      @move="openMoveDialog([issue.issueKey])"
+      @toggle-selection="toggleSelection(issue.issueKey)" />
     <p
       v-if="issues.length === 0"
       class="empty">
@@ -82,8 +82,7 @@ export type IssueListItemViewModel = {
   boardName: string
   canMove: boolean
   content: string
-  id: string
-  key: string
+  issueKey: string
   spaceColor?: string
   spaceName?: string
   status: string
@@ -120,7 +119,7 @@ const emit = defineEmits<{
   loadMoveBoards: [spaceId: string]
   loadMoveSpaces: []
   loadMoveStatuses: [boardId: string]
-  moveIssues: [input: { issueIds: string[]; statusId: string }]
+  moveIssues: [input: { issueKeys: string[]; statusId: string }]
   updatePage: [value: number]
 }>()
 
@@ -128,11 +127,11 @@ const organizationRoutes = useOrganizationRoutes()
 const selected = ref(new Set<string>())
 const moveDialog = ref<{ open: (ids: string[]) => void }>()
 
-function toggleSelection(id: string) {
-  if (selected.value.has(id)) {
-    selected.value.delete(id)
+function toggleSelection(issueKey: string) {
+  if (selected.value.has(issueKey)) {
+    selected.value.delete(issueKey)
   } else {
-    selected.value.add(id)
+    selected.value.add(issueKey)
   }
 }
 

@@ -4,17 +4,17 @@ import { createApiClient } from '../../api/client'
 export const openApiMoveBoardIssue = (baseUrl: string): MoveBoardIssue => {
   const client = createApiClient(baseUrl)
 
-  return async ({ issueId, statusId }) => {
+  return async ({ issueKey, statusId }) => {
     if (!statusId) {
       return err('InvalidStatus')
     }
 
     try {
       const response = await client.POST(
-        '/api/movement/issue/{id}/move-to-status/{statusId}',
+        '/api/movement/issue/{key}/move-to-status/{statusId}',
         {
           params: {
-            path: { id: Number(issueId), statusId: Number(statusId) },
+            path: { key: issueKey, statusId: Number(statusId) },
           },
         },
       )

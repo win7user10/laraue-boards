@@ -9,8 +9,7 @@ type SearchBacklogIssuesResult = {
       boardName: string
       canMove: boolean
       content: string
-      id: string
-      key: string
+      issueKey: string
       status: string
       statusColor: string
     }>

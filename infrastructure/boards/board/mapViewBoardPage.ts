@@ -48,7 +48,6 @@ export function mapIssueListDto(issue: Schemas['IssueListDto']) {
     assigneeInitial: issue.assigneeInitial ?? '?',
     assigneeName: issue.assignee,
     content: issue.content ?? '',
-    id: String(issue.id),
     issueKey: issue.key,
     time: issue.time,
   }

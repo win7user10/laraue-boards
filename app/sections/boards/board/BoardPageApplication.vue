@@ -4,7 +4,7 @@
     :filter-value="filterValue"
     :filtering="filtering"
     :issue-assignees="issueAssignees"
-    :issue-dialog-visible="Boolean(issueId) && !closingIssueDialog"
+    :issue-dialog-visible="Boolean(issueKey) && !closingIssueDialog"
     :issue-error="issueError"
     :issue-load-error-text="issueLoadErrorText"
     :issue-loading="issueStatus === 'idle' || issueStatus === 'pending'"
@@ -20,7 +20,7 @@
     :load-more-errors="loadMoreErrors"
     :loading-column-ids="loadingColumnIds"
     :move-error="moveError"
-    :moving-issue-ids="movingIssueIds"
+    :moving-issue-keys="movingIssueKeys"
     :search="search"
     :space-key="spaceKey"
     :view-model="pageState.data.BoardPage"
@@ -68,7 +68,7 @@ import BoardPage from './view/BoardPage.vue'
 const props = defineProps<{
   boardId: string
   deps: BoardPageApplicationDeps
-  issueId: null | string
+  issueKey: null | string
   spaceKey: string
 }>()
 
@@ -80,7 +80,7 @@ const search = computed(() =>
 )
 const attributeQuery = computed(() => readIssueAttributeQuery(route.query))
 const moveError = ref<null | string>(null)
-const movingIssueIds = ref<Set<string>>(new Set())
+const movingIssueKeys = ref<Set<string>>(new Set())
 const loadingColumnIds = ref<Set<string>>(new Set())
 const loadMoreErrors = ref<Map<string, string>>(new Map())
 const router = useRouter()
@@ -112,7 +112,7 @@ const {
   refresh: refreshIssue,
   status: issueStatus,
 } = await useLazyAsyncData(
-  () => asyncDataKeys.issue.dialog(props.issueId ?? 'closed'),
+  () => asyncDataKeys.issue.dialog(props.issueKey ?? 'closed'),
   loadIssueDialog,
   { server: false },
 )
@@ -134,8 +134,8 @@ type IssueDialogOutcome = ActionResult<
 >
 
 async function loadIssueDialog(): Promise<IssueDialogOutcome> {
-  return props.issueId
-    ? props.deps.loadIssueDialog({ issueId: props.issueId })
+  return props.issueKey
+    ? props.deps.loadIssueDialog({ issueKey: props.issueKey })
     : { ok: true, value: undefined }
 }
 
@@ -176,8 +176,8 @@ function updateSearch(value: string) {
   void router.replace({ query })
 }
 
-function openIssue(issueId: string) {
-  void router.push({ query: { ...route.query, issue: issueId } })
+function openIssue(issueKey: string) {
+  void router.push({ query: { ...route.query, issue: issueKey } })
 }
 
 const issueData = computed(() => {
@@ -243,7 +243,7 @@ watch([search, filterKey], () => {
 onScopeDispose(scheduleSearch.cancel)
 
 watch(
-  () => props.issueId,
+  () => props.issueKey,
   () => {
     runLoadIssueAssignees.cancel()
     closingIssueDialog.value = false
@@ -412,9 +412,9 @@ async function saveIssue(input: {
   content: string
   statusId: string
 }) {
-  const issueId = props.issueId
+  const issueKey = props.issueKey
   const originalIssue = issueData.value?.IssueDialog
-  if (!issueId || !originalIssue) {
+  if (!issueKey || !originalIssue) {
     return
   }
   scheduleSearch.cancel()
@@ -429,7 +429,7 @@ async function saveIssue(input: {
       originalIssue.attributes,
     ),
     content: input.content,
-    issueId,
+    issueKey,
   })
   const updateBoardIssue = (boardId: string, statusId: string) => {
     const current = viewModel.value
@@ -440,7 +440,7 @@ async function saveIssue(input: {
           BoardPage: updateIssueInBoard(current.BoardPage, {
             boardId,
             content: input.content,
-            issueId,
+            issueKey,
             statusId,
           }),
         },
@@ -459,7 +459,7 @@ async function saveIssue(input: {
       })
     },
     ok: async () => {
-      invalidation.invalidateIssueDataExceptBoard(issueId, props.boardId)
+      invalidation.invalidateIssueDataExceptBoard(issueKey, props.boardId)
       if (input.statusId === originalIssue?.statusId) {
         updateBoardIssue(input.boardId, input.statusId)
         closeIssueDialog()
@@ -467,7 +467,7 @@ async function saveIssue(input: {
         return
       }
       const moveResult = await props.deps.moveBoardIssue({
-        issueId,
+        issueKey,
         statusId: input.statusId,
       })
       await matchActionResult({
@@ -500,14 +500,14 @@ async function saveIssue(input: {
 }
 
 async function removeIssue() {
-  const issueId = props.issueId
-  if (!issueId || !confirm('Delete this issue?')) {
+  const issueKey = props.issueKey
+  if (!issueKey || !confirm('Delete this issue?')) {
     return
   }
   scheduleSearch.cancel()
   runSearch.cancel()
   filtering.value = false
-  const result = await props.deps.deleteIssue({ issueId })
+  const result = await props.deps.deleteIssue({ issueKey })
   matchActionResult({
     err: (actionError) => {
       issueError.value = getErrorMessage({
@@ -525,12 +525,12 @@ async function removeIssue() {
         outcome.value = {
           ok: true,
           value: {
-            BoardPage: removeIssueFromBoard(current.BoardPage, issueId),
+            BoardPage: removeIssueFromBoard(current.BoardPage, issueKey),
           },
         }
       }
       closeIssueDialog()
-      invalidation.invalidateIssueDataExceptBoard(issueId, props.boardId)
+      invalidation.invalidateIssueDataExceptBoard(issueKey, props.boardId)
     },
     result,
   })
@@ -591,16 +591,16 @@ async function searchIssues() {
   })
 }
 
-async function moveIssue(input: { issueId: string; statusId: string }) {
+async function moveIssue(input: { issueKey: string; statusId: string }) {
   const current = viewModel.value
   const sourceColumn = current?.BoardPage.columns.find((column) =>
-    column.issues.some((issue) => issue.id === input.issueId),
+    column.issues.some((issue) => issue.issueKey === input.issueKey),
   )
   if (
     !current ||
     !sourceColumn ||
     sourceColumn.id === input.statusId ||
-    movingIssueIds.value.has(input.issueId)
+    movingIssueKeys.value.has(input.issueKey)
   ) {
     return
   }
@@ -609,13 +609,13 @@ async function moveIssue(input: { issueId: string; statusId: string }) {
   runSearch.cancel()
   filtering.value = false
   moveError.value = null
-  movingIssueIds.value.add(input.issueId)
+  movingIssueKeys.value.add(input.issueKey)
   outcome.value = {
     ok: true,
     value: {
       BoardPage: moveIssueInBoard(
         current.BoardPage,
-        input.issueId,
+        input.issueKey,
         input.statusId,
       ),
     },
@@ -630,7 +630,7 @@ async function moveIssue(input: { issueId: string; statusId: string }) {
           value: {
             BoardPage: moveIssueInBoard(
               optimistic.BoardPage,
-              input.issueId,
+              input.issueKey,
               sourceColumn.id,
             ),
           },
@@ -647,19 +647,19 @@ async function moveIssue(input: { issueId: string; statusId: string }) {
       })
     },
     ok: () => {
-      invalidation.invalidateIssueDataExceptBoard(input.issueId, props.boardId)
+      invalidation.invalidateIssueDataExceptBoard(input.issueKey, props.boardId)
     },
     result,
   })
-  movingIssueIds.value.delete(input.issueId)
+  movingIssueKeys.value.delete(input.issueKey)
 }
 
-async function moveToBacklog(issueId: string) {
+async function moveToBacklog(issueKey: string) {
   const current = viewModel.value
   const sourceColumn = current?.BoardPage.columns.find((column) =>
-    column.issues.some((issue) => issue.id === issueId),
+    column.issues.some((issue) => issue.issueKey === issueKey),
   )
-  if (!current || !sourceColumn || movingIssueIds.value.has(issueId)) {
+  if (!current || !sourceColumn || movingIssueKeys.value.has(issueKey)) {
     return
   }
 
@@ -667,16 +667,16 @@ async function moveToBacklog(issueId: string) {
   runSearch.cancel()
   filtering.value = false
   moveError.value = null
-  movingIssueIds.value.add(issueId)
+  movingIssueKeys.value.add(issueKey)
   outcome.value = {
     ok: true,
     value: {
-      BoardPage: removeIssueFromBoard(current.BoardPage, issueId),
+      BoardPage: removeIssueFromBoard(current.BoardPage, issueKey),
     },
   }
   const result = await props.deps.moveIssueToBacklog({
     boardId: props.boardId,
-    issueId,
+    issueKey,
     spaceKey: props.spaceKey,
   })
   matchActionResult({
@@ -697,11 +697,11 @@ async function moveToBacklog(issueId: string) {
       })
     },
     ok: () => {
-      invalidation.invalidateIssueDataExceptBoard(issueId, props.boardId)
+      invalidation.invalidateIssueDataExceptBoard(issueKey, props.boardId)
     },
     result,
   })
-  movingIssueIds.value.delete(issueId)
+  movingIssueKeys.value.delete(issueKey)
 }
 
 async function loadMoreIssues(statusId: string) {
@@ -780,10 +780,10 @@ async function loadMoreIssues(statusId: string) {
 
 function removeIssueFromBoard(
   board: BoardPageViewModel,
-  issueId: string,
+  issueKey: string,
 ): BoardPageViewModel {
   const source = board.columns.find((column) =>
-    column.issues.some((issue) => issue.id === issueId),
+    column.issues.some((issue) => issue.issueKey === issueKey),
   )
   if (!source) {
     return board
@@ -796,7 +796,7 @@ function removeIssueFromBoard(
         ? {
             ...column,
             issueCount: column.issueCount - 1,
-            issues: column.issues.filter((item) => item.id !== issueId),
+            issues: column.issues.filter((item) => item.issueKey !== issueKey),
           }
         : column,
     ),
@@ -806,14 +806,14 @@ function removeIssueFromBoard(
 
 function moveIssueInBoard(
   board: BoardPageViewModel,
-  issueId: string,
+  issueKey: string,
   statusId: string,
 ): BoardPageViewModel {
   const source = board.columns.find((column) =>
-    column.issues.some((issue) => issue.id === issueId),
+    column.issues.some((issue) => issue.issueKey === issueKey),
   )
   const target = board.columns.find((column) => column.id === statusId)
-  const issue = source?.issues.find((item) => item.id === issueId)
+  const issue = source?.issues.find((item) => item.issueKey === issueKey)
   if (!source || !target || !issue || source === target) {
     return board
   }
@@ -845,27 +845,27 @@ function updateIssueInBoard(
   update: {
     boardId: string
     content: string
-    issueId: string
+    issueKey: string
     statusId: string
   },
 ): BoardPageViewModel {
   const hasIssue = board.columns.some((column) =>
-    column.issues.some((issue) => issue.id === update.issueId),
+    column.issues.some((issue) => issue.issueKey === update.issueKey),
   )
   if (!hasIssue) {
     return board
   }
   if (update.boardId !== board.id) {
-    return removeIssueFromBoard(board, update.issueId)
+    return removeIssueFromBoard(board, update.issueKey)
   }
 
-  const updated = moveIssueInBoard(board, update.issueId, update.statusId)
+  const updated = moveIssueInBoard(board, update.issueKey, update.statusId)
   return {
     ...updated,
     columns: updated.columns.map((column) => ({
       ...column,
       issues: column.issues.map((issue) =>
-        issue.id === update.issueId
+        issue.issueKey === update.issueKey
           ? { ...issue, content: update.content }
           : issue,
       ),

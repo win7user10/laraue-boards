@@ -259,7 +259,7 @@ async function loadMoveStatuses(boardId: string) {
   loadingMoveStatuses.value = false
 }
 
-async function moveIssues(input: { issueIds: string[]; statusId: string }) {
+async function moveIssues(input: { issueKeys: string[]; statusId: string }) {
   moving.value = true
   moveError.value = null
   const result = await props.deps.moveBacklogIssues(input)
@@ -278,7 +278,10 @@ async function moveIssues(input: { issueIds: string[]; statusId: string }) {
     ok: () => undefined,
     result,
   })
-  invalidation.invalidateIssuesDataExceptBacklog(input.issueIds, props.spaceKey)
+  invalidation.invalidateIssuesDataExceptBacklog(
+    input.issueKeys,
+    props.spaceKey,
+  )
   await searchIssues()
   moving.value = false
 }

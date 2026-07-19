@@ -1,7 +1,7 @@
 <template>
   <IssuePageApplication
     :deps="deps"
-    :issue-id="issueId" />
+    :issue-key="issueKey" />
 </template>
 <script setup lang="ts">
 import { openApiDeleteIssue } from '~~/infrastructure/issues/issue/openApiDeleteIssue'
@@ -14,8 +14,8 @@ import { openApiUpdateIssue } from '~~/infrastructure/issues/issue/openApiUpdate
 import { openApiViewIssuePage } from '~~/infrastructure/issues/issue/openApiViewIssuePage'
 
 import IssuePageApplication from '~/sections/issues/issue/IssuePageApplication.vue'
-const route = useRoute('organizations-organizationKey-issues-id')
-const issueId = computed(() => String(route.params.id))
+const route = useRoute('organizations-organizationKey-issues-issueKey')
+const issueKey = computed(() => String(route.params.issueKey))
 const config = useRuntimeConfig()
 const baseUrl = config.public.boardsApiBaseUrl
 const deps = {

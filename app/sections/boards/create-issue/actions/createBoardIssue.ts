@@ -1,4 +1,4 @@
-type CreateBoardIssueResult = { issueId: string }
+type CreateBoardIssueResult = { issueKey: string }
 
 type CreateBoardIssueError =
   | 'AccessDenied'

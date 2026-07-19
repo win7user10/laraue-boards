@@ -3,7 +3,6 @@ type LoadMoreBoardIssue = {
   assigneeInitial: string
   assigneeName: string
   content: string
-  id: string
   issueKey: string
   time: string
 }

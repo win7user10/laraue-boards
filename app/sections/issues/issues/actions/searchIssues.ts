@@ -9,8 +9,7 @@ type SearchIssuesResult = {
       boardName: string
       canMove: boolean
       content: string
-      id: string
-      key: string
+      issueKey: string
       spaceColor: string
       spaceName: string
       status: string

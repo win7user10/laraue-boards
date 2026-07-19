@@ -7,6 +7,6 @@ type MoveIssueError =
   | 'TemporarilyUnavailable'
 
 export type MoveIssue = (input: {
-  issueId: string
+  issueKey: string
   statusId: string
 }) => Promise<ActionResult<MoveIssueResult, MoveIssueError>>

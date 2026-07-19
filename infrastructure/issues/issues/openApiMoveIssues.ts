@@ -3,16 +3,16 @@ import { createApiClient } from '../../api/client'
 
 export const openApiMoveIssues = (baseUrl: string): MoveIssues => {
   const client = createApiClient(baseUrl)
-  return async ({ issueIds, statusId }) => {
-    if (!issueIds.length || !statusId) {
+  return async ({ issueKeys, statusId }) => {
+    if (!issueKeys.length || !statusId) {
       return err('InvalidStatus')
     }
     try {
       const responses = await Promise.all(
-        issueIds.map((issueId) =>
-          client.POST('/api/movement/issue/{id}/move-to-status/{statusId}', {
+        issueKeys.map((issueKey) =>
+          client.POST('/api/movement/issue/{key}/move-to-status/{statusId}', {
             params: {
-              path: { id: Number(issueId), statusId: Number(statusId) },
+              path: { key: issueKey, statusId: Number(statusId) },
             },
           }),
         ),

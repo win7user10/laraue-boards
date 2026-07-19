@@ -2,8 +2,8 @@
   <dialog ref="dialog">
     <form @submit.prevent="move">
       <h2>
-        Move {{ issueIds.length }}
-        {{ issueIds.length === 1 ? 'issue' : 'issues' }}
+        Move {{ issueKeys.length }}
+        {{ issueKeys.length === 1 ? 'issue' : 'issues' }}
       </h2>
       <label :for="`${idPrefix}-space`">Space</label>
       <select
@@ -133,19 +133,19 @@ const emit = defineEmits<{
   loadBoards: [spaceId: string]
   loadSpaces: []
   loadStatuses: [boardId: string]
-  move: [input: { issueIds: string[]; statusId: string }]
+  move: [input: { issueKeys: string[]; statusId: string }]
   moved: []
 }>()
 
 const idPrefix = useId()
 const dialog = ref<HTMLDialogElement>()
-const issueIds = ref<string[]>([])
+const issueKeys = ref<string[]>([])
 const spaceId = ref('')
 const boardId = ref('')
 const statusId = ref('')
 
 function open(ids: string[]) {
-  issueIds.value = ids
+  issueKeys.value = ids
   spaceId.value = ''
   boardId.value = ''
   statusId.value = ''
@@ -182,7 +182,7 @@ function loadStatuses() {
 }
 
 function move() {
-  emit('move', { issueIds: issueIds.value, statusId: statusId.value })
+  emit('move', { issueKeys: issueKeys.value, statusId: statusId.value })
 }
 
 watch(

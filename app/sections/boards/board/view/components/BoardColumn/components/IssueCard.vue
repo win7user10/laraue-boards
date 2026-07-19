@@ -2,14 +2,14 @@
   <NuxtLink
     v-slot="{ href }"
     custom
-    :to="organizationRoutes.issue(viewModel.id)">
+    :to="organizationRoutes.issue(viewModel.issueKey)">
     <a
       ref="element"
       class="task"
       :class="{ 'task--ghost': isDragging, 'task--moving': moving }"
       draggable="false"
       :href="href || undefined"
-      @click.left.exact.prevent="emit('openIssue', viewModel.id)">
+      @click.left.exact.prevent="emit('openIssue', viewModel.issueKey)">
       <div class="task-source">
         <span
           class="avatar"
@@ -58,7 +58,6 @@ export type IssueCardViewModel = {
   assigneeInitial: string
   assigneeName: string
   content: string
-  id: string
   issueKey: string
   time: string
 }
@@ -75,7 +74,7 @@ const props = defineProps<{
 }>()
 const emit = defineEmits<{
   moveToBacklog: []
-  openIssue: [issueId: string]
+  openIssue: [issueKey: string]
 }>()
 const organizationRoutes = useOrganizationRoutes()
 
@@ -84,7 +83,7 @@ const element = ref<HTMLElement>()
 const { isDragging } = useDraggable({
   disabled: computed(() => props.disabled),
   element,
-  id: computed(() => props.viewModel.id),
+  id: computed(() => props.viewModel.issueKey),
   type: 'item',
 })
 

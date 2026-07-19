@@ -42,7 +42,6 @@ export const mapIssueDialog = (
   canEdit: issue.canEdit,
   content: issue.content ?? '',
   createdAt: issue.time,
-  id: String(issue.id),
   issueKey: issue.key,
   owner: issue.ownerDisplayName ?? 'Unknown owner',
   ownerInitial: issue.ownerInitials ?? '?',

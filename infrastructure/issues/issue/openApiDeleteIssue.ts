@@ -3,11 +3,11 @@ import { createApiClient } from '../../api/client'
 
 export const openApiDeleteIssue =
   (baseUrl: string): DeleteIssue =>
-  async ({ issueId }) => {
+  async ({ issueKey }) => {
     const client = createApiClient(baseUrl)
     try {
-      const response = await client.DELETE('/api/issues/{id}', {
-        params: { path: { id: Number(issueId) } },
+      const response = await client.DELETE('/api/issues/{key}', {
+        params: { path: { key: issueKey } },
       })
       switch (response.response.status) {
         case 401:
