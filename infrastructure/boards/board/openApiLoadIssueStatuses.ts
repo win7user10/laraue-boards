@@ -20,10 +20,15 @@ export const openApiLoadIssueStatuses =
       }
       return response.data
         ? ok({
-            statuses: (response.data.statuses ?? []).map((status) => ({
-              id: String(status.id),
-              name: status.name,
-            })),
+            statuses: (response.data.statuses ?? [])
+              .toSorted(
+                (left, right) =>
+                  Number(left.sortOrder) - Number(right.sortOrder),
+              )
+              .map((status) => ({
+                id: String(status.id),
+                name: status.name,
+              })),
           })
         : err('TemporarilyUnavailable')
     } catch {

@@ -50,10 +50,14 @@ export const openApiViewCreateBoardIssuePage = (
           attributes: mapIssueAttributes(attributesResponse.data),
           boardId,
           boardName: response.data.name,
-          statuses: statuses.map((status) => ({
-            label: status.name,
-            value: String(status.id),
-          })),
+          statuses: statuses
+            .toSorted(
+              (left, right) => Number(left.sortOrder) - Number(right.sortOrder),
+            )
+            .map((status) => ({
+              label: status.name,
+              value: String(status.id),
+            })),
           statusId: getFirstStatusId(statuses) ?? '',
         },
       })
