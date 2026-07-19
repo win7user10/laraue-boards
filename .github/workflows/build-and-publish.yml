@@ -40,8 +40,4 @@ jobs:
           user: ${{ secrets.SSH_USER }} # "user"
           password: ${{ secrets.SSH_PASSWORD }} # "password"
           local: .output/*
-          remote: '/home/laraue/note-to-board-frontend'
-          pre_upload: mkdir -p /home/laraue/note-to-board-frontend
-          post_upload:
-            XDG_RUNTIME_DIR=/run/user/$(id -u) systemctl --user restart
-            note-to-board-frontend.service
+          remote: '/home/laraue/frontend/boards'
