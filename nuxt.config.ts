@@ -20,14 +20,16 @@ export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
   css: ['~/assets/css/tokens.css', '~/assets/css/main.css'],
   devtools: { enabled: true },
+
+  experimental: {
+    typedPages: true,
+  },
   gtag: {
     enabled: process.env.NODE_ENV === 'production',
     id: 'G-RGM3JHLBGL'
   },
 
-  experimental: {
-    typedPages: true,
-  },
+  modules: ['nuxt-gtag'],
 
   runtimeConfig: {
     public: {
@@ -37,5 +39,4 @@ export default defineNuxtConfig({
     },
   },
 
-  modules: ['nuxt-gtag'],
 })
