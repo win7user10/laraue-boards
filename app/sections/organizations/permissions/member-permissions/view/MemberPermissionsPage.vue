@@ -15,7 +15,12 @@
     <form
       class="permissions-editor"
       @submit.prevent="submit">
-      <fieldset>
+      <p
+        v-if="viewModel.member.isOwner"
+        class="muted">
+        Owner permissions are read-only.
+      </p>
+      <fieldset :disabled="viewModel.member.isOwner">
         <legend>Administration</legend>
         <p class="muted section-description">
           Controls organization-level management tools.
@@ -33,7 +38,7 @@
         </div>
       </fieldset>
 
-      <fieldset>
+      <fieldset :disabled="viewModel.member.isOwner">
         <legend>Organization access</legend>
         <p class="muted section-description">
           These permissions apply to every space.
@@ -51,7 +56,7 @@
         </div>
       </fieldset>
 
-      <fieldset>
+      <fieldset :disabled="viewModel.member.isOwner">
         <legend>Direct space access</legend>
         <p class="muted section-description">
           Adds permissions for individual spaces.
@@ -95,7 +100,9 @@
         class="form-error">
         {{ error }}
       </p>
-      <div class="form-actions">
+      <div
+        v-if="!viewModel.member.isOwner"
+        class="form-actions">
         <button
           class="primary"
           :disabled="submitting">
