@@ -1,0 +1,40 @@
+import type { CreateBacklogIssue } from '../../../app/sections/spaces/create-backlog-issue/actions/createBacklogIssue'
+import { createApiClient } from '../../api/client'
+import { getInvalidInputError } from '../../api/getInvalidInputError'
+import { mapIssueAttributeValues } from '../../issues/shared/issueAttributes'
+
+export const openApiCreateBacklogIssue = (
+  baseUrl: string,
+): CreateBacklogIssue => {
+  const client = createApiClient(baseUrl)
+  return async ({ assigneeId, attributeValues, content, statusId }) => {
+    try {
+      const response = await client.POST('/api/issues', {
+        body: {
+          assigneeId,
+          attributeValues: mapIssueAttributeValues(attributeValues),
+          content: content.trim(),
+          statusId,
+        },
+      })
+      switch (response.response.status) {
+        case 200:
+          break
+        case 400:
+          return err(getInvalidInputError(response.error))
+        case 401:
+        case 403:
+          return err('AccessDenied')
+        case 404:
+          return err('StatusNotFound')
+        default:
+          return err('TemporarilyUnavailable')
+      }
+      return response.data === undefined
+        ? err('TemporarilyUnavailable')
+        : ok({ issueId: String(response.data) })
+    } catch {
+      return err('TemporarilyUnavailable')
+    }
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "ignorePatterns": ["infrastructure/api/generated.ts"],
+  "plugins": [
+    "eslint",
+    "typescript",
+    "unicorn",
+    "oxc",
+    "vue",
+    "vitest",
+    "import"
+  ],
+  "jsPlugins": ["eslint-plugin-perfectionist"],
+  "env": {
+    "browser": true
+  },
+  "rules": {
+    "no-console": [
+      "error",
+      {
+        "allow": ["info", "warn", "error"]
+      }
+    ],
+    "curly": "error",
+    "perfectionist/sort-enums": [
+      "warn",
+      { "type": "natural", "partitionByComment": true }
+    ],
+    "perfectionist/sort-interfaces": [
+      "warn",
+      { "type": "natural", "partitionByComment": true }
+    ],
+    "perfectionist/sort-intersection-types": [
+      "warn",
+      { "type": "natural", "partitionByComment": true }
+    ],
+    "perfectionist/sort-object-types": [
+      "warn",
+      { "type": "natural", "partitionByComment": true }
+    ],
+    "perfectionist/sort-objects": [
+      "warn",
+      { "type": "natural", "partitionByComment": true }
+    ],
+    "perfectionist/sort-union-types": [
+      "warn",
+      { "type": "natural", "partitionByComment": true }
+    ]
+  },
+  "categories": {
+    "correctness": "error"
+  }
+}
