@@ -111,7 +111,9 @@
       </nav>
       <div class="sidebar-footer">
         <div class="sidebar-user">
-          <span class="avatar">
+          <span
+            class="avatar"
+            :style="{ background: viewModel.user.color }">
             {{ viewModel.user.initials }}
           </span>
           <span>
@@ -181,7 +183,7 @@ export type AppLayoutViewModel = {
     key: string
     name: string
   }>
-  user: { initials: string; name: string }
+  user: { color: string; initials: string; name: string }
 }
 
 type AppLayoutProps = {
