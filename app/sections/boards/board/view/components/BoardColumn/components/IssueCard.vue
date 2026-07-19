@@ -11,7 +11,9 @@
       :href="href || undefined"
       @click.left.exact.prevent="emit('openIssue', viewModel.id)">
       <div class="task-source">
-        <span class="avatar">
+        <span
+          class="avatar"
+          :style="{ background: viewModel.assigneeColor }">
           {{ viewModel.assigneeInitial }}
         </span>
         <strong>{{ viewModel.assigneeName }}</strong>

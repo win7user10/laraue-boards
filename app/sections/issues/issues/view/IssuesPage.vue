@@ -81,6 +81,7 @@ export type IssuesPageViewModel = {
   hasNextPage: boolean
   issues: Array<{
     assignee: string
+    assigneeColor: string
     assigneeInitial: string
     boardColor: string
     boardName: string

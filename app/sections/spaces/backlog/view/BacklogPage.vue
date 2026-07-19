@@ -82,6 +82,7 @@ export type BacklogPageViewModel = {
   hasNextPage: boolean
   issues: Array<{
     assignee: string
+    assigneeColor: string
     assigneeInitial: string
     boardColor: string
     boardName: string

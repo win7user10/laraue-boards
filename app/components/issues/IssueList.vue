@@ -29,6 +29,7 @@
       v-for="issue in issues"
       :key="issue.id"
       :assignee="issue.assignee"
+      :assignee-color="issue.assigneeColor"
       :assignee-initial="issue.assigneeInitial"
       :board-color="issue.boardColor"
       :board-name="issue.boardName"
@@ -75,6 +76,7 @@
 <script lang="ts">
 export type IssueListItemViewModel = {
   assignee: string
+  assigneeColor: string
   assigneeInitial: string
   boardColor: string
   boardName: string
