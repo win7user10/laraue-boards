@@ -6,5 +6,5 @@ type DeleteIssueError =
   | 'TemporarilyUnavailable'
 
 export type DeleteIssue = (input: {
-  issueId: string
+  issueKey: string
 }) => Promise<ActionResult<DeleteIssueResult, DeleteIssueError>>

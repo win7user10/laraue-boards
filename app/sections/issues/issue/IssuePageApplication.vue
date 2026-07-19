@@ -34,20 +34,23 @@ import { getIssueAttributeValueInput } from '../../../utils/issueAttributeValues
 import type { IssuePageApplicationDeps } from './IssuePageApplicationDeps'
 import IssuePage from './view/IssuePage.vue'
 
-const props = defineProps<{ deps: IssuePageApplicationDeps; issueId: string }>()
+const props = defineProps<{
+  deps: IssuePageApplicationDeps
+  issueKey: string
+}>()
 const organizationRoutes = useOrganizationRoutes()
 const router = useRouter()
 const { refresh, state: pageState } = await useActionData({
-  action: () => props.deps.viewIssuePage({ issueId: props.issueId }),
+  action: () => props.deps.viewIssuePage({ issueKey: props.issueKey }),
   fallbackMessage: 'Could not load issue. Try again.',
-  key: () => asyncDataKeys.issue.view(props.issueId),
+  key: () => asyncDataKeys.issue.view(props.issueKey),
   messages: {
     AccessDenied: 'You do not have access to this issue.',
     IssueNotFound: 'The issue was not found or is not available to you.',
     TemporarilyUnavailable:
       'Could not load issue. The service is temporarily unavailable.',
   },
-  watch: [() => props.issueId],
+  watch: [() => props.issueKey],
 })
 useHead({
   title: computed(() =>
@@ -70,7 +73,7 @@ const invalidation = useAsyncDataInvalidation()
 const runLoadAssignees = createLatestRequest()
 
 watch(
-  () => props.issueId,
+  () => props.issueKey,
   () => {
     runLoadAssignees.cancel()
     assignees.value = []
@@ -230,7 +233,7 @@ async function save(input: {
       issue.attributes,
     ),
     content: input.content,
-    issueId: props.issueId,
+    issueKey: props.issueKey,
   })
   await matchActionResult({
     err: async (actionError) => {
@@ -249,7 +252,7 @@ async function save(input: {
         input.statusId !== pageState.value.data.IssuePage.statusId
       ) {
         const moveResult = await props.deps.moveIssue({
-          issueId: props.issueId,
+          issueKey: props.issueKey,
           statusId: input.statusId,
         })
         matchActionResult({
@@ -269,7 +272,7 @@ async function save(input: {
           result: moveResult,
         })
       }
-      invalidation.invalidateIssueDataExceptIssuePage(props.issueId)
+      invalidation.invalidateIssueDataExceptIssuePage(props.issueKey)
       await refresh()
     },
     result: updateResult,
@@ -280,7 +283,7 @@ async function remove() {
   if (!confirm('Delete this issue?')) {
     return
   }
-  const result = await props.deps.deleteIssue({ issueId: props.issueId })
+  const result = await props.deps.deleteIssue({ issueKey: props.issueKey })
   matchActionResult({
     err: (actionError) => {
       error.value = getErrorMessage({
@@ -293,7 +296,7 @@ async function remove() {
       })
     },
     ok: () => {
-      invalidation.invalidateIssueData(props.issueId)
+      invalidation.invalidateIssueData(props.issueKey)
       returnToSource()
     },
     result,

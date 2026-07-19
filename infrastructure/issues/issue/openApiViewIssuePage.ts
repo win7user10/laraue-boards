@@ -4,11 +4,11 @@ import { mapIssuePage } from './mapIssuePage'
 
 export const openApiViewIssuePage =
   (baseUrl: string): ViewIssuePage =>
-  async ({ issueId }) => {
+  async ({ issueKey }) => {
     const client = createApiClient(baseUrl)
     try {
-      const issue = await client.GET('/api/issues/{id}', {
-        params: { path: { id: Number(issueId) } },
+      const issue = await client.GET('/api/issues/{key}', {
+        params: { path: { key: issueKey } },
       })
       switch (issue.response.status) {
         case 200:

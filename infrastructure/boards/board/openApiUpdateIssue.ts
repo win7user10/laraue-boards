@@ -8,14 +8,13 @@ export const openApiUpdateIssue =
   async (input) => {
     const client = createApiClient(baseUrl)
     try {
-      const response = await client.PUT('/api/issues/{id}', {
+      const response = await client.PUT('/api/issues/{key}', {
         body: {
           assigneeId: input.assigneeId,
           attributeValues: mapIssueAttributeValues(input.attributeValues),
           content: input.content,
-          id: input.issueId,
         },
-        params: { path: { id: Number(input.issueId) } },
+        params: { path: { key: input.issueKey } },
       })
       switch (response.response.status) {
         case 400:

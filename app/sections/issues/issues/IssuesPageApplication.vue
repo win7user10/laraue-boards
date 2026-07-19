@@ -219,7 +219,7 @@ async function loadMoveStatuses(boardId: string) {
 // Move submission
 const invalidation = useAsyncDataInvalidation()
 
-async function moveIssues(input: { issueIds: string[]; statusId: string }) {
+async function moveIssues(input: { issueKeys: string[]; statusId: string }) {
   moveError.value = null
   moving.value = true
   const result = await props.deps.moveIssues(input)
@@ -238,7 +238,7 @@ async function moveIssues(input: { issueIds: string[]; statusId: string }) {
     ok: () => undefined,
     result,
   })
-  invalidation.invalidateIssuesDataExceptIssuesPage(input.issueIds)
+  invalidation.invalidateIssuesDataExceptIssuesPage(input.issueKeys)
   await searchIssues(request.value)
   moving.value = false
 }

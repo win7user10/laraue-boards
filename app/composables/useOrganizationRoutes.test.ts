@@ -24,6 +24,13 @@ test('adds the current organization to typed routes', () => {
         spaceKey: 'DEF',
       },
     })
+    assert.deepEqual(routes.issue('BRD-120'), {
+      name: 'organizations-organizationKey-issues-issueKey',
+      params: {
+        issueKey: 'BRD-120',
+        organizationKey: 'acme-ab12',
+      },
+    })
   } finally {
     Reflect.set(globalThis, 'computed', originalComputed)
     Reflect.set(globalThis, 'useRoute', originalUseRoute)

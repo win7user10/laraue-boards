@@ -13,5 +13,5 @@ export type UpdateIssue = (input: {
     | { attributeId: string; type: 'text'; value: string }
   >
   content: string
-  issueId: string
+  issueKey: string
 }) => Promise<ActionResult<UpdateIssueResult, UpdateIssueError>>

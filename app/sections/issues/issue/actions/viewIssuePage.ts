@@ -7,5 +7,5 @@ type ViewIssuePageError =
   | 'TemporarilyUnavailable'
 
 export type ViewIssuePage = (input: {
-  issueId: string
+  issueKey: string
 }) => Promise<ActionResult<ViewIssuePageResult, ViewIssuePageError>>

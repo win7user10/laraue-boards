@@ -88,8 +88,7 @@ export type BacklogPageViewModel = {
     boardName: string
     canMove: boolean
     content: string
-    id: string
-    key: string
+    issueKey: string
     status: string
     statusColor: string
   }>
@@ -128,7 +127,7 @@ const emit = defineEmits<{
   loadMoveBoards: [spaceId: string]
   loadMoveSpaces: []
   loadMoveStatuses: [boardId: string]
-  moveIssues: [input: { issueIds: string[]; statusId: string }]
+  moveIssues: [input: { issueKeys: string[]; statusId: string }]
   updateFilters: [value: BacklogPageFilterValue]
   updatePage: [value: number]
   updateSearch: [value: string]

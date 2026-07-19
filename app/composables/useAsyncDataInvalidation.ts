@@ -34,10 +34,10 @@ export const asyncDataKeys = {
       `${asyncDataKeyParts.scope.board}:${boardId}:${asyncDataKeyParts.resource.view}`,
   },
   issue: {
-    dialog: (issueId: string) =>
-      `${asyncDataKeyParts.scope.issue}:${issueId}:${asyncDataKeyParts.resource.dialog}`,
-    view: (issueId: string) =>
-      `${asyncDataKeyParts.scope.issue}:${issueId}:${asyncDataKeyParts.resource.view}`,
+    dialog: (issueKey: string) =>
+      `${asyncDataKeyParts.scope.issue}:${issueKey}:${asyncDataKeyParts.resource.dialog}`,
+    view: (issueKey: string) =>
+      `${asyncDataKeyParts.scope.issue}:${issueKey}:${asyncDataKeyParts.resource.view}`,
   },
   organizations: {
     list: 'organizations:list',
@@ -90,25 +90,24 @@ export const isIssueRelatedDataKey = (key: string) =>
 export const isSelectedOrganizationDataKey = (key: string) =>
   key !== asyncDataKeys.organizations.list
 
-const clearIssueData = (issueId: string) =>
+const clearIssueData = (issueKey: string) =>
   clearNuxtData(
     (key) =>
       isIssueRelatedDataKey(key) ||
-      key === asyncDataKeys.issue.dialog(issueId) ||
-      key === asyncDataKeys.issue.view(issueId),
+      key === asyncDataKeys.issue.dialog(issueKey) ||
+      key === asyncDataKeys.issue.view(issueKey),
   )
 
-const clearIssuesDataExcept = (issueIds: string[], preservedKey: string) => {
-  const issueKeys = new Set(
-    issueIds.flatMap((issueId) => [
-      asyncDataKeys.issue.dialog(issueId),
-      asyncDataKeys.issue.view(issueId),
+const clearIssuesDataExcept = (issueKeys: string[], preservedKey: string) => {
+  const dataKeys = new Set(
+    issueKeys.flatMap((issueKey) => [
+      asyncDataKeys.issue.dialog(issueKey),
+      asyncDataKeys.issue.view(issueKey),
     ]),
   )
   clearNuxtData(
     (key) =>
-      key !== preservedKey &&
-      (isIssueRelatedDataKey(key) || issueKeys.has(key)),
+      key !== preservedKey && (isIssueRelatedDataKey(key) || dataKeys.has(key)),
   )
 }
 
@@ -153,40 +152,40 @@ export const useAsyncDataInvalidation = () => {
       clearNuxtData(isIssueRelatedDataKey)
     },
 
-    invalidateIssueData(issueId: string) {
-      clearIssueData(issueId)
+    invalidateIssueData(issueKey: string) {
+      clearIssueData(issueKey)
     },
 
-    invalidateIssueDataExceptBoard(issueId: string, boardId: string) {
+    invalidateIssueDataExceptBoard(issueKey: string, boardId: string) {
       clearNuxtData(
         (key) =>
           key !== asyncDataKeys.board.view(boardId) &&
           (isIssueRelatedDataKey(key) ||
-            key === asyncDataKeys.issue.dialog(issueId) ||
-            key === asyncDataKeys.issue.view(issueId)),
+            key === asyncDataKeys.issue.dialog(issueKey) ||
+            key === asyncDataKeys.issue.view(issueKey)),
       )
     },
 
-    invalidateIssueDataExceptIssuePage(issueId: string) {
-      clearIssuesDataExcept([issueId], asyncDataKeys.issue.view(issueId))
+    invalidateIssueDataExceptIssuePage(issueKey: string) {
+      clearIssuesDataExcept([issueKey], asyncDataKeys.issue.view(issueKey))
     },
 
-    invalidateIssuesData(issueIds: string[]) {
-      const issueKeys = new Set(
-        issueIds.flatMap((issueId) => [
-          asyncDataKeys.issue.dialog(issueId),
-          asyncDataKeys.issue.view(issueId),
+    invalidateIssuesData(issueKeys: string[]) {
+      const dataKeys = new Set(
+        issueKeys.flatMap((issueKey) => [
+          asyncDataKeys.issue.dialog(issueKey),
+          asyncDataKeys.issue.view(issueKey),
         ]),
       )
-      clearNuxtData((key) => isIssueRelatedDataKey(key) || issueKeys.has(key))
+      clearNuxtData((key) => isIssueRelatedDataKey(key) || dataKeys.has(key))
     },
 
-    invalidateIssuesDataExceptBacklog(issueIds: string[], spaceId: string) {
-      clearIssuesDataExcept(issueIds, asyncDataKeys.space.backlog(spaceId))
+    invalidateIssuesDataExceptBacklog(issueKeys: string[], spaceId: string) {
+      clearIssuesDataExcept(issueKeys, asyncDataKeys.space.backlog(spaceId))
     },
 
-    invalidateIssuesDataExceptIssuesPage(issueIds: string[]) {
-      clearIssuesDataExcept(issueIds, asyncDataKeys.workspace.issues)
+    invalidateIssuesDataExceptIssuesPage(issueKeys: string[]) {
+      clearIssuesDataExcept(issueKeys, asyncDataKeys.workspace.issues)
     },
 
     async invalidateOrganizationData() {

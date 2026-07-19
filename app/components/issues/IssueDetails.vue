@@ -225,7 +225,6 @@ type IssueDetailsViewModel = {
   canEdit: boolean
   content: string
   createdAt: string
-  id: string
   issueKey: string
   owner: string
   ownerInitial: string

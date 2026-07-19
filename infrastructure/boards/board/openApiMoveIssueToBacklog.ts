@@ -7,7 +7,7 @@ export const openApiMoveIssueToBacklog = (
   baseUrl: string,
 ): MoveIssueToBacklog => {
   const client = createApiClient(baseUrl)
-  return async ({ boardId, issueId, spaceKey }) => {
+  return async ({ boardId, issueKey, spaceKey }) => {
     try {
       const spaces = await client.GET('/api/spaces')
       switch (spaces.response.status) {
@@ -74,10 +74,10 @@ export const openApiMoveIssueToBacklog = (
       }
 
       const response = await client.POST(
-        '/api/movement/issue/{id}/move-to-status/{statusId}',
+        '/api/movement/issue/{key}/move-to-status/{statusId}',
         {
           params: {
-            path: { id: Number(issueId), statusId: Number(statusId) },
+            path: { key: issueKey, statusId: Number(statusId) },
           },
         },
       )

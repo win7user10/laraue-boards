@@ -7,8 +7,8 @@ export const openApiLoadIssueDialog =
   async (input) => {
     const client = createApiClient(baseUrl)
     try {
-      const response = await client.GET('/api/issues/{id}', {
-        params: { path: { id: Number(input.issueId) } },
+      const response = await client.GET('/api/issues/{key}', {
+        params: { path: { key: input.issueKey } },
       })
       switch (response.response.status) {
         case 200:

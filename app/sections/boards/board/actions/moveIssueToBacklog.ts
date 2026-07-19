@@ -8,6 +8,6 @@ export type MoveIssueToBacklogError =
 
 export type MoveIssueToBacklog = (input: {
   boardId: string
-  issueId: string
+  issueKey: string
   spaceKey: string
 }) => Promise<ActionResult<MoveIssueToBacklogResult, MoveIssueToBacklogError>>

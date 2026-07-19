@@ -10,11 +10,11 @@ export const openApiMoveIssue =
     const client = createApiClient(baseUrl)
     try {
       const response = await client.POST(
-        '/api/movement/issue/{id}/move-to-status/{statusId}',
+        '/api/movement/issue/{key}/move-to-status/{statusId}',
         {
           params: {
             path: {
-              id: Number(input.issueId),
+              key: input.issueKey,
               statusId: Number(input.statusId),
             },
           },

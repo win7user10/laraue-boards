@@ -67,7 +67,7 @@
       <div
         id="board-scroll-area"
         ref="board"
-        :aria-busy="filtering || movingIssueIds.size > 0"
+        :aria-busy="filtering || movingIssueKeys.size > 0"
         class="board"
         :class="{
           'board--dragging': dragging,
@@ -79,7 +79,7 @@
           :can-move-issues="viewModel.canMoveIssues"
           :load-more-error="loadMoreErrors.get(column.id) ?? null"
           :loading-more="loadingColumnIds.has(column.id)"
-          :moving-issue-ids="movingIssueIds"
+          :moving-issue-keys="movingIssueKeys"
           :view-model="column"
           @load-more="emit('loadMore', column.id)"
           @move-to-backlog="emit('moveToBacklog', $event)"
@@ -181,7 +181,7 @@ const props = defineProps<{
   loadingColumnIds: Set<string>
   loadMoreErrors: Map<string, string>
   moveError: null | string
-  movingIssueIds: Set<string>
+  movingIssueKeys: Set<string>
   search: string
   spaceKey: string
   viewModel: BoardPageViewModel
@@ -197,9 +197,9 @@ const emit = defineEmits<{
   loadIssueMoveSpaces: []
   loadIssueStatuses: [boardId: string]
   loadMore: [statusId: string]
-  moveIssue: [input: { issueId: string; statusId: string }]
-  moveToBacklog: [issueId: string]
-  openIssue: [issueId: string]
+  moveIssue: [input: { issueKey: string; statusId: string }]
+  moveToBacklog: [issueKey: string]
+  openIssue: [issueKey: string]
   retryIssue: []
   saveIssue: [
     input: {
@@ -239,17 +239,17 @@ function handleDragEnd(event: DragEndEvent) {
     return
   }
 
-  const issueId = event.operation.source?.id
+  const issueKey = event.operation.source?.id
   const statusId = event.operation.target?.id
-  if (typeof issueId !== 'string' || typeof statusId !== 'string') {
+  if (typeof issueKey !== 'string' || typeof statusId !== 'string') {
     return
   }
 
   const sourceColumn = props.viewModel.columns.find((column) =>
-    column.issues.some((issue) => issue.id === issueId),
+    column.issues.some((issue) => issue.issueKey === issueKey),
   )
   if (sourceColumn && sourceColumn.id !== statusId) {
-    emit('moveIssue', { issueId, statusId })
+    emit('moveIssue', { issueKey, statusId })
   }
 }
 </script>

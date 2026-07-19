@@ -272,7 +272,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/issues/{id}": {
+    "/api/issues/{key}": {
         parameters: {
             query?: never;
             header?: never;
@@ -284,7 +284,7 @@ export interface paths {
                 query?: never;
                 header?: never;
                 path: {
-                    id: number;
+                    key: string;
                 };
                 cookie?: never;
             };
@@ -308,7 +308,7 @@ export interface paths {
                 query?: never;
                 header?: never;
                 path: {
-                    id: number;
+                    key: string;
                 };
                 cookie?: never;
             };
@@ -335,7 +335,7 @@ export interface paths {
                 query?: never;
                 header?: never;
                 path: {
-                    id: number;
+                    key: string;
                 };
                 cookie?: never;
             };
@@ -428,9 +428,9 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "text/plain": number | string;
-                        "application/json": number | string;
-                        "text/json": number | string;
+                        "text/plain": string;
+                        "application/json": string;
+                        "text/json": string;
                     };
                 };
             };
@@ -672,7 +672,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/movement/issue/{id}/move-to-status/{statusId}": {
+    "/api/movement/issue/{key}/move-to-status/{statusId}": {
         parameters: {
             query?: never;
             header?: never;
@@ -686,7 +686,7 @@ export interface paths {
                 query?: never;
                 header?: never;
                 path: {
-                    id: number;
+                    key: string;
                     statusId: number;
                 };
                 cookie?: never;
@@ -2284,6 +2284,11 @@ export interface components {
             key: string;
             attributeValues: components["schemas"]["DetailIssueAttributeDto"][];
         };
+        IssueKey: {
+            /** Format: int32 */
+            number?: number | string;
+            spaceKey?: null | string;
+        };
         IssueListAttributeDto: {
             value: string;
             color: string;
@@ -2519,8 +2524,7 @@ export interface components {
         };
         UpdateIssueRequest: {
             authData?: components["schemas"]["OrganizationAuthData"];
-            /** Format: int64 */
-            id?: number | string;
+            issueKey?: null | components["schemas"]["IssueKey"];
             content: string;
             /** Format: uuid */
             assigneeId: string;

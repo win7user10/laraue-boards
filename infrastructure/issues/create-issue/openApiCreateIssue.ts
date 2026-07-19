@@ -30,7 +30,7 @@ export const openApiCreateIssue = (baseUrl: string): CreateIssue => {
       }
       return response.data === undefined
         ? err('TemporarilyUnavailable')
-        : ok({ issueId: String(response.data) })
+        : ok({ issueKey: String(response.data) })
     } catch {
       return err('TemporarilyUnavailable')
     }

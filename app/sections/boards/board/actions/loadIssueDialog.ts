@@ -7,5 +7,5 @@ type LoadIssueDialogError =
   | 'TemporarilyUnavailable'
 
 export type LoadIssueDialog = (input: {
-  issueId: string
+  issueKey: string
 }) => Promise<ActionResult<LoadIssueDialogResult, LoadIssueDialogError>>

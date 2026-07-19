@@ -2,7 +2,7 @@
   <BoardPageApplication
     :board-id="boardId"
     :deps="deps"
-    :issue-id="issueId"
+    :issue-key="issueKey"
     :space-key="spaceKey" />
 </template>
 
@@ -25,7 +25,7 @@ import BoardPageApplication from '~/sections/boards/board/BoardPageApplication.v
 const route = useRoute('organizations-organizationKey-spaces-spaceKey-boardId')
 const boardId = computed(() => String(route.params.boardId))
 const spaceKey = computed(() => String(route.params.spaceKey))
-const issueId = computed(() =>
+const issueKey = computed(() =>
   typeof route.query.issue === 'string' ? route.query.issue : null,
 )
 const config = useRuntimeConfig()

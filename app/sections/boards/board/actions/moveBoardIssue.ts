@@ -7,6 +7,6 @@ export type MoveBoardIssueError =
   | 'TemporarilyUnavailable'
 
 export type MoveBoardIssue = (input: {
-  issueId: string
+  issueKey: string
   statusId: string
 }) => Promise<ActionResult<MoveBoardIssueResult, MoveBoardIssueError>>

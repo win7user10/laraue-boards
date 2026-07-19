@@ -114,7 +114,6 @@ export type IssueDialogViewModel = {
   canEdit: boolean
   content: string
   createdAt: string
-  id: string
   issueKey: string
   owner: string
   ownerInitial: string
@@ -169,7 +168,9 @@ const emit = defineEmits<{
 }>()
 const organizationRoutes = useOrganizationRoutes()
 const router = useRouter()
-const issueRoute = computed(() => organizationRoutes.issue(props.viewModel.id))
+const issueRoute = computed(() =>
+  organizationRoutes.issue(props.viewModel.issueKey),
+)
 const copied = ref(false)
 
 async function copyIssueLink() {
