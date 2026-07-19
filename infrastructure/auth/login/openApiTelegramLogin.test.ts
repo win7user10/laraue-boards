@@ -1,6 +1,4 @@
-import assert from 'node:assert/strict'
-
-import { afterEach, test, vi } from 'vitest'
+import { assert, afterEach, test, vi } from 'vitest'
 
 import { err, ok } from '../../../app/utils/actionResult'
 import { createApiClient } from '../../api/client'
