@@ -4,6 +4,7 @@ export const mapBacklogIssue = (
   issue: components['schemas']['SearchIssueDto'],
 ) => ({
   assignee: issue.assignee,
+  assigneeColor: issue.assigneeColor,
   assigneeInitial: issue.assigneeInitial ?? '?',
   boardColor: issue.epic.color,
   boardName: issue.epic.name,

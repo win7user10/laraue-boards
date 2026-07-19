@@ -53,7 +53,11 @@
       <span
         class="issue-person"
         :title="assignee">
-        <span class="avatar">{{ assigneeInitial }}</span>
+        <span
+          class="avatar"
+          :style="{ background: assigneeColor }">
+          {{ assigneeInitial }}
+        </span>
         <span class="truncate">{{ assignee }}</span>
       </span>
     </div>
@@ -65,6 +69,7 @@ import type { RouteLocationRaw } from 'vue-router'
 
 export type IssueListRowProps = {
   assignee: string
+  assigneeColor: string
   assigneeInitial: string
   boardColor: string
   boardName: string
