@@ -28,10 +28,14 @@ export const openApiLoadCreateIssueStatuses = (
         return err('AccessDenied')
       }
       return ok({
-        statuses: (response.data.statuses ?? []).map((status) => ({
-          label: status.name,
-          value: String(status.id),
-        })),
+        statuses: (response.data.statuses ?? [])
+          .toSorted(
+            (left, right) => Number(left.sortOrder) - Number(right.sortOrder),
+          )
+          .map((status) => ({
+            label: status.name,
+            value: String(status.id),
+          })),
       })
     } catch {
       return err('TemporarilyUnavailable')
