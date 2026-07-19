@@ -26,7 +26,7 @@ export default defineNuxtConfig({
   },
   gtag: {
     enabled: process.env.NODE_ENV === 'production',
-    id: 'G-RGM3JHLBGL'
+    id: 'G-RGM3JHLBGL',
   },
 
   modules: ['nuxt-gtag'],
@@ -38,5 +38,4 @@ export default defineNuxtConfig({
       testUserToken: '',
     },
   },
-
 })
