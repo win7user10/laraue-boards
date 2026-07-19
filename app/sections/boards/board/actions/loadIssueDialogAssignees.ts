@@ -1,5 +1,10 @@
 type LoadIssueDialogAssigneesResult = {
-  assignees: Array<{ label: string; value: string }>
+  assignees: Array<{
+    color: string
+    initials: string
+    label: string
+    value: string
+  }>
 }
 
 type LoadIssueDialogAssigneesError =

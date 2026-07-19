@@ -35,6 +35,7 @@ const mapAttribute = (
 
 export const mapIssuePage = (issue: IssueDetailDto): IssuePageViewModel => ({
   assignee: issue.assignee,
+  assigneeColor: issue.assigneeColor,
   assigneeId: issue.assigneeId,
   assigneeInitial: issue.assigneeInitial,
   attributes: issue.attributeValues.map(mapAttribute),
@@ -45,6 +46,7 @@ export const mapIssuePage = (issue: IssueDetailDto): IssuePageViewModel => ({
   createdAt: issue.time,
   issueKey: issue.key,
   owner: issue.ownerDisplayName ?? 'Unknown owner',
+  ownerColor: issue.ownerColor,
   ownerInitial: issue.ownerInitials ?? '?',
   spaceId: String(issue.spaceId),
   spaceLabel: issue.spaceName,

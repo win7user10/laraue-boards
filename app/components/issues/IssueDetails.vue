@@ -136,7 +136,11 @@
         </p>
         <label>Assignee</label>
         <div class="issue-person issue-assignee">
-          <span class="avatar">{{ viewModel.assigneeInitial }}</span>
+          <span
+            class="avatar"
+            :style="{ background: selectedAssignee.color }">
+            {{ selectedAssignee.initials }}
+          </span>
           <select
             v-model="assigneeId"
             :aria-busy="loadingAssignees"
@@ -163,7 +167,11 @@
         </div>
         <label>Owner</label>
         <div class="issue-person">
-          <span class="avatar">{{ viewModel.ownerInitial }}</span>
+          <span
+            class="avatar"
+            :style="{ background: viewModel.ownerColor }">
+            {{ viewModel.ownerInitial }}
+          </span>
           <strong>{{ viewModel.owner }}</strong>
         </div>
         <div class="issue-dates">
@@ -217,6 +225,7 @@ type IssueDetailsAttributeViewModel =
 
 type IssueDetailsViewModel = {
   assignee: string
+  assigneeColor: string
   assigneeId: string
   assigneeInitial: string
   attributes: IssueDetailsAttributeViewModel[]
@@ -227,6 +236,7 @@ type IssueDetailsViewModel = {
   createdAt: string
   issueKey: string
   owner: string
+  ownerColor: string
   ownerInitial: string
   spaceId: string
   spaceLabel: string
@@ -244,9 +254,10 @@ type IssueDetailsSaveInput = {
 }
 
 type MoveOption = { label: string; value: string }
+type AssigneeOption = MoveOption & { color: string; initials: string }
 
 export type IssueDetailsProps = {
-  assignees: MoveOption[]
+  assignees: AssigneeOption[]
   error: null | string
   loadingAssignees: boolean
   loadingMoveBoards: boolean
@@ -301,6 +312,13 @@ const boardOptions = computed(() =>
       pickedSpaceId.value !== props.viewModel.spaceId ||
       board.value !== props.viewModel.boardId,
   ),
+)
+const selectedAssignee = computed(
+  () =>
+    props.assignees.find((assignee) => assignee.value === assigneeId.value) ?? {
+      color: props.viewModel.assigneeColor,
+      initials: props.viewModel.assigneeInitial,
+    },
 )
 const hasCurrentAssignee = computed(() =>
   props.assignees.some(

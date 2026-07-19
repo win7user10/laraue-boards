@@ -4,6 +4,7 @@ import { mapIssuePage } from './mapIssuePage'
 
 const issue: Parameters<typeof mapIssuePage>[0] = {
   assignee: 'Assigned User',
+  assigneeColor: '#123456',
   assigneeId: '11111111-1111-1111-1111-111111111111',
   assigneeInitial: 'AU',
   attributeValues: [
@@ -31,6 +32,7 @@ const issue: Parameters<typeof mapIssuePage>[0] = {
   epicName: 'Board',
   id: 5,
   key: 'DEV-1',
+  ownerColor: '#654321',
   ownerDisplayName: 'User',
   ownerInitials: 'U',
   spaceColor: '#444444',
@@ -50,7 +52,9 @@ test('maps issue dates and attributes', () => {
   assert.equal(result.updatedAt, '2026-07-15T11:00:00Z')
   assert.equal(result.assigneeId, issue.assigneeId)
   assert.equal(result.assignee, 'Assigned User')
+  assert.equal(result.assigneeColor, '#123456')
   assert.equal(result.assigneeInitial, 'AU')
+  assert.equal(result.ownerColor, '#654321')
   assert.deepEqual(result.attributes, [
     {
       color: '#111111',

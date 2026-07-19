@@ -225,7 +225,9 @@ const loadingIssueStatuses = ref(false)
 const issueStatuses = ref<Array<{ id: string; name: string }>>([])
 const issueError = ref<null | string>(null)
 const loadingIssueAssignees = ref(false)
-const issueAssignees = ref<Array<{ label: string; value: string }>>([])
+const issueAssignees = ref<
+  Array<{ color: string; initials: string; label: string; value: string }>
+>([])
 const loadingIssueMoveSpaces = ref(false)
 const loadingIssueMoveBoards = ref(false)
 const issueMoveSpaces = ref<Array<{ label: string; value: string }>>([])

@@ -15,7 +15,9 @@
         v-for="member in viewModel.members"
         :key="member.id"
         :to="organizationRoutes.memberPermissions(member.id)">
-        <span class="avatar">
+        <span
+          class="avatar"
+          :style="{ background: member.color }">
           {{ member.initials }}
         </span>
         <span class="member-name">

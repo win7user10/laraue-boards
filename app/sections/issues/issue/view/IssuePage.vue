@@ -79,6 +79,7 @@ export type IssuePageAttributeViewModel =
 
 export type IssuePageViewModel = {
   assignee: string
+  assigneeColor: string
   assigneeId: string
   assigneeInitial: string
   attributes: IssuePageAttributeViewModel[]
@@ -89,6 +90,7 @@ export type IssuePageViewModel = {
   createdAt: string
   issueKey: string
   owner: string
+  ownerColor: string
   ownerInitial: string
   spaceId: string
   spaceLabel: string
@@ -106,9 +108,10 @@ type IssuePageSaveInput = {
 }
 
 type MoveOption = { label: string; value: string }
+type AssigneeOption = MoveOption & { color: string; initials: string }
 
 type IssuePageProps = {
-  assignees: MoveOption[]
+  assignees: AssigneeOption[]
   error: null | string
   loadingAssignees: boolean
   loadingMoveBoards: boolean

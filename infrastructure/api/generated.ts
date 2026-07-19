@@ -2261,12 +2261,14 @@ export interface components {
             assigneeId: string;
             assignee: string;
             assigneeInitial: string;
+            assigneeColor: string;
             /** Format: date-time */
             time: string;
             /** Format: date-time */
             updatedAt: string;
             ownerDisplayName: null | string;
             ownerInitials?: null | string;
+            ownerColor: string;
             content: null | string;
             /** Format: int64 */
             epicId: number | string;
@@ -2482,6 +2484,7 @@ export interface components {
             userId: string;
             displayName: string;
             initials: string;
+            color: string;
         };
         StatusDto: {
             /** Format: int64 */

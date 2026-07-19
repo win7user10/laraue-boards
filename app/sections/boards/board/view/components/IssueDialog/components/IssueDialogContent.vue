@@ -106,6 +106,7 @@ export type IssueDialogAttributeViewModel =
 
 export type IssueDialogViewModel = {
   assignee: string
+  assigneeColor: string
   assigneeId: string
   assigneeInitial: string
   attributes: IssueDialogAttributeViewModel[]
@@ -116,6 +117,7 @@ export type IssueDialogViewModel = {
   createdAt: string
   issueKey: string
   owner: string
+  ownerColor: string
   ownerInitial: string
   spaceId: string
   spaceLabel: string
@@ -133,9 +135,10 @@ type IssueDialogSaveInput = {
 }
 
 type MoveOption = { label: string; value: string }
+type AssigneeOption = MoveOption & { color: string; initials: string }
 
 type IssueDialogContentProps = {
-  assignees: MoveOption[]
+  assignees: AssigneeOption[]
   error: null | string
   loadingAssignees: boolean
   loadingMoveBoards: boolean

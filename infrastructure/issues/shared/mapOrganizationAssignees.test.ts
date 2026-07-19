@@ -6,6 +6,7 @@ test('maps space members for assignee selects', () => {
   assert.deepEqual(
     mapOrganizationAssignees([
       {
+        color: '#123456',
         displayName: 'Ada Lovelace',
         initials: 'AL',
         userId: '11111111-1111-1111-1111-111111111111',
@@ -13,6 +14,8 @@ test('maps space members for assignee selects', () => {
     ]),
     [
       {
+        color: '#123456',
+        initials: 'AL',
         label: 'Ada Lovelace',
         value: '11111111-1111-1111-1111-111111111111',
       },

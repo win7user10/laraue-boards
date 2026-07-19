@@ -146,6 +146,7 @@ export const openApiViewAppLayout =
             name: space.name,
           })),
           user: {
+            color: user.data.color,
             initials: user.data.initials ?? '?',
             name:
               [user.data.firstName, user.data.lastName]

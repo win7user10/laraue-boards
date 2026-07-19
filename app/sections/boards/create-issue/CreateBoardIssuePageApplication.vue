@@ -42,7 +42,9 @@ const { refresh, state: pageState } = await useActionData({
   watch: [() => props.boardId],
 })
 const formError = ref<null | string>(null)
-const assignees = ref<Array<{ label: string; value: string }>>([])
+const assignees = ref<
+  Array<{ color: string; initials: string; label: string; value: string }>
+>([])
 const loadingAssignees = ref(false)
 const submitting = ref(false)
 const invalidation = useAsyncDataInvalidation()

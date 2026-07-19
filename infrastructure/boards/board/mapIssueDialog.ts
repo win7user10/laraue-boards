@@ -34,6 +34,7 @@ export const mapIssueDialog = (
   issue: IssueDetailDto,
 ): IssueDialogViewModel => ({
   assignee: issue.assignee,
+  assigneeColor: issue.assigneeColor,
   assigneeId: issue.assigneeId,
   assigneeInitial: issue.assigneeInitial,
   attributes: issue.attributeValues.map(mapAttribute),
@@ -44,6 +45,7 @@ export const mapIssueDialog = (
   createdAt: issue.time,
   issueKey: issue.key,
   owner: issue.ownerDisplayName ?? 'Unknown owner',
+  ownerColor: issue.ownerColor,
   ownerInitial: issue.ownerInitials ?? '?',
   spaceId: String(issue.spaceId),
   spaceLabel: issue.spaceName,
