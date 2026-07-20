@@ -257,7 +257,7 @@ async function save(input: {
           issueKey: props.issueKey,
           statusId: input.statusId,
         })
-        matchActionResult({
+        const moved = matchActionResult({
           err: (moveError) => {
             error.value = getErrorMessage({
               error: moveError,
@@ -269,13 +269,19 @@ async function save(input: {
                 TemporarilyUnavailable: 'Could not save issue. Try again.',
               },
             })
+            return false
           },
-          ok: () => undefined,
+          ok: () => true,
           result: moveResult,
         })
+        if (!moved) {
+          invalidation.invalidateIssueDataExceptIssuePage(props.issueKey)
+          await refresh()
+          return
+        }
       }
-      invalidation.invalidateIssueDataExceptIssuePage(props.issueKey)
-      await refresh()
+      invalidation.invalidateIssueData(props.issueKey)
+      returnToSource()
     },
     result: updateResult,
   })
