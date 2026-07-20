@@ -27,6 +27,7 @@
       @change-move-space="emit('changeMoveSpace', $event)"
       @close="emit('close')"
       @delete="emit('delete')"
+      @dirty-change="emit('dirtyChange', $event)"
       @load-assignees="emit('loadAssignees', $event)"
       @load-move-boards="emit('loadMoveBoards', $event)"
       @load-move-spaces="emit('loadMoveSpaces')"
@@ -75,6 +76,7 @@ const emit = defineEmits<{
   changeMoveSpace: [spaceId: string]
   close: []
   delete: []
+  dirtyChange: [dirty: boolean]
   loadAssignees: [spaceId: string]
   loadMoveBoards: [spaceId: string]
   loadMoveSpaces: []
