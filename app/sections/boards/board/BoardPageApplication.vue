@@ -28,6 +28,7 @@
     @change-issue-move-space="changeIssueMoveSpace"
     @close-issue="closeIssueDialog"
     @delete-issue="removeIssue"
+    @issue-dirty-change="issueDialogDirty = $event"
     @load-issue-assignees="loadIssueAssignees"
     @load-issue-move-boards="loadIssueMoveBoards"
     @load-issue-move-spaces="loadIssueMoveSpaces"
@@ -50,6 +51,7 @@
 
 <script setup lang="ts">
 import { debounce } from 'es-toolkit'
+import { onBeforeRouteUpdate } from 'vue-router'
 
 import {
   getIssueAttributeFilterInput,
@@ -221,6 +223,7 @@ const issueLoadErrorText = computed(() => {
 })
 const savingIssue = ref(false)
 const closingIssueDialog = ref(false)
+const issueDialogDirty = ref(false)
 const loadingIssueStatuses = ref(false)
 const issueStatuses = ref<Array<{ id: string; name: string }>>([])
 const issueError = ref<null | string>(null)
@@ -237,6 +240,13 @@ const runSearch = createLatestRequest()
 const runLoadIssueAssignees = createLatestRequest()
 const filtering = ref(false)
 const scheduleSearch = debounce(searchIssues, 300)
+const { confirmUnsavedChanges } = useUnsavedChangesWarning(issueDialogDirty)
+
+onBeforeRouteUpdate(
+  (to) =>
+    (to.path === route.path && to.query.issue === props.issueKey) ||
+    confirmUnsavedChanges(),
+)
 
 watch([search, filterKey], () => {
   filtering.value = true
@@ -249,6 +259,7 @@ watch(
   () => {
     runLoadIssueAssignees.cancel()
     closingIssueDialog.value = false
+    issueDialogDirty.value = false
     issueError.value = null
     issueStatuses.value = []
     issueAssignees.value = []
@@ -303,7 +314,11 @@ watch(
   },
 )
 
-function closeIssueDialog() {
+function closeIssueDialog(skipWarning = false) {
+  if (!skipWarning && !confirmUnsavedChanges()) {
+    return
+  }
+  issueDialogDirty.value = false
   closingIssueDialog.value = true
   const backState = window.history.state?.back
   const historyBackPath =
@@ -464,7 +479,7 @@ async function saveIssue(input: {
       invalidation.invalidateIssueDataExceptBoard(issueKey, props.boardId)
       if (input.statusId === originalIssue?.statusId) {
         updateBoardIssue(input.boardId, input.statusId)
-        closeIssueDialog()
+        closeIssueDialog(true)
         void searchIssues()
         return
       }
@@ -490,7 +505,7 @@ async function saveIssue(input: {
         },
         ok: async () => {
           updateBoardIssue(input.boardId, input.statusId)
-          closeIssueDialog()
+          closeIssueDialog(true)
           void searchIssues()
         },
         result: moveResult,
@@ -531,7 +546,7 @@ async function removeIssue() {
           },
         }
       }
-      closeIssueDialog()
+      closeIssueDialog(true)
       invalidation.invalidateIssueDataExceptBoard(issueKey, props.boardId)
     },
     result,

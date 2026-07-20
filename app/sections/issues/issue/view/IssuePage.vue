@@ -14,6 +14,7 @@
       :view-model="viewModel"
       @change-board="emit('changeBoard')"
       @change-move-space="emit('changeMoveSpace', $event)"
+      @dirty-change="emit('dirtyChange', $event)"
       @load-assignees="emit('loadAssignees', $event)"
       @load-move-boards="emit('loadMoveBoards', $event)"
       @load-move-spaces="emit('loadMoveSpaces')"
@@ -136,6 +137,7 @@ const emit = defineEmits<{
   changeBoard: []
   changeMoveSpace: [spaceId: string]
   delete: []
+  dirtyChange: [dirty: boolean]
   loadAssignees: [spaceId: string]
   loadMoveBoards: [spaceId: string]
   loadMoveSpaces: []

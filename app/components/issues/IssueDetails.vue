@@ -276,6 +276,7 @@ const props = defineProps<IssueDetailsProps>()
 const emit = defineEmits<{
   changeBoard: []
   changeMoveSpace: [spaceId: string]
+  dirtyChange: [dirty: boolean]
   loadAssignees: [spaceId: string]
   loadMoveBoards: [spaceId: string]
   loadMoveSpaces: []
@@ -332,6 +333,19 @@ const canSave = computed(
     !props.loadingStatuses &&
     (boardId.value === props.viewModel.boardId || !!statusId.value),
 )
+const dirty = computed(
+  () =>
+    assigneeId.value !== props.viewModel.assigneeId ||
+    boardId.value !== props.viewModel.boardId ||
+    content.value !== props.viewModel.content ||
+    pickedSpaceId.value !== props.viewModel.spaceId ||
+    statusId.value !== props.viewModel.statusId ||
+    props.viewModel.attributes.some(
+      (attribute) => attributeValues.value[attribute.id] !== attribute.value,
+    ),
+)
+
+watch(dirty, (value) => emit('dirtyChange', value), { immediate: true })
 
 watch(
   () => props.viewModel,
