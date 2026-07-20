@@ -1,6 +1,5 @@
 <template>
   <AppLayout
-    :key="organizationKey"
     :deps="deps"
     :organization-key="organizationKey">
     <slot />
@@ -16,7 +15,7 @@ const config = useRuntimeConfig()
 const { organizationKey } = useOrganizationRoutes()
 watch(organizationKey, (value, previousValue) => {
   if (previousValue && value !== previousValue) {
-    invalidateData({ scope: 'selectedOrganization' })
+    void refreshNuxtData()
   }
 })
 const baseUrl = config.public.boardsApiBaseUrl

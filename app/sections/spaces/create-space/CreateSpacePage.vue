@@ -68,10 +68,7 @@ async function submit() {
       })
     },
     ok: async ({ spaceKey }) => {
-      invalidateData({ scope: 'structure' })
-      await refreshDataKey(
-        dataKeys.workspace.layout(organizationRoutes.organizationKey.value),
-      )
+      await refreshAppLayoutData()
       await navigateTo(organizationRoutes.space(spaceKey))
     },
     result,

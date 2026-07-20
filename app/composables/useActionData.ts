@@ -24,7 +24,7 @@ export const resolveActionDataState = <Value, Failure extends PropertyKey>(
 type UseActionDataOptions<Value, Failure extends PropertyKey> = {
   action: () => Promise<ActionResult<Value, Failure>>
   fallbackMessage: string
-  key: (() => string) | string
+  key?: string
   messages: Record<NoInfer<Failure>, string>
   watch?: Array<() => unknown>
 }
@@ -32,15 +32,24 @@ type UseActionDataOptions<Value, Failure extends PropertyKey> = {
 export const useActionData = async <Value, Failure extends PropertyKey>({
   action,
   fallbackMessage,
-  key,
+  key: explicitKey,
   messages,
   watch,
-}: UseActionDataOptions<Value, Failure>) => {
+}: UseActionDataOptions<Value, Failure>, autoKey?: string) => {
+  const baseKey = explicitKey ?? autoKey
+  if (!baseKey) {
+    throw new TypeError('useActionData requires a generated key')
+  }
+  const key = watch?.length
+    ? computed(
+        () => `${baseKey}:${JSON.stringify(watch.map((source) => source()))}`,
+      )
+    : baseKey
   const {
     data: actionResult,
     refresh,
     status,
-  } = await useAsyncData(key, action, { watch })
+  } = await useAsyncData(key, action, {})
   const state = computed(() =>
     resolveActionDataState(
       actionResult.value,

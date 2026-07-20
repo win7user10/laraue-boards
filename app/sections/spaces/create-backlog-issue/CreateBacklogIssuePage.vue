@@ -31,7 +31,6 @@ const { refresh, state: pageState } = await useActionData({
   action: () =>
     props.deps.viewCreateBacklogIssuePage({ spaceKey: props.spaceKey }),
   fallbackMessage: 'Could not load backlog issue form. Try again.',
-  key: () => dataKeys.space.createBacklogIssue(props.spaceKey),
   messages: {
     AccessDenied: 'You do not have permission to add backlog issues.',
     BacklogNotFound: 'The backlog was not found or is not available to you.',
@@ -111,7 +110,6 @@ async function submit(input: {
       })
     },
     ok: async () => {
-      invalidateData({ scope: 'issues' })
       await navigateTo(organizationRoutes.backlog(props.spaceKey), {
         replace: true,
       })

@@ -126,7 +126,7 @@ function setLoginError(
 }
 
 async function finishLogin() {
-  invalidateAllData()
+  clearNuxtData()
   await navigateTo('/organizations')
 }
 

@@ -25,7 +25,6 @@ const organizationRoutes = useOrganizationRoutes()
 const { refresh, state: pageState } = await useActionData({
   action: () => props.deps.viewSpaceSettingsPage({ spaceKey: props.spaceKey }),
   fallbackMessage: 'Could not load space. Try again.',
-  key: () => dataKeys.space.settings(props.spaceKey),
   messages: {
     AccessDenied: 'You do not have access to this space.',
     SpaceNotFound: 'The space was not found or is not available to you.',
@@ -43,16 +42,6 @@ useHead({
 })
 const submitting = ref(false)
 const error = ref<null | string>(null)
-let spaceSettingsDataKeyToClear: null | string = null
-
-function invalidateStructureOnLeave(targetDataKey: string) {
-  const spaceSettingsDataKey = dataKeys.space.settings(props.spaceKey)
-  invalidateData({
-    preserve: [spaceSettingsDataKey, targetDataKey],
-    scope: 'structure',
-  })
-  spaceSettingsDataKeyToClear = spaceSettingsDataKey
-}
 
 async function update(input: { color: string; key: string; name: string }) {
   if (pageState.value.type !== 'ready') {
@@ -77,13 +66,8 @@ async function update(input: { color: string; key: string; name: string }) {
       })
     },
     ok: async () => {
-      const targetDataKey = dataKeys.space.view(input.key)
-      invalidateStructureOnLeave(targetDataKey)
-      await refreshDataKey(
-        dataKeys.workspace.layout(organizationRoutes.organizationKey.value),
-      )
       await navigateTo(organizationRoutes.space(input.key))
-      await refreshDataKey(targetDataKey)
+      await refreshAppLayoutData()
     },
     result,
   })
@@ -112,21 +96,10 @@ async function remove() {
       })
     },
     ok: async () => {
-      const targetDataKey = dataKeys.workspace.issues
-      invalidateStructureOnLeave(targetDataKey)
-      await refreshDataKey(
-        dataKeys.workspace.layout(organizationRoutes.organizationKey.value),
-      )
       await navigateTo(organizationRoutes.issues())
-      await refreshDataKey(targetDataKey)
+      await refreshAppLayoutData()
     },
     result,
   })
 }
-
-onUnmounted(() => {
-  if (spaceSettingsDataKeyToClear) {
-    invalidateDataKey(spaceSettingsDataKeyToClear)
-  }
-})
 </script>

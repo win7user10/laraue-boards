@@ -52,7 +52,6 @@ const {
 } = await useActionData({
   action: () => props.deps.viewIssuesPage(request.value),
   fallbackMessage: 'Could not load issues. Try again.',
-  key: dataKeys.workspace.issues,
   messages: {
     AccessDenied: 'You do not have access to organization issues.',
     TemporarilyUnavailable:
@@ -164,10 +163,6 @@ async function searchIssues(input: typeof request.value) {
 }
 
 async function handleIssuesMoved() {
-  invalidateData({
-    preserve: [dataKeys.workspace.issues],
-    scope: 'issues',
-  })
   await searchIssues(request.value)
 }
 

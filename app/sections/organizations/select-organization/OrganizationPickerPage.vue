@@ -95,7 +95,6 @@ useHead({ title: 'Organizations' })
 const { refresh, state: pageState } = await useActionData({
   action: () => props.deps.viewOrganizationPickerPage(),
   fallbackMessage: 'Could not load organizations. Try again.',
-  key: dataKeys.organizations.list,
   messages: {
     AccessDenied: 'Your session is missing or has expired.',
     TemporarilyUnavailable:
@@ -130,7 +129,6 @@ async function select(input: {
       })
     },
     ok: async () => {
-      invalidateData({ scope: 'selectedOrganization' })
       await navigateTo({
         name: 'organizations-organizationKey-issues',
         params: { organizationKey: input.organizationKey },

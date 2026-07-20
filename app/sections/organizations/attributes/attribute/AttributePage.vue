@@ -30,7 +30,6 @@ const { refresh, state: pageState } = await useActionData({
     props.deps.viewAttributePage({ attributeId: props.attributeId }),
   fallbackMessage:
     'Could not load the attribute. The service is temporarily unavailable.',
-  key: () => dataKeys.workspace.attribute(props.attributeId),
   messages: {
     AccessDenied: 'You do not have permission to open this page.',
     AttributeNotFound: 'The requested page was not found.',
@@ -49,17 +48,9 @@ useHead({
 const submitting = ref(false)
 const saved = ref(false)
 const error = ref<null | string>(null)
-let attributeDataKeyToClear: null | string = null
 
 async function returnToAttributes() {
-  const attributeDataKey = dataKeys.workspace.attribute(props.attributeId)
-  invalidateData({
-    preserve: [attributeDataKey, dataKeys.workspace.attributes],
-    scope: 'attributes',
-  })
-  attributeDataKeyToClear = attributeDataKey
   await navigateTo(organizationRoutes.attributes())
-  await refreshDataKey(dataKeys.workspace.attributes)
 }
 
 async function remove(id: string) {
@@ -109,10 +100,4 @@ async function update(input: UpdateAttributeInput) {
     result,
   })
 }
-
-onUnmounted(() => {
-  if (attributeDataKeyToClear) {
-    invalidateDataKey(attributeDataKeyToClear)
-  }
-})
 </script>

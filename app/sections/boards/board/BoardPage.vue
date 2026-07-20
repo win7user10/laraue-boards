@@ -244,7 +244,6 @@ const {
       search: search.value,
     }),
   fallbackMessage: 'Could not load the board.',
-  key: () => dataKeys.board.view(props.boardId),
   messages: {
     AccessDenied: 'You do not have access to this board.',
     BoardNotFound: 'The board was not found or is not available to you.',
@@ -364,10 +363,6 @@ function handleIssueSaved(issue: IssueDialogSavedIssue) {
       },
     }
   }
-  invalidateData({
-    preserve: [dataKeys.board.view(props.boardId)],
-    scope: 'issues',
-  })
   void refreshLoadedIssues(affectedColumnIds)
 }
 
@@ -384,10 +379,6 @@ function handleIssueDeleted(issueKey: string) {
       },
     }
   }
-  invalidateData({
-    preserve: [dataKeys.board.view(props.boardId)],
-    scope: 'issues',
-  })
 }
 
 async function searchIssues() {
@@ -584,12 +575,7 @@ async function moveIssue(input: { issueKey: string; statusId: string }) {
         },
       })
     },
-    ok: () => {
-      invalidateData({
-        preserve: [dataKeys.board.view(props.boardId)],
-        scope: 'issues',
-      })
-    },
+    ok: () => undefined,
     result,
   })
   movingIssueKeys.value.delete(input.issueKey)
@@ -637,12 +623,7 @@ async function moveToBacklog(issueKey: string) {
         },
       })
     },
-    ok: () => {
-      invalidateData({
-        preserve: [dataKeys.board.view(props.boardId)],
-        scope: 'issues',
-      })
-    },
+    ok: () => undefined,
     result,
   })
   movingIssueKeys.value.delete(issueKey)

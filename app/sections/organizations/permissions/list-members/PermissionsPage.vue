@@ -70,7 +70,6 @@ const { refresh, state: pageState } = await useActionData({
   action: () => props.deps.viewPermissionsPage(),
   fallbackMessage:
     'Could not load permissions. The service is temporarily unavailable.',
-  key: dataKeys.workspace.permissions,
   messages: {
     AccessDenied: 'You do not have permission to open this page.',
     PermissionsNotFound: 'The requested page was not found.',

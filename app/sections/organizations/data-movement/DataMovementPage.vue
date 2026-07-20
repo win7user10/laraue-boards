@@ -27,7 +27,6 @@ const props = defineProps<{ deps: DataMovementPageDeps }>()
 const { refresh, state: pageState } = await useActionData({
   action: () => props.deps.viewDataMovementPage(),
   fallbackMessage: 'Could not load data movement. Try again.',
-  key: dataKeys.workspace.dataMovement,
   messages: {
     AccessDenied: 'The page was not found or is not available to you.',
     TemporarilyUnavailable:
@@ -40,7 +39,6 @@ const destinationSpaces = ref<Array<{ label: string; value: string }>>([])
 const loadingSpaces = ref(false)
 const moveError = ref<null | string>(null)
 const moving = ref(false)
-const { organizationKey } = useOrganizationRoutes()
 
 function changeOrganization() {
   loadingSpaces.value = false
@@ -88,8 +86,8 @@ async function moveBoards(input: {
   moveError.value = null
   moving.value = true
   const result = await props.deps.moveBoards(input)
-  matchActionResult({
-    err: (error) => {
+  await matchActionResult({
+    err: async (error) => {
       moveError.value = getErrorMessage({
         error,
         messages: {
@@ -100,11 +98,11 @@ async function moveBoards(input: {
         },
       })
     },
-    ok: () => undefined,
+    ok: async () => {
+      await refresh()
+    },
     result,
   })
-  invalidateData({ scope: 'structure' })
-  await refresh()
   moving.value = false
 }
 
@@ -115,8 +113,8 @@ async function moveSpaces(input: {
   moveError.value = null
   moving.value = true
   const result = await props.deps.moveSpaces(input)
-  matchActionResult({
-    err: (error) => {
+  await matchActionResult({
+    err: async (error) => {
       moveError.value = getErrorMessage({
         error,
         messages: {
@@ -127,12 +125,11 @@ async function moveSpaces(input: {
         },
       })
     },
-    ok: () => undefined,
+    ok: async () => {
+      await Promise.all([refresh(), refreshAppLayoutData()])
+    },
     result,
   })
-  invalidateData({ scope: 'structure' })
-  await refreshDataKey(dataKeys.workspace.layout(organizationKey.value))
-  await refresh()
   moving.value = false
 }
 </script>

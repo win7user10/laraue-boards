@@ -73,7 +73,6 @@ const { refresh, state: pageState } = await useActionData({
   action: () => props.deps.viewAttributesPage(),
   fallbackMessage:
     'Could not load attributes. The service is temporarily unavailable.',
-  key: dataKeys.workspace.attributes,
   messages: {
     AccessDenied: 'You do not have permission to manage attributes.',
     TemporarilyUnavailable:

@@ -66,7 +66,6 @@ async function submit() {
       })
     },
     ok: async ({ boardId }) => {
-      invalidateData({ scope: 'structure' })
       await navigateTo(organizationRoutes.board(props.spaceKey, boardId))
     },
     result,

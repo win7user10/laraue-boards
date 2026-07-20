@@ -30,7 +30,6 @@ const organizationRoutes = useOrganizationRoutes()
 const { refresh, state: pageState } = await useActionData({
   action: () => props.deps.viewIssuePage({ issueKey: props.issueKey }),
   fallbackMessage: 'Could not load issue. Try again.',
-  key: () => dataKeys.issue.view(props.issueKey),
   messages: {
     AccessDenied: 'You do not have access to this issue.',
     IssueNotFound: 'The issue was not found or is not available to you.',
@@ -50,7 +49,6 @@ const saving = ref(false)
 const dirty = ref(false)
 const error = ref<null | string>(null)
 const leaving = ref(false)
-let issueDataKeyToClear: null | string = null
 
 useUnsavedChangesWarning(dirty)
 
@@ -134,10 +132,6 @@ async function save(input: {
           result: moveResult,
         })
         if (!moved) {
-          invalidateData({
-            preserve: [dataKeys.issue.view(props.issueKey)],
-            scope: 'issues',
-          })
           await refresh()
           return
         }
@@ -170,16 +164,7 @@ async function remove() {
 }
 
 async function leaveAfterIssueChanged() {
-  const issueDataKey = dataKeys.issue.view(props.issueKey)
-  invalidateData({ preserve: [issueDataKey], scope: 'issues' })
-  issueDataKeyToClear = issueDataKey
   dirty.value = false
   await returnToSource()
 }
-
-onUnmounted(() => {
-  if (issueDataKeyToClear) {
-    invalidateDataKey(issueDataKeyToClear)
-  }
-})
 </script>

@@ -128,7 +128,6 @@ const organizationRoutes = useOrganizationRoutes()
 const { refresh, state: pageState } = await useActionData({
   action: () => props.deps.viewSpacePage({ spaceKey: props.spaceKey }),
   fallbackMessage: 'Could not load space. Try again.',
-  key: () => dataKeys.space.view(props.spaceKey),
   messages: {
     AccessDenied: 'You do not have access to this space.',
     SpaceNotFound: 'The space was not found or is not available to you.',

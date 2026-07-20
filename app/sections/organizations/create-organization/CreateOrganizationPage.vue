@@ -88,7 +88,6 @@ async function submit() {
       })
     },
     ok: async () => {
-      invalidateData({ scope: 'organizations' })
       await navigateTo('/organizations')
     },
     result,

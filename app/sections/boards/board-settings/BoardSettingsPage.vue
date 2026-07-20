@@ -27,7 +27,6 @@ const organizationRoutes = useOrganizationRoutes()
 const { refresh, state: pageState } = await useActionData({
   action: () => props.deps.viewBoardSettingsPage({ boardId: props.boardId }),
   fallbackMessage: 'Could not load board. Try again.',
-  key: () => dataKeys.board.settings(props.boardId),
   messages: {
     AccessDenied: 'You do not have access to this board.',
     BoardNotFound: 'The board was not found or is not available to you.',
@@ -45,7 +44,6 @@ useHead({
 })
 const submitting = ref(false)
 const error = ref<null | string>(null)
-let boardSettingsDataKeyToClear: null | string = null
 type BoardColumn = { color: string; id: string; name: string }
 type BoardColumnDraft = { color: string; id: null | string; name: string }
 function getBoardColumnChanges(
@@ -173,10 +171,6 @@ async function update(input: {
           })
         }
       }
-      invalidateData({
-        preserve: [dataKeys.board.settings(props.boardId)],
-        scope: 'structure',
-      })
       if (columnError !== null) {
         await refresh()
         error.value = columnError
@@ -219,7 +213,6 @@ async function update(input: {
           return
         }
       }
-      boardSettingsDataKeyToClear = dataKeys.board.settings(props.boardId)
       await navigateTo(organizationRoutes.board(props.spaceKey, props.boardId))
     },
     result,
@@ -245,21 +238,9 @@ async function remove() {
       })
     },
     ok: async () => {
-      const boardSettingsDataKey = dataKeys.board.settings(props.boardId)
-      invalidateData({
-        preserve: [boardSettingsDataKey],
-        scope: 'structure',
-      })
-      boardSettingsDataKeyToClear = boardSettingsDataKey
       await navigateTo(organizationRoutes.space(props.spaceKey))
     },
     result,
   })
 }
-
-onUnmounted(() => {
-  if (boardSettingsDataKeyToClear) {
-    invalidateDataKey(boardSettingsDataKeyToClear)
-  }
-})
 </script>

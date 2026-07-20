@@ -147,9 +147,8 @@ const {
   refresh,
   status,
 } = await useLazyAsyncData(
-  () => dataKeys.issue.dialog(props.issueKey),
   () => props.deps.loadIssue({ issueKey: props.issueKey }),
-  { server: false },
+  { server: false, watch: [() => props.issueKey] },
 )
 
 const viewModel = computed(() => {

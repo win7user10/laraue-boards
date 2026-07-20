@@ -32,7 +32,6 @@ async function create(input: CreateAttributeInput) {
       })
     },
     ok: async () => {
-      invalidateData({ scope: 'attributes' })
       await navigateTo(organizationRoutes.attributes())
     },
     result,

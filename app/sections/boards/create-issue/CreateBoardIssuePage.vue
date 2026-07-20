@@ -32,7 +32,6 @@ useHead({ title: 'Add issue' })
 const { refresh, state: pageState } = await useActionData({
   action: () => props.deps.viewCreateBoardIssuePage({ boardId: props.boardId }),
   fallbackMessage: 'Could not load issue form. Try again.',
-  key: () => dataKeys.board.createIssue(props.boardId),
   messages: {
     AccessDenied: 'You do not have permission to add issues to this board.',
     BoardNotFound: 'The board was not found or is not available to you.',
@@ -107,7 +106,6 @@ async function submit(input: {
       })
     },
     ok: async () => {
-      invalidateData({ scope: 'issues' })
       await navigateTo(
         organizationRoutes.board(props.spaceKey, props.boardId),
         {

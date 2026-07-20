@@ -51,7 +51,6 @@ const {
 } = await useActionData({
   action: () => props.deps.viewBacklogPage(request.value),
   fallbackMessage: 'Could not load backlog. Try again.',
-  key: () => dataKeys.space.backlog(props.spaceKey),
   messages: {
     AccessDenied: 'You do not have access to this backlog.',
     SpaceNotFound: 'The space was not found or is not available to you.',
@@ -187,10 +186,6 @@ async function searchIssues() {
 }
 
 async function handleIssuesMoved() {
-  invalidateData({
-    preserve: [dataKeys.space.backlog(props.spaceKey)],
-    scope: 'issues',
-  })
   await searchIssues()
 }
 </script>

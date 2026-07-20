@@ -22,7 +22,6 @@ const props = defineProps<{ deps: OrganizationSettingsPageDeps }>()
 const { refresh, state: pageState } = await useActionData({
   action: () => props.deps.viewOrganizationSettingsPage(),
   fallbackMessage: 'Could not load settings. Try again.',
-  key: dataKeys.workspace.settings,
   messages: {
     AccessDenied: 'You do not have access to this organization.',
     OrganizationNotFound: 'The organization was not found.',
@@ -40,7 +39,6 @@ useHead({
 const submitting = ref(false)
 const saved = ref(false)
 const error = ref<null | string>(null)
-const { organizationKey } = useOrganizationRoutes()
 async function submit(input: {
   color: string
   id: string
@@ -77,11 +75,7 @@ async function submit(input: {
         },
         { replace: true },
       )
-      invalidateData({ scope: 'organizations' })
-      await Promise.all([
-        refresh(),
-        refreshDataKey(dataKeys.workspace.layout(organizationKey.value)),
-      ])
+      await Promise.all([refresh(), refreshAppLayoutData()])
       saved.value = true
     },
     result,

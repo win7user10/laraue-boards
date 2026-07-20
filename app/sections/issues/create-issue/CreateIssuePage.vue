@@ -33,7 +33,6 @@ useHead({ title: 'Add issue' })
 const { refresh, state: pageState } = await useActionData({
   action: () => props.deps.viewCreateIssuePage(),
   fallbackMessage: 'Could not load issue form. Try again.',
-  key: dataKeys.workspace.createIssue,
   messages: {
     AccessDenied: 'You do not have permission to add issues.',
     TemporarilyUnavailable:
@@ -197,7 +196,6 @@ async function submit(input: {
       })
     },
     ok: async () => {
-      invalidateData({ scope: 'issues' })
       await navigateTo(organizationRoutes.issues(), {
         replace: true,
       })

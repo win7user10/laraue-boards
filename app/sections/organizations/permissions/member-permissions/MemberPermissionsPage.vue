@@ -27,7 +27,6 @@ const { refresh, state: pageState } = await useActionData({
     props.deps.viewMemberPermissionsPage({ memberId: props.memberId }),
   fallbackMessage:
     'Could not load member permissions. The service is temporarily unavailable.',
-  key: () => dataKeys.workspace.memberPermissions(props.memberId),
   messages: {
     AccessDenied: 'You do not have permission to open this page.',
     PermissionsNotFound: 'The requested page was not found.',
@@ -43,23 +42,8 @@ useHead({
       : 'Member permissions',
   ),
 })
-let memberPermissionsDataKeyToClear: null | string = null
-
 async function handleSaved() {
-  invalidateData({ scope: 'structure' })
-  memberPermissionsDataKeyToClear = dataKeys.workspace.memberPermissions(
-    props.memberId,
-  )
-  await refreshDataKey(
-    dataKeys.workspace.layout(organizationRoutes.organizationKey.value),
-  )
   await navigateTo(organizationRoutes.permissions())
-  await refreshDataKey(dataKeys.workspace.permissions)
+  await refreshAppLayoutData()
 }
-
-onUnmounted(() => {
-  if (memberPermissionsDataKeyToClear) {
-    invalidateDataKey(memberPermissionsDataKeyToClear)
-  }
-})
 </script>

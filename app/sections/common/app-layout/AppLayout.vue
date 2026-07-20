@@ -55,7 +55,7 @@ const {
   action: () =>
     props.deps.viewLayout({ organizationKey: props.organizationKey }),
   fallbackMessage: 'Workspace is unavailable. Try again.',
-  key: () => dataKeys.workspace.layout(props.organizationKey),
+  key: appLayoutDataKey,
   messages: {
     AccessDenied:
       'Your session has expired. Sign in and select your organization again.',
@@ -107,7 +107,7 @@ const errorTitle = computed(() =>
 )
 const logout = async () => {
   await props.deps.logout()
-  invalidateAllData()
+  clearNuxtData()
   await navigateTo('/')
 }
 const signInAgain = logout
