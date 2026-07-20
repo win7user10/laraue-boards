@@ -43,17 +43,50 @@
         <p class="muted section-description">
           These permissions apply to every space.
         </p>
-        <div class="permission-grid">
-          <label
-            v-for="permission in globalPermissionOptions"
-            :key="permission.key"
-            class="permission-option">
+        <div class="read-permission">
+          <strong>Read</strong>
+          <label class="permission-option">
             <input
-              v-model="draft.global[permission.key]"
-              type="checkbox" />
-            <span>{{ permission.label }}</span>
+              aria-label="Read organization"
+              :checked="draft.global.canRead || globalReadInherited"
+              :disabled="globalReadInherited"
+              :title="globalReadInherited ? 'Inherited' : undefined"
+              type="checkbox"
+              @change="draft.global.canRead = !draft.global.canRead" />
+            <span>Read organization</span>
           </label>
         </div>
+        <table class="permission-table">
+          <thead>
+            <tr>
+              <th scope="col">Resource</th>
+              <th
+                v-for="column in permissionColumns"
+                :key="column"
+                scope="col">
+                {{ column }}
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              v-for="row in globalPermissionRows"
+              :key="row.label">
+              <th scope="row">{{ row.label }}</th>
+              <td
+                v-for="(cell, index) in row.cells"
+                :key="permissionColumns[index]">
+                <input
+                  :aria-label="`${permissionColumns[index]} ${row.label}`"
+                  :checked="cell.checked"
+                  :disabled="cell.inherited"
+                  :title="cell.inherited ? 'Inherited' : undefined"
+                  type="checkbox"
+                  @change="draft.global[cell.key] = !draft.global[cell.key]" />
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </fieldset>
 
       <fieldset :disabled="viewModel.member.isOwner">
@@ -75,17 +108,76 @@
               Default
             </span>
           </summary>
-          <div class="permission-grid">
-            <label
-              v-for="permission in directPermissionOptions"
-              :key="permission.key"
-              class="permission-option">
-              <input
-                v-model="draft.direct[space.id]![permission.key]"
-                :disabled="space.isDefault && permission.key === 'canDelete'"
-                type="checkbox" />
-              <span>{{ permission.label }}</span>
-            </label>
+          <div class="direct-permissions">
+            <div class="read-permission">
+              <strong>Read</strong>
+              <label class="permission-option">
+                <input
+                  :aria-label="`Read ${space.name}`"
+                  :checked="
+                    draft.direct[space.id]!.canRead ||
+                    directPermissionTables[space.id]!.readInherited
+                  "
+                  :disabled="directPermissionTables[space.id]!.readInherited"
+                  :title="
+                    directPermissionTables[space.id]!.readInherited
+                      ? 'Inherited'
+                      : undefined
+                  "
+                  type="checkbox"
+                  @change="
+                    draft.direct[space.id]!.canRead =
+                      !draft.direct[space.id]!.canRead
+                  " />
+                <span>Read space</span>
+              </label>
+            </div>
+            <table class="permission-table">
+              <thead>
+                <tr>
+                  <th scope="col">Resource</th>
+                  <th
+                    v-for="column in permissionColumns"
+                    :key="column"
+                    scope="col">
+                    {{ column }}
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr
+                  v-for="row in directPermissionTables[space.id]!.rows"
+                  :key="row.label">
+                  <th scope="row">{{ row.label }}</th>
+                  <td
+                    v-for="(cell, index) in row.cells"
+                    :key="permissionColumns[index]">
+                    <span
+                      v-if="!cell"
+                      class="muted">
+                      —
+                    </span>
+                    <input
+                      v-else
+                      :aria-label="`${permissionColumns[index]} ${row.label} in ${space.name}`"
+                      :checked="cell.checked"
+                      :disabled="cell.unavailable || cell.inherited"
+                      :title="
+                        cell.unavailable
+                          ? 'Not allowed'
+                          : cell.inherited
+                            ? 'Inherited'
+                            : undefined
+                      "
+                      type="checkbox"
+                      @change="
+                        draft.direct[space.id]![cell.key] =
+                          !draft.direct[space.id]![cell.key]
+                      " />
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </details>
       </fieldset>
@@ -199,37 +291,94 @@ const adminPermissionOptions: Array<{
   { key: 'canMoveData', label: 'Move spaces and boards' },
   { key: 'canManageAttributes', label: 'Manage attributes' },
 ]
-const globalPermissionOptions: Array<{
-  key: keyof GlobalPermissions
-  label: string
+const permissionColumns = ['Create', 'Update', 'Delete'] as const
+const permissionDefinitions: Array<{
+  directKeys: Array<keyof DirectSpacePermissions | null>
+  directLabel: string
+  globalKeys: Array<keyof GlobalPermissions>
+  globalLabel: string
 }> = [
-  { key: 'canRead', label: 'Read organization' },
-  { key: 'canCreateSpaces', label: 'Create spaces' },
-  { key: 'canUpdateSpaces', label: 'Update spaces' },
-  { key: 'canDeleteSpaces', label: 'Delete spaces' },
-  { key: 'canCreateBoards', label: 'Create boards' },
-  { key: 'canUpdateBoards', label: 'Update boards' },
-  { key: 'canDeleteBoards', label: 'Delete boards' },
-  { key: 'canCreateIssues', label: 'Create issues' },
-  { key: 'canUpdateIssues', label: 'Update issues' },
-  { key: 'canDeleteIssues', label: 'Delete issues' },
-]
-const directPermissionOptions: Array<{
-  key: keyof DirectSpacePermissions
-  label: string
-}> = [
-  { key: 'canRead', label: 'Read space' },
-  { key: 'canUpdate', label: 'Update space' },
-  { key: 'canDelete', label: 'Delete space' },
-  { key: 'canCreateBoards', label: 'Create boards' },
-  { key: 'canUpdateBoards', label: 'Update boards' },
-  { key: 'canDeleteBoards', label: 'Delete boards' },
-  { key: 'canCreateIssues', label: 'Create issues' },
-  { key: 'canUpdateIssues', label: 'Update issues' },
-  { key: 'canDeleteIssues', label: 'Delete issues' },
+  {
+    directKeys: [null, 'canUpdate', 'canDelete'],
+    directLabel: 'Space',
+    globalKeys: ['canCreateSpaces', 'canUpdateSpaces', 'canDeleteSpaces'],
+    globalLabel: 'Spaces',
+  },
+  {
+    directKeys: ['canCreateBoards', 'canUpdateBoards', 'canDeleteBoards'],
+    directLabel: 'Boards',
+    globalKeys: ['canCreateBoards', 'canUpdateBoards', 'canDeleteBoards'],
+    globalLabel: 'Boards',
+  },
+  {
+    directKeys: ['canCreateIssues', 'canUpdateIssues', 'canDeleteIssues'],
+    directLabel: 'Issues',
+    globalKeys: ['canCreateIssues', 'canUpdateIssues', 'canDeleteIssues'],
+    globalLabel: 'Issues',
+  },
 ]
 
 const draft = ref(structuredClone(toRaw(props.viewModel.permissions)))
+// Each row inherits the same operation from the rows above it.
+const globalPermissionRows = computed(() => {
+  const inherited = [false, false, false]
+  return permissionDefinitions.map((definition) => ({
+    cells: definition.globalKeys.map((key, index) => {
+      const cell = {
+        checked: draft.value.global[key] || inherited[index]!,
+        inherited: inherited[index]!,
+        key,
+      }
+      inherited[index] = cell.checked
+      return cell
+    }),
+    label: definition.globalLabel,
+  }))
+})
+const globalReadInherited = computed(() =>
+  globalPermissionRows.value.some((row) =>
+    row.cells.some((cell) => cell.checked),
+  ),
+)
+const directPermissionTables = computed(() =>
+  Object.fromEntries(
+    props.viewModel.spaces.map((space) => {
+      const inherited = [false, false, false]
+      const rows = permissionDefinitions.map((definition, rowIndex) => ({
+        cells: definition.directKeys.map((key, index) => {
+          if (!key) {
+            return null
+          }
+          const cell = {
+            inherited:
+              globalPermissionRows.value[rowIndex]!.cells[index]!.checked ||
+              inherited[index]!,
+            key,
+            unavailable: space.isDefault && key === 'canDelete',
+          }
+          const checked =
+            !cell.unavailable &&
+            (draft.value.direct[space.id]![key] || cell.inherited)
+          inherited[index] = checked
+          return { ...cell, checked }
+        }),
+        label: definition.directLabel,
+      }))
+      return [
+        space.id,
+        {
+          readInherited:
+            draft.value.global.canRead ||
+            globalReadInherited.value ||
+            rows.some((row) =>
+              row.cells.some((cell) => cell?.checked ?? false),
+            ),
+          rows,
+        },
+      ]
+    }),
+  ),
+)
 watch(
   () => props.viewModel.permissions,
   (permissions) => {
@@ -281,6 +430,52 @@ legend {
   margin: 0;
 }
 
+.read-permission {
+  align-items: center;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  display: flex;
+  justify-content: space-between;
+  padding: var(--space-3);
+}
+
+.permission-table {
+  border: 1px solid var(--color-border);
+  border-collapse: separate;
+  border-radius: var(--radius-control);
+  border-spacing: 0;
+  margin-top: var(--space-3);
+  overflow: hidden;
+  table-layout: fixed;
+  width: 100%;
+}
+
+.permission-table th,
+.permission-table td {
+  border-bottom: 1px solid var(--color-border);
+  padding: var(--space-3);
+}
+
+.permission-table tr:last-child > * {
+  border-bottom: 0;
+}
+
+.permission-table th {
+  font-weight: var(--font-weight-semibold);
+  text-align: left;
+}
+
+.permission-table thead th {
+  background: var(--color-hover);
+  color: var(--color-muted);
+  font-size: var(--font-size-small);
+}
+
+.permission-table :is(th, td):not(:first-child) {
+  text-align: center;
+  width: 18%;
+}
+
 .space-permissions {
   border-bottom: 1px solid var(--color-border);
   padding: var(--space-3) 0;
@@ -316,7 +511,7 @@ legend {
   transform: rotate(90deg);
 }
 
-.space-permissions .permission-grid {
+.direct-permissions {
   padding: var(--space-4) 0 var(--space-1) var(--space-6);
 }
 
@@ -327,6 +522,15 @@ legend {
 
   .permission-grid {
     grid-template-columns: 1fr;
+  }
+
+  .permission-table th,
+  .permission-table td {
+    padding: var(--space-2);
+  }
+
+  .direct-permissions {
+    padding-left: 0;
   }
 }
 </style>
