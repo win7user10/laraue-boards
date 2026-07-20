@@ -1,5 +1,5 @@
-import type { DeleteBoard } from '../../../app/sections/boards/board-settings/actions/deleteBoard'
-import { createApiClient } from '../../api/client'
+import { createApiClient } from '#infrastructure/api/client'
+import type { DeleteBoard } from '~/sections/boards/board-settings/deps/deleteBoard'
 
 export const openApiDeleteBoard =
   (baseUrl: string): DeleteBoard =>

@@ -1,7 +1,7 @@
-import type { CreateBacklogIssue } from '../../../app/sections/spaces/create-backlog-issue/actions/createBacklogIssue'
-import { createApiClient } from '../../api/client'
-import { getInvalidInputError } from '../../api/getInvalidInputError'
-import { mapIssueAttributeValues } from '../../issues/shared/issueAttributes'
+import { createApiClient } from '#infrastructure/api/client'
+import { getInvalidInputError } from '#infrastructure/api/getInvalidInputError'
+import { mapIssueAttributeValues } from '#infrastructure/issues/shared/issueAttributes'
+import type { CreateBacklogIssue } from '~/sections/spaces/create-backlog-issue/deps/createBacklogIssue'
 
 export const openApiCreateBacklogIssue = (
   baseUrl: string,

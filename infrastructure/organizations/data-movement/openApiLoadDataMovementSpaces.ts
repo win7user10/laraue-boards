@@ -1,6 +1,6 @@
-import type { LoadDataMovementSpaces } from '../../../app/sections/organizations/data-movement/actions/loadDataMovementSpaces'
-import { createApiClient } from '../../api/client'
-import { mapMoveOptions } from '../../shared/mapMoveOptions'
+import { createApiClient } from '#infrastructure/api/client'
+import { mapMoveOptions } from '#infrastructure/shared/mapMoveOptions'
+import type { LoadDataMovementSpaces } from '~/sections/organizations/data-movement/deps/loadDataMovementSpaces'
 
 export const openApiLoadDataMovementSpaces = (
   baseUrl: string,

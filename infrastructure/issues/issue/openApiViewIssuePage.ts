@@ -1,6 +1,6 @@
-import type { ViewIssuePage } from '../../../app/sections/issues/issue/actions/viewIssuePage'
-import { createApiClient } from '../../api/client'
-import { mapIssuePage } from './mapIssuePage'
+import { createApiClient } from '#infrastructure/api/client'
+import { mapIssuePage } from '#infrastructure/issues/issue/mapIssuePage'
+import type { ViewIssuePage } from '~/sections/issues/issue/deps/viewIssuePage'
 
 export const openApiViewIssuePage =
   (baseUrl: string): ViewIssuePage =>

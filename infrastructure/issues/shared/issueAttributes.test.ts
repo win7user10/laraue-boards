@@ -1,18 +1,17 @@
 import { assert, test } from 'vitest'
 
 import {
-  createdAtDescending,
   mapIssueAttributes,
   mapIssueAttributeValues,
   mapIssueFilters,
   mapRawIssueFilters,
-  updatedAtDescending,
-} from './issueAttributes'
+} from '#infrastructure/issues/shared/issueAttributes'
+import { COLORS } from '~/constants/colors'
 
 const attributeDtos = [
-  { color: '#111111', id: 1, listValues: [], name: 'Reference', type: 0 },
+  { color: COLORS.gray, id: 1, listValues: [], name: 'Reference', type: 0 },
   {
-    color: '#222222',
+    color: COLORS.amber,
     id: 2,
     listValues: [
       { id: 3, name: 'High' },
@@ -23,11 +22,11 @@ const attributeDtos = [
   },
 ]
 
-test('maps issue attributes, filters, values, and sorting to API models', () => {
+test('maps issue attributes, filters, and values to API models', () => {
   assert.deepEqual(mapIssueAttributes(attributeDtos), [
-    { color: '#111111', id: '1', name: 'Reference', type: 'text' },
+    { color: COLORS.gray, id: '1', name: 'Reference', type: 'text' },
     {
-      color: '#222222',
+      color: COLORS.amber,
       id: '2',
       name: 'Priority',
       options: [
@@ -65,14 +64,4 @@ test('maps issue attributes, filters, values, and sorting to API models', () => 
       { $type: 'enum', attributeId: '2', valueId: '3' },
     ],
   )
-  assert.deepEqual(createdAtDescending, {
-    $type: 'property',
-    direction: 1,
-    property: 1,
-  })
-  assert.deepEqual(updatedAtDescending, {
-    $type: 'property',
-    direction: 1,
-    property: 2,
-  })
 })

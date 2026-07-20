@@ -1,6 +1,6 @@
 import { assert, test } from 'vitest'
 
-import { getErrorMessage } from './getErrorMessage'
+import { getErrorMessage } from '~/utils/getErrorMessage'
 
 test('gets an exhaustively described error message', () => {
   const error = 'AccessDenied' as 'AccessDenied' | 'TemporarilyUnavailable'

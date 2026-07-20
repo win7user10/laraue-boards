@@ -1,7 +1,7 @@
 import { assert, test } from 'vitest'
 
-import { err, ok } from '../utils/actionResult'
-import { resolveActionDataState } from './useActionData'
+import { resolveActionDataState } from '~/composables/useActionData'
+import { err, ok } from '~/utils/actionResult'
 
 const messages = { Denied: 'Access denied' } as const
 
@@ -24,6 +24,10 @@ test('resolves action data states', () => {
   )
   assert.deepEqual(
     resolveActionDataState(undefined, 'pending', messages, 'Failed'),
+    { type: 'pending' },
+  )
+  assert.deepEqual(
+    resolveActionDataState(undefined, 'idle', messages, 'Failed'),
     { type: 'pending' },
   )
   assert.deepEqual(

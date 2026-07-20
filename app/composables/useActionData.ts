@@ -16,7 +16,7 @@ export const resolveActionDataState = <Value, Failure extends PropertyKey>(
       ? { data: result.value, type: 'ready' }
       : { error: result.error, message: messages[result.error], type: 'error' }
   }
-  return status === 'pending'
+  return status === 'pending' || status === 'idle'
     ? { type: 'pending' }
     : { error: null, message: fallbackMessage, type: 'error' }
 }

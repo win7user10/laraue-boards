@@ -1,6 +1,6 @@
-import type { ViewAttributesPage } from '../../../../app/sections/organizations/attributes/list-attributes/actions/viewAttributesPage'
-import { createApiClient } from '../../../api/client'
-import { mapAttributesPage } from './mapAttributesPage'
+import { createApiClient } from '#infrastructure/api/client'
+import { mapAttributesPage } from '#infrastructure/organizations/attributes/list-attributes/mapAttributesPage'
+import type { ViewAttributesPage } from '~/sections/organizations/attributes/list-attributes/deps/viewAttributesPage'
 
 export const openApiViewAttributesPage = (
   baseUrl: string,

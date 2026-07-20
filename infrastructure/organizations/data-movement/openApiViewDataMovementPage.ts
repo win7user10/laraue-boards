@@ -1,6 +1,6 @@
-import type { ViewDataMovementPage } from '../../../app/sections/organizations/data-movement/actions/viewDataMovementPage'
-import { createApiClient } from '../../api/client'
-import { mapDataMovementPage } from './mapDataMovementPage'
+import { createApiClient } from '#infrastructure/api/client'
+import { mapDataMovementPage } from '#infrastructure/organizations/data-movement/mapDataMovementPage'
+import type { ViewDataMovementPage } from '~/sections/organizations/data-movement/deps/viewDataMovementPage'
 
 export const openApiViewDataMovementPage = (
   baseUrl: string,

@@ -14,7 +14,7 @@
       <button
         class="secondary"
         type="button"
-        @click="$emit('retry')">
+        @click="props.onRetry?.()">
         {{ retryText }}
       </button>
     </template>
@@ -24,17 +24,16 @@
 <script setup lang="ts">
 import { AlertTriangle, Loader } from 'lucide-vue-next'
 
-withDefaults(
+const props = withDefaults(
   defineProps<{
     errorText: string
     loading: boolean
     loadingText: string
+    onRetry?: () => void
     retryText?: string
   }>(),
   { retryText: 'Try again' },
 )
-
-defineEmits<{ retry: [] }>()
 </script>
 
 <style scoped>

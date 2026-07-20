@@ -1,6 +1,6 @@
-import { DEFAULT_COLOR } from '../../../app/constants/colors'
-import type { ViewBoardSettingsPage } from '../../../app/sections/boards/board-settings/actions/viewBoardSettingsPage'
-import { createApiClient } from '../../api/client'
+import { createApiClient } from '#infrastructure/api/client'
+import { DEFAULT_COLOR } from '~/constants/colors'
+import type { ViewBoardSettingsPage } from '~/sections/boards/board-settings/deps/viewBoardSettingsPage'
 
 export const openApiViewBoardSettingsPage =
   (baseUrl: string): ViewBoardSettingsPage =>

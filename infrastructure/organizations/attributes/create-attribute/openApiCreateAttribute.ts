@@ -1,6 +1,6 @@
-import type { CreateAttribute } from '../../../../app/sections/organizations/attributes/create-attribute/actions/createAttribute'
-import { createApiClient } from '../../../api/client'
-import { getInvalidInputError } from '../../../api/getInvalidInputError'
+import { createApiClient } from '#infrastructure/api/client'
+import { getInvalidInputError } from '#infrastructure/api/getInvalidInputError'
+import type { CreateAttribute } from '~/sections/organizations/attributes/create-attribute/deps/createAttribute'
 
 export const openApiCreateAttribute = (baseUrl: string): CreateAttribute => {
   const client = createApiClient(baseUrl)

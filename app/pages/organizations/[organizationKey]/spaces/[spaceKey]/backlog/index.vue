@@ -1,27 +1,30 @@
 <template>
-  <BacklogPageApplication
+  <BacklogPage
     :deps="deps"
     :space-key="spaceKey" />
 </template>
-<script setup lang="ts">
-import { openApiLoadBacklogMoveBoards } from '~~/infrastructure/spaces/backlog/openApiLoadBacklogMoveBoards'
-import { openApiLoadBacklogMoveSpaces } from '~~/infrastructure/spaces/backlog/openApiLoadBacklogMoveSpaces'
-import { openApiLoadBacklogMoveStatuses } from '~~/infrastructure/spaces/backlog/openApiLoadBacklogMoveStatuses'
-import { openApiMoveBacklogIssues } from '~~/infrastructure/spaces/backlog/openApiMoveBacklogIssues'
-import { openApiSearchBacklogIssues } from '~~/infrastructure/spaces/backlog/openApiSearchBacklogIssues'
-import { openApiViewBacklogPage } from '~~/infrastructure/spaces/backlog/openApiViewBacklogPage'
 
-import BacklogPageApplication from '~/sections/spaces/backlog/BacklogPageApplication.vue'
+<script setup lang="ts">
+import { openApiLoadMoveBoards } from '#infrastructure/issues/issue-list/backlog/openApiLoadMoveBoards'
+import { openApiLoadMoveSpaces } from '#infrastructure/issues/issue-list/backlog/openApiLoadMoveSpaces'
+import { openApiLoadMoveStatuses } from '#infrastructure/issues/issue-list/backlog/openApiLoadMoveStatuses'
+import { openApiMoveIssues } from '#infrastructure/issues/issue-list/backlog/openApiMoveIssues'
+import { openApiSearchBacklogIssues } from '#infrastructure/spaces/backlog/openApiSearchBacklogIssues'
+import { openApiViewBacklogPage } from '#infrastructure/spaces/backlog/openApiViewBacklogPage'
+import BacklogPage from '~/sections/spaces/backlog/BacklogPage.vue'
+import type { BacklogPageDeps } from '~/sections/spaces/backlog/BacklogPageDeps'
 const route = useRoute('organizations-organizationKey-spaces-spaceKey-backlog')
 const spaceKey = computed(() => String(route.params.spaceKey))
 const config = useRuntimeConfig()
 const baseUrl = config.public.boardsApiBaseUrl
 const deps = {
-  loadBacklogMoveBoards: openApiLoadBacklogMoveBoards(baseUrl),
-  loadBacklogMoveSpaces: openApiLoadBacklogMoveSpaces(baseUrl),
-  loadBacklogMoveStatuses: openApiLoadBacklogMoveStatuses(baseUrl),
-  moveBacklogIssues: openApiMoveBacklogIssues(baseUrl),
+  issueList: {
+    loadMoveBoards: openApiLoadMoveBoards(baseUrl),
+    loadMoveSpaces: openApiLoadMoveSpaces(baseUrl),
+    loadMoveStatuses: openApiLoadMoveStatuses(baseUrl),
+    moveIssues: openApiMoveIssues(baseUrl),
+  },
   searchBacklogIssues: openApiSearchBacklogIssues(baseUrl),
   viewBacklogPage: openApiViewBacklogPage(baseUrl),
-}
+} satisfies BacklogPageDeps
 </script>

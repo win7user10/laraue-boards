@@ -1,5 +1,5 @@
-import type { LoginViaTelegramMiniApp } from '../../../app/sections/auth/login/actions/loginViaTelegramMiniApp'
-import { createApiClient } from '../../api/client'
+import { createApiClient } from '#infrastructure/api/client'
+import type { LoginViaTelegramMiniApp } from '~/sections/auth/login/deps/loginViaTelegramMiniApp'
 
 type TelegramWindow = typeof globalThis & {
   Telegram?: { WebApp?: { initData?: string } }

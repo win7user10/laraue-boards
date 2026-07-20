@@ -1,18 +1,19 @@
 import { assert, test } from 'vitest'
 
-import { mapAttribute } from './mapAttribute'
+import { mapAttribute } from '#infrastructure/organizations/attributes/attribute/mapAttribute'
+import { COLORS } from '~/constants/colors'
 
 test('maps a list attribute', () => {
   assert.deepEqual(
     mapAttribute({
-      color: '#12b76a',
+      color: COLORS.green,
       id: 3,
       listValues: [{ id: 4, name: 'High' }],
       name: 'Priority',
       type: 1,
     }),
     {
-      color: '#12b76a',
+      color: COLORS.green,
       data: {
         listValues: [{ id: '4', name: 'High' }],
         type: 'list',

@@ -6,7 +6,7 @@ This file is the source of truth for changes in this repository.
 
 Dependency flow:
 
-`Nuxt composition root → page deps contract ← infrastructure → final API`
+`Nuxt composition root → typed deps tree ← infrastructure → final API`
 
 The application calls the existing backend API directly. Do not add Nuxt/Nitro
 API endpoints, a second BFF, or separate `client` and `server` implementations
@@ -17,32 +17,48 @@ Keep page contracts with their presentation and API details in infrastructure:
 
 ```text
 app/sections/{section}/{feature}/
-  {Feature}PageApplication.vue
-  {Feature}PageApplicationDeps.ts
-  actions/
-    {action}.ts
-  view/
-    {Feature}Page.vue
-    components/
+  {Feature}Page.vue
+  {Feature}PageDeps.ts
+  deps/
+    {dependency}.ts
+  components/
 
 infrastructure/{section}/{feature}/
   openApi{Action}.ts
+  components/{StatefulChild}/
+    openApi{Action}.ts
+
+app/components/{domain}/{feature}/
+  {Feature}.vue
+  {Feature}Deps.ts
+  deps/
+    {dependency}.ts
 ```
 
-- Each `actions/{action}.ts` owns its input, page data, expected errors, and
-  callable contract.
-- An action must not import input, result, or error types from another action.
-  Declare its contract locally even when two actions currently have the same
-  shape.
-- `{Feature}PageApplicationDeps.ts` only groups page actions: `viewBoardPage`,
-  `createIssue`, `moveIssue`, `deleteIssue`.
+- Each `deps/{dependency}.ts` owns its input, application data, expected errors,
+  and callable contract.
+- A dependency must not import input, result, or error types from another
+  dependency. Declare its contract locally even when two actions currently have
+  the same shape.
+- A component deps contract groups the operations that component executes and
+  may contain typed deps for child stateful components. Pass child deps down
+  explicitly; do not resolve them through a global store or `provide/inject`.
+- When a reusable component owns deps, operations, or runtime operation state,
+  keep its component, deps contract, dependency contracts, and presentation
+  together in one feature directory. Keep one component file unless its
+  presentation has a separate real consumer.
+- Keep application operation state and execution directly in the owning
+  component; do not extract them into stateful `use*` composables.
 - Do not reuse page-specific operations speculatively. Extract a shared contract
   only after another real consumer appears.
-- Infrastructure implements page action contracts and owns `openapi-fetch`,
+- Infrastructure implements dependency contracts and owns `openapi-fetch`,
   generated DTOs, HTTP details, storage, and thrown network errors.
-- Keep each action implementation in its own `openApi{Action}.ts` file. Shared
-  infrastructure helpers belong in `infrastructure/{section}/shared` only when
-  at least two real features use them.
+- Mirror a stateful component's feature directory under `infrastructure` for its
+  OpenAPI adapters. Do not put adapter implementations in an `impl` folder
+  beside the component; application code must not own HTTP or generated DTOs.
+- Keep each dependency implementation in its own `openApi{Action}.ts` file.
+  Shared infrastructure helpers belong in `infrastructure/{section}/shared` only
+  when at least two real features use them.
 - Shared technical OpenAPI code lives in `infrastructure/api`.
 - Do not add factories, intermediate port models, generic services, wrappers, or
   configuration when an API adapter can implement the page operation directly.
@@ -51,20 +67,19 @@ infrastructure/{section}/{feature}/
 
 Keep each model inside its layer:
 
-1. Infrastructure maps generated DTOs or mock data directly to action results
-   and page errors.
-2. Page applications pass the action-result view model through an explicit
-   `viewModel` prop and pass their own runtime state as separate props without
-   another mapping.
+1. Infrastructure maps generated DTOs or mock data directly to dependency
+   results and page errors.
+2. The owning stateful component consumes the operation result and renders its
+   returned view model. It passes only the plain display data and callbacks
+   needed by descendants.
 
 - UI components must not import infrastructure or generated API types.
 - Reusable component props types are exported directly from the `.vue`
   component. Keep non-reused props local.
 - A page component exports `{Feature}PageViewModel` for data returned by its
-  view action and receives it through a required `viewModel` prop. Runtime state
-  such as `loading`, `error`, or `submitting` remains in separate props. Keep a
-  named `{Feature}PageProps` type local when useful; export the view model, not
-  the page props.
+  view dependency and consumes it from its own operation state. Descendants may
+  expose a `viewModel` prop when that is the simplest way to pass their display
+  data.
 - The UI uses `Board`; only OpenAPI infrastructure translates backend `Epic`
   types.
 
@@ -72,22 +87,56 @@ Keep each model inside its layer:
 
 - `app/pages` and `app/layouts` are thin composition roots. They create API
   adapters and pass operations through typed `deps` props.
-- Feature pages receive operations through `deps`; child components receive
-  plain props and emit UI events.
+- Use `props` for display data and identifiers, local `state` for mutable
+  component data, `deps` for external operations the component executes, and
+  direct `onX` props for parent coordination in simple components.
+- When a component has several related mutable fields, prefer one typed
+  `reactive` state object over a loose collection of refs. Keep independent
+  computed values and template-element refs separate.
+- Stateful components receive their own operations through `deps`, own the
+  resulting runtime state, and pass plain props to descendants. Keep an
+  operation in the nearest stateful component whose subtree exclusively owns
+  that operation's data.
+- Shared state belongs to the nearest common stateful ancestor of every
+  consumer. Do not duplicate loading or mutation state in several leaf
+  components and do not introduce a global store merely to avoid explicit
+  parent-to-child flow.
+- Keep `deps` for external operation ports that the component executes and whose
+  `ActionResult` it consumes. Do not put parent UI coordination in `deps`.
+- Parent coordination flows down through direct typed `onX` function props. Do
+  not group them into a `callbacks` object and do not redeclare/re-emit them
+  through wrappers.
+- Simple presentation components with no external operations do not need a deps
+  contract; give them display props and direct `onX` props only.
+- A stateful modal, drawer, form section, or other self-contained child owns the
+  complete workflow that only its UI needs: loading, form and dirty state,
+  errors, mutations, and the matching subtree of `deps`. The parent passes the
+  child deps and identifiers, not the child's view model or runtime state.
+- A self-contained child reports only successful consequences outside its
+  boundary through minimal direct callbacks such as `onSaved`, `onDeleted`, and
+  `onClose`. The parent updates its own projection, route, and cache; it must
+  not execute the child's operations or mirror the child's loading and error
+  state.
+- Move the whole workflow when changing ownership. Do not move only a dependency
+  contract while its invocation and state remain in the parent.
+- Use component emits only when a concrete Vue event API is required, such as
+  `v-model`; do not use emits for ordinary parent callbacks.
 - Pass component props explicitly. Do not use object `v-bind`.
 - `app/layouts/default.vue` composes the shared shell. `AppLayout.vue` owns its
   own props model. Feature screens contain only feature content.
-- Keep the single root presentation component in `view/{Feature}Page.vue`.
-  Reserve `components` for actual child or shared components; do not add a
-  redundant `components/{Feature}Page/{Feature}Page.vue` directory.
-- Put every child component in `view/components` and repeat component nesting
-  recursively: `view/components/BoardColumn/BoardColumn.vue` and
-  `view/components/BoardColumn/components/IssueCard.vue`.
-- An action result lives in its action file and uses direct component names as
-  keys and their view models as values: `{ BoardPage: BoardPageViewModel }`.
-- Add each board action as a separate file in `actions` and a separate typed
-  operation in `BoardPageApplicationDeps`; do not hide several actions inside
-  one generic callback.
+- Keep the stateful route root in `{Feature}Page.vue`; never create parallel
+  `Application` and `view` versions of the same page. Extract only a cohesive
+  child such as a form, list, modal, toolbar, or editor—not a second full-page
+  wrapper—and keep it under `components`.
+- Put every child component in `components` and repeat component nesting
+  recursively: `components/BoardColumn/BoardColumn.vue` and
+  `components/BoardColumn/components/IssueCard.vue`.
+- A dependency result lives in its dependency file and uses direct component
+  names as keys and their view models as values:
+  `{ BoardPage: BoardPageViewModel }`.
+- Add each external operation as a separate file in the owning component's
+  `deps` directory and as a separate typed operation in its deps contract; do
+  not hide several operations inside one generic callback.
 - Nuxt already code-splits routes. Add lazy components only for heavy,
   conditional content.
 - Every navigation item uses a real Nuxt route. Never use `href="#"`
@@ -119,26 +168,27 @@ Keep each model inside its layer:
 
 ## Action execution
 
-Use one action flow throughout the application:
+Use one dependency execution flow throughout the application:
 
-1. `actions/{action}.ts` declares its own input, result, expected error union,
+1. `deps/{dependency}.ts` declares its own input, result, expected error union,
    and callable contract returning `Promise<ActionResult<Result, Error>>`.
-2. Infrastructure calls the final API, maps DTOs to the action result, maps
+2. Infrastructure calls the final API, maps DTOs to the operation result, maps
    expected failures to that action's error union, and returns `ok(...)` or
    `err(...)`.
-3. `{Feature}PageApplication.vue` executes actions, converts their results to UI
-   state, invalidates related Nuxt data after successful mutations, and passes
-   plain props to the view.
-4. View components only emit user intent. They do not call actions, inspect
-   `ActionResult`, import infrastructure, or invalidate cached data.
+3. The nearest owning stateful component executes operations, converts their
+   results to local UI state, invalidates related Nuxt data after successful
+   mutations, and passes plain props to descendants.
+4. Presentation components invoke typed parent callbacks. They do not call
+   operations, inspect `ActionResult`, import infrastructure, or invalidate
+   cached data.
 
-For initial keyed page data, use `useActionData`:
+For initial keyed application data, use `useActionData`:
 
 ```ts
 const { refresh, state: pageState } = await useActionData({
   action: () => props.deps.viewFeaturePage(input),
   fallbackMessage: 'Could not load the page.',
-  key: () => asyncDataKeys.feature.page(input.id),
+  key: () => dataKeys.feature.page(input.id),
   messages: {
     AccessDenied: 'You do not have access to this page.',
     ResourceNotFound: 'The requested resource was not found.',
@@ -148,12 +198,11 @@ const { refresh, state: pageState } = await useActionData({
 ```
 
 - Render `pageState.type === 'ready'`, `'pending'`, and `'error'` explicitly.
-- Pass `pageState.data.{Feature}Page` as the required `viewModel` prop in the
-  ready branch.
+- Render `pageState.data.{Feature}Page` in the owning component's ready branch.
 - `useActionData` owns the integration with `useAsyncData`; do not repeat its
-  `ActionResult | undefined` and loading-state conversion in page applications.
-- Use `useActionData` for initial or route-keyed page loading, not for every
-  button click or lazy select.
+  `ActionResult | undefined` and loading-state conversion in page components.
+- Use `useActionData` for initial or route-keyed application loading, not for
+  every button click or lazy select.
 
 For mutations, searches, lazy selects, and pagination, consume every action
 result with `matchActionResult`:
@@ -166,7 +215,7 @@ matchActionResult({
   ok: (value) => {
     actionError.value = ''
     viewModel.value = value.FeaturePage
-    invalidation.afterFeatureChanged(value.id)
+    invalidateData({ scope: 'structure' })
   },
   err: (error) => {
     actionError.value = getErrorMessage({
@@ -181,7 +230,7 @@ matchActionResult({
 })
 ```
 
-- Page applications must not inspect `result.ok`, `result.value`, or
+- Stateful components must not inspect `result.ok`, `result.value`, or
   `result.error` directly; use `matchActionResult` instead. The generic
   `matchActionResult` and `useActionData` implementations may inspect the union
   discriminator internally.
@@ -192,14 +241,17 @@ matchActionResult({
   action contract must cause every incomplete UI mapping to fail type checking.
 - Clear previous action errors and update local view state only in the `ok`
   branch. Show expected failures only in the `err` branch.
-- Invalidate related data through `useAsyncDataInvalidation` only after a
-  successful mutation. Do not call `refreshNuxtData` directly from a page or
-  view component.
+- Invalidate related data through `invalidateData({ scope, preserve })` only
+  after a successful mutation. Use `invalidateDataKey(key)` for one exact key
+  and `invalidateAllData()` only when ending or replacing the whole session.
+  Preserve the owning component's key when its local state was already updated.
+  Use `refreshDataKey(dataKeys...)` only when another active owner must update
+  immediately. Do not call `clearNuxtData` or `refreshNuxtData` from components.
 - Use `createLatestRequest` only for concurrent searches or other replaceable
   requests where an older response could overwrite a newer one. Normal mutations
   and lazy select loads do not need it.
-- Keep action loading/submitting state local to the page application and pass it
-  separately from the action-result view model.
+- Keep operation loading/submitting state local to the owning stateful
+  component.
 
 ## UI implementation
 
@@ -208,6 +260,10 @@ matchActionResult({
   a design change.
 - Use existing CSS in `app/assets/css/main.css`; do not add Tailwind CSS unless
   explicitly requested.
+- Domain colors for boards, columns, users, spaces, statuses, attributes, mocks,
+  and fallbacks must come from `app/constants/colors.ts`. Do not put hex color
+  literals in TypeScript, template expressions, application data, or tests.
+  CSS-only colors inside stylesheets and `<style>` blocks are exempt.
 - Use `lucide-vue-next` for interface icons instead of hand-written
   placeholders.
 - Keep Board and Backlog as sidebar destinations; do not add tabs inside the

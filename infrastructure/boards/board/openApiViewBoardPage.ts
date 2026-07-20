@@ -1,10 +1,8 @@
-import type { ViewBoardPage } from '../../../app/sections/boards/board/actions/viewBoardPage'
-import { createApiClient } from '../../api/client'
-import {
-  mapRawIssueFilters,
-  updatedAtDescending,
-} from '../../issues/shared/issueAttributes'
-import { mapViewBoardPage } from './mapViewBoardPage'
+import { createApiClient } from '#infrastructure/api/client'
+import { mapViewBoardPage } from '#infrastructure/boards/board/mapViewBoardPage'
+import { mapRawIssueFilters } from '#infrastructure/issues/shared/issueAttributes'
+import { createdAtDescending } from '#infrastructure/issues/shared/issueSorting'
+import type { ViewBoardPage } from '~/sections/boards/board/deps/viewBoardPage'
 
 export const openApiViewBoardPage = (baseUrl: string): ViewBoardPage => {
   const client = createApiClient(baseUrl)
@@ -39,7 +37,7 @@ export const openApiViewBoardPage = (baseUrl: string): ViewBoardPage => {
             epicId: boardId,
             filters: attributeData.filters,
             searchString: search || undefined,
-            sorting: updatedAtDescending,
+            sorting: createdAtDescending,
             take: 25,
           },
         }),

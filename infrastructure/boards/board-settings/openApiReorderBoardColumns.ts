@@ -1,5 +1,5 @@
-import type { ReorderBoardColumns } from '../../../app/sections/boards/board-settings/actions/reorderBoardColumns'
-import { createApiClient } from '../../api/client'
+import { createApiClient } from '#infrastructure/api/client'
+import type { ReorderBoardColumns } from '~/sections/boards/board-settings/deps/reorderBoardColumns'
 
 export const getBoardColumnSortOrders = (boardColumnIds: string[]) =>
   Object.fromEntries(boardColumnIds.map((id, index) => [id, index + 1]))

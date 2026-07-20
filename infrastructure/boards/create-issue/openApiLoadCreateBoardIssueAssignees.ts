@@ -1,7 +1,7 @@
-import type { LoadCreateBoardIssueAssignees } from '../../../app/sections/boards/create-issue/actions/loadCreateBoardIssueAssignees'
-import { createApiClient } from '../../api/client'
-import { mapOrganizationAssignees } from '../../issues/shared/mapOrganizationAssignees'
-import { findSpaceByKey } from '../../spaces/shared/findSpaceByKey'
+import { createApiClient } from '#infrastructure/api/client'
+import { mapOrganizationAssignees } from '#infrastructure/issues/shared/mapOrganizationAssignees'
+import { findSpaceByKey } from '#infrastructure/spaces/shared/findSpaceByKey'
+import type { LoadCreateBoardIssueAssignees } from '~/sections/boards/create-issue/deps/loadCreateBoardIssueAssignees'
 
 export const openApiLoadCreateBoardIssueAssignees = (
   baseUrl: string,

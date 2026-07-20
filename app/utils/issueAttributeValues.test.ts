@@ -1,6 +1,6 @@
 import { assert, test } from 'vitest'
 
-import { getIssueAttributeValueInput } from './issueAttributeValues'
+import { getIssueAttributeValueInput } from '~/utils/issueAttributeValues'
 
 test('maps edited issue attribute values to action input', () => {
   assert.deepEqual(

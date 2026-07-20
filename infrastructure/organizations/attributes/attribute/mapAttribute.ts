@@ -1,5 +1,5 @@
-import type { EditAttributeFormViewModel } from '../../../../app/sections/organizations/attributes/attribute/view/components/EditAttributeForm.vue'
-import type { components } from '../../../api/generated'
+import type { components } from '#infrastructure/api/generated'
+import type { EditAttributeFormViewModel } from '~/sections/organizations/attributes/attribute/components/EditAttributeForm.vue'
 
 type Attribute = components['schemas']['AttributeDto']
 

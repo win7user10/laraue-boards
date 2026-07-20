@@ -12,7 +12,13 @@
       v-if="open"
       ref="content"
       class="app-popover-content popover"
-      :style="{ translate: `${horizontalShift}px 0` }">
+      :style="{
+        left: `${position.left}px`,
+        maxHeight: `calc(100dvh - ${viewportPadding * 2}px)`,
+        maxWidth: `calc(100vw - ${viewportPadding * 2}px)`,
+        top: `${position.top}px`,
+        visibility: positioned ? 'visible' : 'hidden',
+      }">
       <slot :close="close" />
     </div>
   </div>
@@ -25,7 +31,9 @@ const props = withDefaults(defineProps<{ viewportPadding?: number }>(), {
 const root = ref<HTMLElement>()
 const content = ref<HTMLElement>()
 const open = ref(false)
-const horizontalShift = ref(0)
+const positioned = ref(false)
+const position = reactive({ left: 0, top: 0 })
+let positionFrame: number | undefined
 
 function close() {
   open.value = false
@@ -33,29 +41,41 @@ function close() {
 
 function toggle() {
   open.value = !open.value
-  if (open.value) {
-    void position()
-  }
 }
 
-async function position() {
-  if (!open.value) {
+function updatePosition() {
+  if (!open.value || !root.value || !content.value) {
     return
   }
-  horizontalShift.value = 0
-  await nextTick()
-  const rect = content.value?.getBoundingClientRect()
-  if (!rect) {
-    return
+
+  const triggerRect = root.value.getBoundingClientRect()
+  const contentRect = content.value.getBoundingClientRect()
+  const gap =
+    Number.parseFloat(
+      getComputedStyle(root.value).getPropertyValue('--space-2'),
+    ) || 8
+  const maxLeft = Math.max(
+    props.viewportPadding,
+    window.innerWidth - props.viewportPadding - contentRect.width,
+  )
+  const below = triggerRect.bottom + gap
+  const above = triggerRect.top - gap - contentRect.height
+
+  const left = Math.min(
+    Math.max(triggerRect.left, props.viewportPadding),
+    maxLeft,
+  )
+  const top =
+    below + contentRect.height <= window.innerHeight - props.viewportPadding
+      ? below
+      : Math.max(props.viewportPadding, above)
+
+  if (position.left !== left || position.top !== top) {
+    position.left = left
+    position.top = top
   }
-  horizontalShift.value = Math.min(
-    0,
-    window.innerWidth - props.viewportPadding - rect.right,
-  )
-  horizontalShift.value += Math.max(
-    0,
-    props.viewportPadding - rect.left - horizontalShift.value,
-  )
+  positioned.value = true
+  positionFrame = requestAnimationFrame(updatePosition)
 }
 
 function closeOnOutsideClick(event: MouseEvent) {
@@ -85,12 +105,24 @@ function closeOnEscape() {
 
 onMounted(() => {
   document.addEventListener('click', closeOnOutsideClick)
-  window.addEventListener('resize', position)
 })
 onBeforeUnmount(() => {
   document.removeEventListener('click', closeOnOutsideClick)
-  window.removeEventListener('resize', position)
+  cancelAnimationFrame(positionFrame ?? 0)
 })
+
+watch(
+  open,
+  async (isOpen) => {
+    cancelAnimationFrame(positionFrame ?? 0)
+    positioned.value = false
+    if (isOpen) {
+      await nextTick()
+      updatePosition()
+    }
+  },
+  { flush: 'post' },
+)
 </script>
 
 <style scoped>
@@ -100,10 +132,8 @@ onBeforeUnmount(() => {
 }
 
 .app-popover-content {
-  left: 0;
-  margin-top: var(--space-2);
-  position: absolute;
-  top: 100%;
+  overflow: auto;
+  position: fixed;
   width: var(--app-popover-width, max-content);
 }
 </style>

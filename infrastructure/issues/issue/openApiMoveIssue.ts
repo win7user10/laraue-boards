@@ -1,5 +1,5 @@
-import type { MoveIssue } from '../../../app/sections/issues/issue/actions/moveIssue'
-import { createApiClient } from '../../api/client'
+import { createApiClient } from '#infrastructure/api/client'
+import type { MoveIssue } from '~/sections/issues/issue/deps/moveIssue'
 
 export const openApiMoveIssue =
   (baseUrl: string): MoveIssue =>

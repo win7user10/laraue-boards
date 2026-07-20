@@ -1,15 +1,14 @@
 <template>
-  <CreateIssuePageApplication :deps="deps" />
+  <CreateIssuePage :deps="deps" />
 </template>
 
 <script setup lang="ts">
-import { openApiCreateIssue } from '~~/infrastructure/issues/create-issue/openApiCreateIssue'
-import { openApiLoadCreateIssueAssignees } from '~~/infrastructure/issues/create-issue/openApiLoadCreateIssueAssignees'
-import { openApiLoadCreateIssueBoards } from '~~/infrastructure/issues/create-issue/openApiLoadCreateIssueBoards'
-import { openApiLoadCreateIssueStatuses } from '~~/infrastructure/issues/create-issue/openApiLoadCreateIssueStatuses'
-import { openApiViewCreateIssuePage } from '~~/infrastructure/issues/create-issue/openApiViewCreateIssuePage'
-
-import CreateIssuePageApplication from '~/sections/issues/create-issue/CreateIssuePageApplication.vue'
+import { openApiCreateIssue } from '#infrastructure/issues/create-issue/openApiCreateIssue'
+import { openApiLoadCreateIssueAssignees } from '#infrastructure/issues/create-issue/openApiLoadCreateIssueAssignees'
+import { openApiLoadCreateIssueBoards } from '#infrastructure/issues/create-issue/openApiLoadCreateIssueBoards'
+import { openApiLoadCreateIssueStatuses } from '#infrastructure/issues/create-issue/openApiLoadCreateIssueStatuses'
+import { openApiViewCreateIssuePage } from '#infrastructure/issues/create-issue/openApiViewCreateIssuePage'
+import CreateIssuePage from '~/sections/issues/create-issue/CreateIssuePage.vue'
 
 const baseUrl = useRuntimeConfig().public.boardsApiBaseUrl
 const deps = {

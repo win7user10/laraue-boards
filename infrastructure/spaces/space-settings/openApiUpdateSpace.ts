@@ -1,6 +1,6 @@
-import type { UpdateSpace } from '../../../app/sections/spaces/space-settings/actions/updateSpace'
-import { createApiClient } from '../../api/client'
-import { getInvalidInputError } from '../../api/getInvalidInputError'
+import { createApiClient } from '#infrastructure/api/client'
+import { getInvalidInputError } from '#infrastructure/api/getInvalidInputError'
+import type { UpdateSpace } from '~/sections/spaces/space-settings/deps/updateSpace'
 
 export const openApiUpdateSpace =
   (baseUrl: string): UpdateSpace =>

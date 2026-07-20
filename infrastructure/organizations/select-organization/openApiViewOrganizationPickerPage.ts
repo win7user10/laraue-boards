@@ -1,6 +1,6 @@
-import type { ViewOrganizationPickerPage } from '../../../app/sections/organizations/select-organization/actions/viewOrganizationPickerPage'
-import { createApiClient } from '../../api/client'
-import { getOrganizationKey } from '../../common/app-layout/organizationSelection'
+import { createApiClient } from '#infrastructure/api/client'
+import { getOrganizationKey } from '#infrastructure/common/app-layout/organizationSelection'
+import type { ViewOrganizationPickerPage } from '~/sections/organizations/select-organization/deps/viewOrganizationPickerPage'
 
 export const openApiViewOrganizationPickerPage =
   (baseUrl: string): ViewOrganizationPickerPage =>
@@ -26,7 +26,7 @@ export const openApiViewOrganizationPickerPage =
       return ok({
         OrganizationPickerPage: {
           organizations: response.data.map((organization) => ({
-            color: organization.color ?? '#3156d3',
+            color: organization.color ?? DEFAULT_COLOR,
             description: organization.isPersonal
               ? 'Personal organization'
               : 'Team organization',
@@ -41,3 +41,4 @@ export const openApiViewOrganizationPickerPage =
       return err('TemporarilyUnavailable')
     }
   }
+import { DEFAULT_COLOR } from '~/constants/colors'

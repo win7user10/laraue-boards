@@ -1,15 +1,14 @@
 <template>
-  <CreateBacklogIssuePageApplication
+  <CreateBacklogIssuePage
     :deps="deps"
     :space-key="spaceKey" />
 </template>
 
 <script setup lang="ts">
-import { openApiCreateBacklogIssue } from '~~/infrastructure/spaces/create-backlog-issue/openApiCreateBacklogIssue'
-import { openApiLoadCreateBacklogIssueAssignees } from '~~/infrastructure/spaces/create-backlog-issue/openApiLoadCreateBacklogIssueAssignees'
-import { openApiViewCreateBacklogIssuePage } from '~~/infrastructure/spaces/create-backlog-issue/openApiViewCreateBacklogIssuePage'
-
-import CreateBacklogIssuePageApplication from '~/sections/spaces/create-backlog-issue/CreateBacklogIssuePageApplication.vue'
+import { openApiCreateBacklogIssue } from '#infrastructure/spaces/create-backlog-issue/openApiCreateBacklogIssue'
+import { openApiLoadCreateBacklogIssueAssignees } from '#infrastructure/spaces/create-backlog-issue/openApiLoadCreateBacklogIssueAssignees'
+import { openApiViewCreateBacklogIssuePage } from '#infrastructure/spaces/create-backlog-issue/openApiViewCreateBacklogIssuePage'
+import CreateBacklogIssuePage from '~/sections/spaces/create-backlog-issue/CreateBacklogIssuePage.vue'
 
 const route = useRoute(
   'organizations-organizationKey-spaces-spaceKey-backlog-issues-new',

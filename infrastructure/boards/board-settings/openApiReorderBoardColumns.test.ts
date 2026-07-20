@@ -1,6 +1,6 @@
 import { assert, test } from 'vitest'
 
-import { getBoardColumnSortOrders } from './openApiReorderBoardColumns'
+import { getBoardColumnSortOrders } from '#infrastructure/boards/board-settings/openApiReorderBoardColumns'
 
 test('maps board columns to one-based sort orders', () => {
   assert.deepEqual(getBoardColumnSortOrders(['8', '3', '5']), {

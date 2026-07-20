@@ -1,12 +1,12 @@
 <template>
-  <CreateBoardPageApplication
+  <CreateBoardPage
     :deps="deps"
     :space-key="spaceKey" />
 </template>
-<script setup lang="ts">
-import { openApiCreateBoard } from '~~/infrastructure/boards/create-board/openApiCreateBoard'
 
-import CreateBoardPageApplication from '~/sections/boards/create-board/CreateBoardPageApplication.vue'
+<script setup lang="ts">
+import { openApiCreateBoard } from '#infrastructure/boards/create-board/openApiCreateBoard'
+import CreateBoardPage from '~/sections/boards/create-board/CreateBoardPage.vue'
 const route = useRoute(
   'organizations-organizationKey-spaces-spaceKey-boards-new',
 )

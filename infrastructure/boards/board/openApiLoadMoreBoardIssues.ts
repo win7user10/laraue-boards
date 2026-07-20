@@ -1,10 +1,8 @@
-import type { LoadMoreBoardIssues } from '../../../app/sections/boards/board/actions/loadMoreBoardIssues'
-import { createApiClient } from '../../api/client'
-import {
-  mapIssueFilters,
-  updatedAtDescending,
-} from '../../issues/shared/issueAttributes'
-import { mapIssueListDto } from './mapViewBoardPage'
+import { createApiClient } from '#infrastructure/api/client'
+import { mapIssueListDto } from '#infrastructure/boards/board/mapViewBoardPage'
+import { mapIssueFilters } from '#infrastructure/issues/shared/issueAttributes'
+import { createdAtDescending } from '#infrastructure/issues/shared/issueSorting'
+import type { LoadMoreBoardIssues } from '~/sections/boards/board/deps/loadMoreBoardIssues'
 
 export const openApiLoadMoreBoardIssues = (
   baseUrl: string,
@@ -20,7 +18,7 @@ export const openApiLoadMoreBoardIssues = (
             filters: mapIssueFilters(filters),
             searchString: search || undefined,
             skip: offset,
-            sorting: updatedAtDescending,
+            sorting: createdAtDescending,
             take,
           },
           params: { path: { statusId: Number(statusId) } },

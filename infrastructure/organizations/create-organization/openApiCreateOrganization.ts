@@ -1,6 +1,6 @@
-import type { CreateOrganization } from '../../../app/sections/organizations/create-organization/actions/createOrganization'
-import { createApiClient } from '../../api/client'
-import { getInvalidInputError } from '../../api/getInvalidInputError'
+import { createApiClient } from '#infrastructure/api/client'
+import { getInvalidInputError } from '#infrastructure/api/getInvalidInputError'
+import type { CreateOrganization } from '~/sections/organizations/create-organization/deps/createOrganization'
 
 export const openApiCreateOrganization =
   (baseUrl: string): CreateOrganization =>

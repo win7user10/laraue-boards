@@ -1,10 +1,8 @@
-import type { SearchBacklogIssues } from '../../../app/sections/spaces/backlog/actions/searchBacklogIssues'
-import { createApiClient } from '../../api/client'
-import {
-  createdAtDescending,
-  mapIssueFilters,
-} from '../../issues/shared/issueAttributes'
-import { mapBacklogIssue } from './mapBacklogIssue'
+import { createApiClient } from '#infrastructure/api/client'
+import { mapIssueFilters } from '#infrastructure/issues/shared/issueAttributes'
+import { createdAtDescending } from '#infrastructure/issues/shared/issueSorting'
+import { mapBacklogIssue } from '#infrastructure/spaces/backlog/mapBacklogIssue'
+import type { SearchBacklogIssues } from '~/sections/spaces/backlog/deps/searchBacklogIssues'
 
 export const openApiSearchBacklogIssues =
   (baseUrl: string): SearchBacklogIssues =>

@@ -1,6 +1,6 @@
 import { assert, test } from 'vitest'
 
-import { createLatestRequest } from './createLatestRequest'
+import { createLatestRequest } from '~/utils/createLatestRequest'
 
 test('ignores a stale request result', async () => {
   const runLatest = createLatestRequest()

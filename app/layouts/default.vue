@@ -1,23 +1,22 @@
 <template>
-  <AppLayoutApplication
+  <AppLayout
     :key="organizationKey"
     :deps="deps"
     :organization-key="organizationKey">
     <slot />
-  </AppLayoutApplication>
+  </AppLayout>
 </template>
-<script setup lang="ts">
-import { openApiLogout } from '~~/infrastructure/common/app-layout/openApiLogout'
-import { openApiViewAppLayout } from '~~/infrastructure/common/app-layout/openApiViewAppLayout'
 
-import AppLayoutApplication from '~/sections/common/app-layout/AppLayoutApplication.vue'
+<script setup lang="ts">
+import { openApiLogout } from '#infrastructure/common/app-layout/openApiLogout'
+import { openApiViewAppLayout } from '#infrastructure/common/app-layout/openApiViewAppLayout'
+import AppLayout from '~/sections/common/app-layout/AppLayout.vue'
 
 const config = useRuntimeConfig()
 const { organizationKey } = useOrganizationRoutes()
-const invalidation = useAsyncDataInvalidation()
 watch(organizationKey, (value, previousValue) => {
   if (previousValue && value !== previousValue) {
-    invalidation.resetSelectedOrganizationData()
+    invalidateData({ scope: 'selectedOrganization' })
   }
 })
 const baseUrl = config.public.boardsApiBaseUrl

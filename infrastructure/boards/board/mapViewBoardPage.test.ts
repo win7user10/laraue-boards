@@ -1,6 +1,7 @@
 import { assert, test } from 'vitest'
 
-import { mapViewBoardPage } from './mapViewBoardPage'
+import { mapViewBoardPage } from '#infrastructure/boards/board/mapViewBoardPage'
+import { COLORS } from '~/constants/colors'
 
 test('maps and orders API columns for the board page', () => {
   const board = mapViewBoardPage(
@@ -13,7 +14,7 @@ test('maps and orders API columns for the board page', () => {
       name: 'Board',
       statuses: [
         { color: null, id: 2, name: 'Done', sortOrder: 2 },
-        { color: '#123456', id: 1, name: 'To do', sortOrder: 1 },
+        { color: COLORS.blue, id: 1, name: 'To do', sortOrder: 1 },
       ],
     },
     [
@@ -22,7 +23,7 @@ test('maps and orders API columns for the board page', () => {
           data: [
             {
               assignee: 'Alex',
-              assigneeColor: '#3156d3',
+              assigneeColor: COLORS.indigo,
               assigneeInitial: 'A',
               content: 'Review copy',
               epicId: 7,

@@ -1,24 +1,25 @@
 import { assert, test } from 'vitest'
 
-import { mapViewSpacePage } from './mapViewSpacePage'
+import { mapViewSpacePage } from '#infrastructure/spaces/space/mapViewSpacePage'
+import { COLORS } from '~/constants/colors'
 
 test('maps the default board to the backlog destination', () => {
   const result = mapViewSpacePage(
     '2',
-    { color: '#123456', id: 2, isDefault: false, key: 'WEB', name: 'Web' },
+    { color: COLORS.blue, id: 2, isDefault: false, key: 'WEB', name: 'Web' },
     { canCreateEpics: true, canDelete: true, canUpdate: true },
     [
       {
         color: null,
-        columns: [{ color: '#111111', count: 2, id: 1, name: 'Inbox' }],
+        columns: [{ color: COLORS.gray, count: 2, id: 1, name: 'Inbox' }],
         id: 10,
         isDefault: true,
         name: 'Default',
         touchedAt: '2026-01-01T00:00:00Z',
       },
       {
-        color: '#abcdef',
-        columns: [{ color: '#222222', count: 3, id: 2, name: 'Done' }],
+        color: COLORS.pink,
+        columns: [{ color: COLORS.amber, count: 3, id: 2, name: 'Done' }],
         id: 11,
         isDefault: false,
         name: 'Launch',

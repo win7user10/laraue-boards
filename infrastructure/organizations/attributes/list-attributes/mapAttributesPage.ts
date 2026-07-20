@@ -1,5 +1,5 @@
-import type { ViewAttributesPageResult } from '../../../../app/sections/organizations/attributes/list-attributes/actions/viewAttributesPage'
-import type { components } from '../../../api/generated'
+import type { components } from '#infrastructure/api/generated'
+import type { ViewAttributesPageResult } from '~/sections/organizations/attributes/list-attributes/deps/viewAttributesPage'
 
 type Schemas = components['schemas']
 

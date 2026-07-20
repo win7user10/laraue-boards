@@ -1,4 +1,5 @@
-import type { components } from '../../api/generated.ts'
+import type { components } from '#infrastructure/api/generated.ts'
+import { COLORS } from '~/constants/colors'
 
 export const mapIssuesPageIssue = (
   issue: components['schemas']['SearchIssueDto'],
@@ -14,5 +15,5 @@ export const mapIssuesPageIssue = (
   spaceColor: issue.space.color,
   spaceName: issue.space.name,
   status: issue.status?.name ?? 'Backlog',
-  statusColor: issue.status?.color ?? '#98a2b3',
+  statusColor: issue.status?.color ?? COLORS.gray,
 })

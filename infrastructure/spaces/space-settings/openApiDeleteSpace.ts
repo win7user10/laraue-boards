@@ -1,5 +1,5 @@
-import type { DeleteSpace } from '../../../app/sections/spaces/space-settings/actions/deleteSpace'
-import { createApiClient } from '../../api/client'
+import { createApiClient } from '#infrastructure/api/client'
+import type { DeleteSpace } from '~/sections/spaces/space-settings/deps/deleteSpace'
 
 export const openApiDeleteSpace =
   (baseUrl: string): DeleteSpace =>
