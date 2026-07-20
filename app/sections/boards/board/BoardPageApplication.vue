@@ -237,7 +237,6 @@ const issueMoveSpaces = ref<Array<{ label: string; value: string }>>([])
 const issueMoveBoards = ref<Array<{ label: string; value: string }>>([])
 const invalidation = useAsyncDataInvalidation()
 const runSearch = createLatestRequest()
-const runLoadIssueAssignees = createLatestRequest()
 const filtering = ref(false)
 const scheduleSearch = debounce(searchIssues, 300)
 const { confirmUnsavedChanges } = useUnsavedChangesWarning(issueDialogDirty)
@@ -257,7 +256,6 @@ onScopeDispose(scheduleSearch.cancel)
 watch(
   () => props.issueKey,
   () => {
-    runLoadIssueAssignees.cancel()
     closingIssueDialog.value = false
     issueDialogDirty.value = false
     issueError.value = null
@@ -278,12 +276,7 @@ async function loadIssueAssignees(spaceId: string) {
   }
   issueError.value = null
   loadingIssueAssignees.value = true
-  const result = await runLoadIssueAssignees({
-    request: () => props.deps.loadIssueDialogAssignees({ spaceId }),
-  })
-  if (!result) {
-    return
-  }
+  const result = await props.deps.loadIssueDialogAssignees({ spaceId })
   loadingIssueAssignees.value = false
   matchActionResult({
     err: (error) => {
@@ -359,7 +352,6 @@ async function loadIssueMoveSpaces() {
 }
 
 function changeIssueMoveSpace() {
-  runLoadIssueAssignees.cancel()
   issueAssignees.value = []
   loadingIssueAssignees.value = false
   loadingIssueMoveBoards.value = false

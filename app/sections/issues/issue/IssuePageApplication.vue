@@ -74,14 +74,12 @@ const loadingMoveBoards = ref(false)
 const moveSpaces = ref<Array<{ label: string; value: string }>>([])
 const moveBoards = ref<Array<{ label: string; value: string }>>([])
 const invalidation = useAsyncDataInvalidation()
-const runLoadAssignees = createLatestRequest()
 
 useUnsavedChangesWarning(dirty)
 
 watch(
   () => props.issueKey,
   () => {
-    runLoadAssignees.cancel()
     assignees.value = []
     moveSpaces.value = []
     moveBoards.value = []
@@ -100,12 +98,7 @@ async function loadAssignees(spaceId: string) {
   }
   error.value = null
   loadingAssignees.value = true
-  const result = await runLoadAssignees({
-    request: () => props.deps.loadIssueAssignees({ spaceId }),
-  })
-  if (!result) {
-    return
-  }
+  const result = await props.deps.loadIssueAssignees({ spaceId })
   loadingAssignees.value = false
   matchActionResult({
     err: (actionError) => {
@@ -158,7 +151,6 @@ async function loadMoveSpaces() {
 }
 
 function changeMoveSpace() {
-  runLoadAssignees.cancel()
   assignees.value = []
   loadingAssignees.value = false
   loadingMoveBoards.value = false
@@ -285,6 +277,7 @@ async function save(input: {
         }
       }
       invalidation.invalidateIssueData(props.issueKey)
+      dirty.value = false
       returnToSource()
     },
     result: updateResult,
@@ -309,6 +302,7 @@ async function remove() {
     },
     ok: () => {
       invalidation.invalidateIssueData(props.issueKey)
+      dirty.value = false
       returnToSource()
     },
     result,

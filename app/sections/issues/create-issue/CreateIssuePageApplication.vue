@@ -54,7 +54,6 @@ const loadingBoards = ref(false)
 const loadingStatuses = ref(false)
 const submitting = ref(false)
 const invalidation = useAsyncDataInvalidation()
-const runLoadAssignees = createLatestRequest()
 
 async function loadAssignees(spaceId: string) {
   if (!spaceId || loadingAssignees.value || assignees.value.length) {
@@ -62,12 +61,7 @@ async function loadAssignees(spaceId: string) {
   }
   formError.value = null
   loadingAssignees.value = true
-  const result = await runLoadAssignees({
-    request: () => props.deps.loadCreateIssueAssignees({ spaceId }),
-  })
-  if (!result) {
-    return
-  }
+  const result = await props.deps.loadCreateIssueAssignees({ spaceId })
   loadingAssignees.value = false
   matchActionResult({
     err: (error) => {
@@ -88,7 +82,6 @@ async function loadAssignees(spaceId: string) {
 }
 
 function changeSpace(spaceId: string) {
-  runLoadAssignees.cancel()
   assignees.value = []
   loadingAssignees.value = false
   loadingBoards.value = false
