@@ -16,6 +16,7 @@ export const openApiCreateBacklogIssue = (
           content: content.trim(),
           statusId,
         },
+        parseAs: 'text',
       })
       switch (response.response.status) {
         case 200:

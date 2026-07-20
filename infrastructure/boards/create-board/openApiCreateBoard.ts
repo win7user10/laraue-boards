@@ -24,6 +24,7 @@ export const openApiCreateBoard =
       }
       const response = await client.POST('/api/epics', {
         body: { color: input.color, name: input.name, spaceId: space.id },
+        parseAs: 'text',
       })
       switch (response.response.status) {
         case 400:

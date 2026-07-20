@@ -14,6 +14,7 @@ export const openApiCreateBoardIssue = (baseUrl: string): CreateBoardIssue => {
           content: content.trim(),
           statusId,
         },
+        parseAs: 'text',
       })
       switch (response.response.status) {
         case 200:

@@ -7,7 +7,10 @@ export const openApiCreateSpace =
   async (input) => {
     const client = createApiClient(baseUrl)
     try {
-      const response = await client.POST('/api/spaces', { body: input })
+      const response = await client.POST('/api/spaces', {
+        body: input,
+        parseAs: 'text',
+      })
       switch (response.response.status) {
         case 400:
           return err(getInvalidInputError(response.error))
