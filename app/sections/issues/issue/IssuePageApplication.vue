@@ -16,6 +16,7 @@
     @change-board="changeBoard"
     @change-move-space="changeMoveSpace"
     @delete="remove"
+    @dirty-change="dirty = $event"
     @load-assignees="loadAssignees"
     @load-move-boards="loadMoveBoards"
     @load-move-spaces="loadMoveSpaces"
@@ -60,6 +61,7 @@ useHead({
   ),
 })
 const saving = ref(false)
+const dirty = ref(false)
 const assignees = ref<
   Array<{ color: string; initials: string; label: string; value: string }>
 >([])
@@ -73,6 +75,8 @@ const moveSpaces = ref<Array<{ label: string; value: string }>>([])
 const moveBoards = ref<Array<{ label: string; value: string }>>([])
 const invalidation = useAsyncDataInvalidation()
 const runLoadAssignees = createLatestRequest()
+
+useUnsavedChangesWarning(dirty)
 
 watch(
   () => props.issueKey,
