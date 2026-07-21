@@ -29,13 +29,16 @@ type UseActionDataOptions<Value, Failure extends PropertyKey> = {
   watch?: Array<() => unknown>
 }
 
-export const useActionData = async <Value, Failure extends PropertyKey>({
-  action,
-  fallbackMessage,
-  key: explicitKey,
-  messages,
-  watch,
-}: UseActionDataOptions<Value, Failure>, autoKey?: string) => {
+export const useActionData = async <Value, Failure extends PropertyKey>(
+  {
+    action,
+    fallbackMessage,
+    key: explicitKey,
+    messages,
+    watch,
+  }: UseActionDataOptions<Value, Failure>,
+  autoKey?: string,
+) => {
   const baseKey = explicitKey ?? autoKey
   if (!baseKey) {
     throw new TypeError('useActionData requires a generated key')
