@@ -58,8 +58,7 @@
       multiple
       type="file"
       @change="changeFiles" />
-    <div
-      class="issue-attachment-actions">
+    <div class="issue-attachment-actions">
       <label
         :aria-disabled="disabled"
         class="secondary issue-attachment-picker"
@@ -76,6 +75,9 @@
         @click="clearFiles">
         Clear
       </button>
+      <span class="muted issue-attachment-paste-hint">
+        or paste PNG/JPG with Ctrl+V
+      </span>
     </div>
     <Teleport to="body">
       <dialog
@@ -123,6 +125,7 @@ const inputId = useId()
 const inputEl = ref<HTMLInputElement>()
 const lightboxEl = ref<HTMLDialogElement>()
 const pendingPreviews = ref<Array<{ file: File; url: string }>>([])
+const supportedImageTypes = new Set(['image/jpeg', 'image/png'])
 
 watch(
   () => props.files,
@@ -136,10 +139,35 @@ watch(
   { immediate: true },
 )
 
-onBeforeUnmount(revokePreviews)
+onMounted(() => window.addEventListener('paste', pasteFiles))
+onBeforeUnmount(() => {
+  revokePreviews()
+  window.removeEventListener('paste', pasteFiles)
+})
 
 function changeFiles(event: Event) {
-  props.onChange(Array.from((event.target as HTMLInputElement).files ?? []))
+  props.onChange(
+    getSupportedImages((event.target as HTMLInputElement).files ?? []),
+  )
+}
+
+function pasteFiles(event: ClipboardEvent) {
+  if (props.disabled) {
+    return
+  }
+  const pastedImages = getSupportedImages(event.clipboardData?.files ?? [])
+  if (!pastedImages.length) {
+    return
+  }
+  event.preventDefault()
+  if (inputEl.value) {
+    inputEl.value.value = ''
+  }
+  props.onChange([...props.files, ...pastedImages])
+}
+
+function getSupportedImages(files: File[] | FileList) {
+  return Array.from(files).filter((file) => supportedImageTypes.has(file.type))
 }
 
 function clearFiles() {
@@ -298,6 +326,11 @@ function closeLightboxFromBackdrop(event: MouseEvent) {
 .issue-attachment-picker svg {
   height: 18px;
   width: 18px;
+}
+
+.issue-attachment-paste-hint {
+  align-self: center;
+  font-size: var(--font-size-small);
 }
 
 .issue-attachment-lightbox {
