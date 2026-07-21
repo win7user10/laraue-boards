@@ -1,10 +1,8 @@
-import type { ViewIssuesPage } from '../../../app/sections/issues/issues/actions/viewIssuesPage'
-import { createApiClient } from '../../api/client'
-import {
-  createdAtDescending,
-  mapRawIssueFilters,
-} from '../shared/issueAttributes'
-import { mapIssuesPageIssue } from './mapIssuesPageIssue'
+import { createApiClient } from '#infrastructure/api/client'
+import { mapIssuesPageIssue } from '#infrastructure/issues/issues/mapIssuesPageIssue'
+import { mapRawIssueFilters } from '#infrastructure/issues/shared/issueAttributes'
+import { createdAtDescending } from '#infrastructure/issues/shared/issueSorting'
+import type { ViewIssuesPage } from '~/sections/issues/issues/deps/viewIssuesPage'
 
 export const openApiViewIssuesPage =
   (baseUrl: string): ViewIssuesPage =>

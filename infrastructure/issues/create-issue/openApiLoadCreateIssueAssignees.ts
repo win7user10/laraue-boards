@@ -1,6 +1,6 @@
-import type { LoadCreateIssueAssignees } from '../../../app/sections/issues/create-issue/actions/loadCreateIssueAssignees'
-import { createApiClient } from '../../api/client'
-import { mapOrganizationAssignees } from '../shared/mapOrganizationAssignees'
+import { createApiClient } from '#infrastructure/api/client'
+import { mapOrganizationAssignees } from '#infrastructure/issues/shared/mapOrganizationAssignees'
+import type { LoadCreateIssueAssignees } from '~/sections/issues/create-issue/deps/loadCreateIssueAssignees'
 
 export const openApiLoadCreateIssueAssignees = (
   baseUrl: string,

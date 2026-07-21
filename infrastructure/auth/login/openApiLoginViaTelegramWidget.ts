@@ -1,5 +1,5 @@
-import type { LoginViaTelegramWidget } from '../../../app/sections/auth/login/actions/loginViaTelegramWidget'
-import { createApiClient } from '../../api/client'
+import { createApiClient } from '#infrastructure/api/client'
+import type { LoginViaTelegramWidget } from '~/sections/auth/login/deps/loginViaTelegramWidget'
 
 export const openApiLoginViaTelegramWidget =
   (baseUrl: string): LoginViaTelegramWidget =>

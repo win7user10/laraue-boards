@@ -1,7 +1,7 @@
-import type { MoveIssueToBacklog } from '../../../app/sections/boards/board/actions/moveIssueToBacklog'
-import { createApiClient } from '../../api/client'
-import { getFirstStatusId } from '../../issues/shared/firstStatusId'
-import { findSpaceByKey } from '../../spaces/shared/findSpaceByKey'
+import { createApiClient } from '#infrastructure/api/client'
+import { getFirstStatusId } from '#infrastructure/issues/shared/firstStatusId'
+import { findSpaceByKey } from '#infrastructure/spaces/shared/findSpaceByKey'
+import type { MoveIssueToBacklog } from '~/sections/boards/board/deps/moveIssueToBacklog'
 
 export const openApiMoveIssueToBacklog = (
   baseUrl: string,

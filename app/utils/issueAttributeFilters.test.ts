@@ -6,7 +6,7 @@ import {
   readIssueAttributeQuery,
   readIssueSpaceQuery,
   withIssueAttributeFilters,
-} from './issueAttributeFilters'
+} from '~/utils/issueAttributeFilters'
 
 const attributes = [
   { id: '1', type: 'text' as const },

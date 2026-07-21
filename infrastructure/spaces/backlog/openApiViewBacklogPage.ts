@@ -1,11 +1,9 @@
-import type { ViewBacklogPage } from '../../../app/sections/spaces/backlog/actions/viewBacklogPage'
-import { createApiClient } from '../../api/client'
-import {
-  createdAtDescending,
-  mapRawIssueFilters,
-} from '../../issues/shared/issueAttributes'
-import { findSpaceByKey } from '../shared/findSpaceByKey'
-import { mapBacklogIssue } from './mapBacklogIssue'
+import { createApiClient } from '#infrastructure/api/client'
+import { mapRawIssueFilters } from '#infrastructure/issues/shared/issueAttributes'
+import { createdAtDescending } from '#infrastructure/issues/shared/issueSorting'
+import { mapBacklogIssue } from '#infrastructure/spaces/backlog/mapBacklogIssue'
+import { findSpaceByKey } from '#infrastructure/spaces/shared/findSpaceByKey'
+import type { ViewBacklogPage } from '~/sections/spaces/backlog/deps/viewBacklogPage'
 
 export const openApiViewBacklogPage =
   (baseUrl: string): ViewBacklogPage =>
@@ -97,7 +95,7 @@ export const openApiViewBacklogPage =
           issues: issues.data.data.map(mapBacklogIssue),
           spaceId,
           spaceKey: input.spaceKey,
-          title: `${space.name} Backlog`,
+          title: backlog.name,
         },
       })
     } catch {

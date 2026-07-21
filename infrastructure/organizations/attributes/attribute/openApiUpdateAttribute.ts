@@ -1,6 +1,6 @@
-import type { UpdateAttribute } from '../../../../app/sections/organizations/attributes/attribute/actions/updateAttribute'
-import { createApiClient } from '../../../api/client'
-import { getInvalidInputError } from '../../../api/getInvalidInputError'
+import { createApiClient } from '#infrastructure/api/client'
+import { getInvalidInputError } from '#infrastructure/api/getInvalidInputError'
+import type { UpdateAttribute } from '~/sections/organizations/attributes/attribute/deps/updateAttribute'
 
 export const openApiUpdateAttribute = (baseUrl: string): UpdateAttribute => {
   const client = createApiClient(baseUrl)

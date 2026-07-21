@@ -1,20 +1,19 @@
 <template>
-  <BoardSettingsPageApplication
+  <BoardSettingsPage
     :board-id="boardId"
     :deps="deps"
     :space-key="spaceKey" />
 </template>
 
 <script setup lang="ts">
-import { openApiCreateBoardColumn } from '~~/infrastructure/boards/board-settings/openApiCreateBoardColumn'
-import { openApiDeleteBoard } from '~~/infrastructure/boards/board-settings/openApiDeleteBoard'
-import { openApiDeleteBoardColumn } from '~~/infrastructure/boards/board-settings/openApiDeleteBoardColumn'
-import { openApiReorderBoardColumns } from '~~/infrastructure/boards/board-settings/openApiReorderBoardColumns'
-import { openApiUpdateBoard } from '~~/infrastructure/boards/board-settings/openApiUpdateBoard'
-import { openApiUpdateBoardColumn } from '~~/infrastructure/boards/board-settings/openApiUpdateBoardColumn'
-import { openApiViewBoardSettingsPage } from '~~/infrastructure/boards/board-settings/openApiViewBoardSettingsPage'
-
-import BoardSettingsPageApplication from '~/sections/boards/board-settings/BoardSettingsPageApplication.vue'
+import { openApiCreateBoardColumn } from '#infrastructure/boards/board-settings/openApiCreateBoardColumn'
+import { openApiDeleteBoard } from '#infrastructure/boards/board-settings/openApiDeleteBoard'
+import { openApiDeleteBoardColumn } from '#infrastructure/boards/board-settings/openApiDeleteBoardColumn'
+import { openApiReorderBoardColumns } from '#infrastructure/boards/board-settings/openApiReorderBoardColumns'
+import { openApiUpdateBoard } from '#infrastructure/boards/board-settings/openApiUpdateBoard'
+import { openApiUpdateBoardColumn } from '#infrastructure/boards/board-settings/openApiUpdateBoardColumn'
+import { openApiViewBoardSettingsPage } from '#infrastructure/boards/board-settings/openApiViewBoardSettingsPage'
+import BoardSettingsPage from '~/sections/boards/board-settings/BoardSettingsPage.vue'
 
 const route = useRoute(
   'organizations-organizationKey-spaces-spaceKey-boardId-settings',

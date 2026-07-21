@@ -1,7 +1,7 @@
-import type { ViewCreateBoardIssuePage } from '../../../app/sections/boards/create-issue/actions/viewCreateBoardIssuePage'
-import { createApiClient } from '../../api/client'
-import { getFirstStatusId } from '../../issues/shared/firstStatusId'
-import { mapIssueAttributes } from '../../issues/shared/issueAttributes'
+import { createApiClient } from '#infrastructure/api/client'
+import { getFirstStatusId } from '#infrastructure/issues/shared/firstStatusId'
+import { mapIssueAttributes } from '#infrastructure/issues/shared/issueAttributes'
+import type { ViewCreateBoardIssuePage } from '~/sections/boards/create-issue/deps/viewCreateBoardIssuePage'
 
 export const openApiViewCreateBoardIssuePage = (
   baseUrl: string,

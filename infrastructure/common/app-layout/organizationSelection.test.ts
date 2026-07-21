@@ -4,7 +4,7 @@ import {
   findOrganizationByKey,
   getOrganizationKey,
   shouldSelectOrganization,
-} from './organizationSelection'
+} from '#infrastructure/common/app-layout/organizationSelection'
 
 test('selects the organization requested by the URL', () => {
   assert.equal(shouldSelectOrganization(1, '2'), true)

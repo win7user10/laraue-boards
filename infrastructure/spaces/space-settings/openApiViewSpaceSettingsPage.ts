@@ -1,6 +1,6 @@
-import type { ViewSpaceSettingsPage } from '../../../app/sections/spaces/space-settings/actions/viewSpaceSettingsPage'
-import { createApiClient } from '../../api/client'
-import { findSpaceByKey } from '../shared/findSpaceByKey'
+import { createApiClient } from '#infrastructure/api/client'
+import { findSpaceByKey } from '#infrastructure/spaces/shared/findSpaceByKey'
+import type { ViewSpaceSettingsPage } from '~/sections/spaces/space-settings/deps/viewSpaceSettingsPage'
 
 export const openApiViewSpaceSettingsPage =
   (baseUrl: string): ViewSpaceSettingsPage =>

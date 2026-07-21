@@ -1,7 +1,7 @@
-import type { CreateBoard } from '../../../app/sections/boards/create-board/actions/createBoard'
-import { createApiClient } from '../../api/client'
-import { getInvalidInputError } from '../../api/getInvalidInputError'
-import { findSpaceByKey } from '../../spaces/shared/findSpaceByKey'
+import { createApiClient } from '#infrastructure/api/client'
+import { getInvalidInputError } from '#infrastructure/api/getInvalidInputError'
+import { findSpaceByKey } from '#infrastructure/spaces/shared/findSpaceByKey'
+import type { CreateBoard } from '~/sections/boards/create-board/deps/createBoard'
 
 export const openApiCreateBoard =
   (baseUrl: string): CreateBoard =>

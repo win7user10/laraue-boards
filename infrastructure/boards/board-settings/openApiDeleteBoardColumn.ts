@@ -1,6 +1,6 @@
-import type { DeleteBoardColumn } from '../../../app/sections/boards/board-settings/actions/deleteBoardColumn'
-import { createApiClient } from '../../api/client'
-import { getInvalidInputError } from '../../api/getInvalidInputError'
+import { createApiClient } from '#infrastructure/api/client'
+import { getInvalidInputError } from '#infrastructure/api/getInvalidInputError'
+import type { DeleteBoardColumn } from '~/sections/boards/board-settings/deps/deleteBoardColumn'
 
 export const openApiDeleteBoardColumn =
   (baseUrl: string): DeleteBoardColumn =>

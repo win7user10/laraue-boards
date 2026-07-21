@@ -1,10 +1,10 @@
 import { assert, afterEach, test, vi } from 'vitest'
 
-import { err, ok } from '../../../app/utils/actionResult'
-import { createApiClient } from '../../api/client'
-import { openApiSelectOrganization } from '../../organizations/select-organization/openApiSelectOrganization'
-import { openApiLoginViaTelegramMiniApp } from './openApiLoginViaTelegramMiniApp'
-import { openApiLoginViaTelegramWidget } from './openApiLoginViaTelegramWidget'
+import { createApiClient } from '#infrastructure/api/client'
+import { openApiLoginViaTelegramMiniApp } from '#infrastructure/auth/login/openApiLoginViaTelegramMiniApp'
+import { openApiLoginViaTelegramWidget } from '#infrastructure/auth/login/openApiLoginViaTelegramWidget'
+import { openApiSelectOrganization } from '#infrastructure/organizations/select-organization/openApiSelectOrganization'
+import { err, ok } from '~/utils/actionResult'
 
 afterEach(() => vi.unstubAllGlobals())
 

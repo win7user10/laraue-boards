@@ -1,12 +1,13 @@
 import { assert, test } from 'vitest'
 
-import { mapOrganizationMembers } from './mapOrganizationMembers'
+import { mapOrganizationMembers } from '#infrastructure/organizations/permissions/shared/mapOrganizationMembers'
+import { COLORS } from '~/constants/colors'
 
 test('maps organization members for the permissions list', () => {
   const members = mapOrganizationMembers([
     {
       adminAccessLevel: 1,
-      color: '#3156d3',
+      color: COLORS.blue,
       displayName: 'Ada Lovelace',
       initials: 'AL',
       isOwner: false,
@@ -14,7 +15,7 @@ test('maps organization members for the permissions list', () => {
     },
     {
       adminAccessLevel: 0,
-      color: '#039855',
+      color: COLORS.emerald,
       displayName: 'Owner',
       initials: 'O',
       isOwner: true,
@@ -23,7 +24,7 @@ test('maps organization members for the permissions list', () => {
 
   assert.deepEqual(members, [
     {
-      color: '#3156d3',
+      color: COLORS.blue,
       id: '7',
       initials: 'AL',
       isAdmin: true,

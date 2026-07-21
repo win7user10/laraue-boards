@@ -1,5 +1,5 @@
-import type { MoveBoardIssue } from '../../../app/sections/boards/board/actions/moveBoardIssue'
-import { createApiClient } from '../../api/client'
+import { createApiClient } from '#infrastructure/api/client'
+import type { MoveBoardIssue } from '~/sections/boards/board/deps/moveBoardIssue'
 
 export const openApiMoveBoardIssue = (baseUrl: string): MoveBoardIssue => {
   const client = createApiClient(baseUrl)

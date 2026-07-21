@@ -1,6 +1,7 @@
 import { assert, test } from 'vitest'
 
-import { mapDataMovementPage } from './mapDataMovementPage'
+import { mapDataMovementPage } from '#infrastructure/organizations/data-movement/mapDataMovementPage'
+import { COLORS } from '~/constants/colors'
 
 test('maps only movable boards and destination organizations', () => {
   const result = mapDataMovementPage(
@@ -42,25 +43,25 @@ test('maps only movable boards and destination organizations', () => {
     ],
     [
       {
-        color: '#111111',
+        color: COLORS.gray,
         id: 10,
         isDefault: false,
         key: 'DEV',
         name: 'Development',
       },
     ],
-    [{ color: '#111111', id: 10, name: 'Development' }],
+    [{ color: COLORS.gray, id: 10, name: 'Development' }],
     [
       [
         {
-          color: '#222222',
+          color: COLORS.amber,
           id: 20,
           isDefault: true,
           name: 'Backlog',
           touchedAt: '',
         },
         {
-          color: '#333333',
+          color: COLORS.coral,
           id: 21,
           isDefault: false,
           name: 'Board',
@@ -74,6 +75,6 @@ test('maps only movable boards and destination organizations', () => {
     { label: 'Target', value: '2' },
   ])
   assert.deepEqual(result.DataMovementPage.spaces[0]?.boards, [
-    { color: '#333333', id: '21', name: 'Board' },
+    { color: COLORS.coral, id: '21', name: 'Board' },
   ])
 })

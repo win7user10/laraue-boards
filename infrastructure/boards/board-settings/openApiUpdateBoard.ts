@@ -1,6 +1,6 @@
-import type { UpdateBoard } from '../../../app/sections/boards/board-settings/actions/updateBoard'
-import { createApiClient } from '../../api/client'
-import { getInvalidInputError } from '../../api/getInvalidInputError'
+import { createApiClient } from '#infrastructure/api/client'
+import { getInvalidInputError } from '#infrastructure/api/getInvalidInputError'
+import type { UpdateBoard } from '~/sections/boards/board-settings/deps/updateBoard'
 
 export const openApiUpdateBoard =
   (baseUrl: string): UpdateBoard =>

@@ -1,6 +1,6 @@
 import { assert, test } from 'vitest'
 
-import { mapMoveOptions } from './mapMoveOptions'
+import { mapMoveOptions } from '#infrastructure/shared/mapMoveOptions'
 
 test('maps movement destinations', () => {
   assert.deepEqual(

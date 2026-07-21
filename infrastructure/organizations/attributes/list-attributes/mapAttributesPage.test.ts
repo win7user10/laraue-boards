@@ -1,18 +1,19 @@
 import { assert, test } from 'vitest'
 
-import { mapAttributesPage } from './mapAttributesPage'
+import { mapAttributesPage } from '#infrastructure/organizations/attributes/list-attributes/mapAttributesPage'
+import { COLORS } from '~/constants/colors'
 
 test('maps text and list attributes for the settings page', () => {
   const result = mapAttributesPage([
     {
-      color: '#3156d3',
+      color: COLORS.blue,
       id: 2,
       listValues: [],
       name: 'Reference',
       type: 0,
     },
     {
-      color: '#12b76a',
+      color: COLORS.green,
       id: 3,
       listValues: [{ id: 4, name: 'High' }],
       name: 'Priority',
@@ -22,13 +23,13 @@ test('maps text and list attributes for the settings page', () => {
 
   assert.deepEqual(result.AttributesPage.attributes, [
     {
-      color: '#3156d3',
+      color: COLORS.blue,
       id: '2',
       name: 'Reference',
       type: 'text',
     },
     {
-      color: '#12b76a',
+      color: COLORS.green,
       id: '3',
       name: 'Priority',
       type: 'list',

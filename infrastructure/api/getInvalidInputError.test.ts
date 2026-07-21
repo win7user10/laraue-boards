@@ -1,6 +1,6 @@
 import { assert, test } from 'vitest'
 
-import { getInvalidInputError } from './getInvalidInputError'
+import { getInvalidInputError } from '#infrastructure/api/getInvalidInputError'
 
 test('reads backend validation messages', () => {
   assert.deepEqual(

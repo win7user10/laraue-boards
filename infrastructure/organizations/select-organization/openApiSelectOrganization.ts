@@ -1,5 +1,5 @@
-import type { SelectOrganization } from '../../../app/sections/organizations/select-organization/actions/selectOrganization'
-import { createApiClient } from '../../api/client'
+import { createApiClient } from '#infrastructure/api/client'
+import type { SelectOrganization } from '~/sections/organizations/select-organization/deps/selectOrganization'
 
 export const openApiSelectOrganization =
   (baseUrl: string): SelectOrganization =>

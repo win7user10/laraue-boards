@@ -4,12 +4,16 @@
     class="issue-filters">
     <template #trigger="{ open, toggle: togglePopover }">
       <button
+        :aria-busy="loading"
         :aria-expanded="open"
         aria-haspopup="dialog"
         class="secondary"
         type="button"
         @click="togglePopover">
-        <ListFilter />
+        <LoaderCircle
+          v-if="loading"
+          class="issue-filters-loading" />
+        <ListFilter v-else />
         Filters
         <span v-if="activeCount">({{ activeCount }})</span>
       </button>
@@ -125,13 +129,14 @@ type IssueFiltersValue = {
 
 export type IssueFiltersProps = {
   attributes: IssueFilterAttribute[]
+  loading: boolean
   modelValue: IssueFiltersValue
   spaces?: Array<{ label: string; value: string }>
 }
 </script>
 
 <script setup lang="ts">
-import { ListFilter } from 'lucide-vue-next'
+import { ListFilter, LoaderCircle } from 'lucide-vue-next'
 
 const props = withDefaults(defineProps<IssueFiltersProps>(), {
   spaces: () => [],
@@ -212,6 +217,10 @@ function toggleSpace(spaceId: string) {
   --app-popover-width: min(480px, calc(100vw - var(--space-8)));
 }
 
+.issue-filters-loading {
+  animation: var(--animation-spin);
+}
+
 .issue-filters-popover {
   display: grid;
   grid-template-columns: 190px minmax(260px, 1fr);
@@ -263,11 +272,8 @@ function toggleSpace(spaceId: string) {
 }
 
 .issue-filters-popover nav small {
-  background: var(--color-surface);
-  border-radius: var(--radius-pill);
-  color: var(--color-muted);
+  align-items: center;
   margin-left: auto;
-  padding: 1px 6px;
 }
 
 .issue-filters-popover .clear-filter {

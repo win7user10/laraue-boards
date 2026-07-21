@@ -1,5 +1,13 @@
+import { fileURLToPath } from 'node:url'
+
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
+  alias: {
+    '#infrastructure': fileURLToPath(
+      new URL('./infrastructure', import.meta.url),
+    ),
+  },
+
   app: {
     head: {
       meta: [
@@ -30,6 +38,16 @@ export default defineNuxtConfig({
   },
 
   modules: ['nuxt-gtag'],
+
+  optimization: {
+    keyedComposables: [
+      {
+        argumentLength: 2,
+        name: 'useActionData',
+        source: '~/composables/useActionData',
+      },
+    ],
+  },
 
   runtimeConfig: {
     public: {

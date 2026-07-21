@@ -1,25 +1,23 @@
-import type { SearchBoardIssues } from '../../../app/sections/boards/board/actions/searchBoardIssues'
-import { createApiClient } from '../../api/client'
-import {
-  mapIssueFilters,
-  updatedAtDescending,
-} from '../../issues/shared/issueAttributes'
-import { mapBoardIssues } from './mapViewBoardPage'
+import { createApiClient } from '#infrastructure/api/client'
+import { mapBoardIssues } from '#infrastructure/boards/board/mapViewBoardPage'
+import { mapIssueFilters } from '#infrastructure/issues/shared/issueAttributes'
+import { createdAtDescending } from '#infrastructure/issues/shared/issueSorting'
+import type { SearchBoardIssues } from '~/sections/boards/board/deps/searchBoardIssues'
 
 export const openApiSearchBoardIssues = (
   baseUrl: string,
 ): SearchBoardIssues => {
   const client = createApiClient(baseUrl)
 
-  return async ({ boardId, filters, search }) => {
+  return async ({ boardId, filters, search, take }) => {
     try {
       const response = await client.POST('/api/issues/board', {
         body: {
           epicId: boardId,
           filters: mapIssueFilters(filters),
           searchString: search || undefined,
-          sorting: updatedAtDescending,
-          take: 25,
+          sorting: createdAtDescending,
+          take,
         },
       })
       switch (response.response.status) {

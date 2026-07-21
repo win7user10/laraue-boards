@@ -1,7 +1,7 @@
-import type { UpdateIssue } from '../../../app/sections/issues/issue/actions/updateIssue'
-import { createApiClient } from '../../api/client'
-import { getInvalidInputError } from '../../api/getInvalidInputError'
-import { mapIssueAttributeValues } from '../shared/issueAttributes'
+import { createApiClient } from '#infrastructure/api/client'
+import { getInvalidInputError } from '#infrastructure/api/getInvalidInputError'
+import { mapIssueAttributeValues } from '#infrastructure/issues/shared/issueAttributes'
+import type { UpdateIssue } from '~/sections/issues/issue/deps/updateIssue'
 
 export const openApiUpdateIssue =
   (baseUrl: string): UpdateIssue =>

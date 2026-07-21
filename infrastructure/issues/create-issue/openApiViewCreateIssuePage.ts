@@ -1,6 +1,6 @@
-import type { ViewCreateIssuePage } from '../../../app/sections/issues/create-issue/actions/viewCreateIssuePage'
-import { createApiClient } from '../../api/client'
-import { mapIssueAttributes } from '../shared/issueAttributes'
+import { createApiClient } from '#infrastructure/api/client'
+import { mapIssueAttributes } from '#infrastructure/issues/shared/issueAttributes'
+import type { ViewCreateIssuePage } from '~/sections/issues/create-issue/deps/viewCreateIssuePage'
 
 export const openApiViewCreateIssuePage = (
   baseUrl: string,

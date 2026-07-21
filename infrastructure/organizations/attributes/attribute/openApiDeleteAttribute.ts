@@ -1,5 +1,5 @@
-import type { DeleteAttribute } from '../../../../app/sections/organizations/attributes/attribute/actions/deleteAttribute'
-import { createApiClient } from '../../../api/client'
+import { createApiClient } from '#infrastructure/api/client'
+import type { DeleteAttribute } from '~/sections/organizations/attributes/attribute/deps/deleteAttribute'
 
 export const openApiDeleteAttribute = (baseUrl: string): DeleteAttribute => {
   const client = createApiClient(baseUrl)

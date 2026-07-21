@@ -1,6 +1,6 @@
-import type { LoadCreateBacklogIssueAssignees } from '../../../app/sections/spaces/create-backlog-issue/actions/loadCreateBacklogIssueAssignees'
-import { createApiClient } from '../../api/client'
-import { mapOrganizationAssignees } from '../../issues/shared/mapOrganizationAssignees'
+import { createApiClient } from '#infrastructure/api/client'
+import { mapOrganizationAssignees } from '#infrastructure/issues/shared/mapOrganizationAssignees'
+import type { LoadCreateBacklogIssueAssignees } from '~/sections/spaces/create-backlog-issue/deps/loadCreateBacklogIssueAssignees'
 
 export const openApiLoadCreateBacklogIssueAssignees = (
   baseUrl: string,

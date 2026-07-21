@@ -1,10 +1,10 @@
-import { DEFAULT_COLOR } from '../../../app/constants/colors'
-import type { ViewAppLayout } from '../../../app/sections/common/app-layout/actions/viewAppLayout'
-import { createApiClient } from '../../api/client'
+import { createApiClient } from '#infrastructure/api/client'
 import {
   findOrganizationByKey,
   shouldSelectOrganization,
-} from './organizationSelection'
+} from '#infrastructure/common/app-layout/organizationSelection'
+import { DEFAULT_COLOR } from '~/constants/colors'
+import type { ViewAppLayout } from '~/sections/common/app-layout/deps/viewAppLayout'
 
 export const openApiViewAppLayout =
   (baseUrl: string): ViewAppLayout =>

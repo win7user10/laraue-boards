@@ -1,6 +1,6 @@
 import createFetchClient from 'openapi-fetch'
 
-import type { paths } from './generated'
+import type { paths } from '#infrastructure/api/generated'
 
 export const createApiClient = (baseUrl: string) =>
   createFetchClient<paths>({

@@ -1,5 +1,5 @@
-import type { DeleteIssue } from '../../../app/sections/issues/issue/actions/deleteIssue'
-import { createApiClient } from '../../api/client'
+import { createApiClient } from '#infrastructure/api/client'
+import type { DeleteIssue } from '~/sections/issues/issue/deps/deleteIssue'
 
 export const openApiDeleteIssue =
   (baseUrl: string): DeleteIssue =>

@@ -1,7 +1,7 @@
-import type { CreateBoardIssue } from '../../../app/sections/boards/create-issue/actions/createBoardIssue'
-import { createApiClient } from '../../api/client'
-import { getInvalidInputError } from '../../api/getInvalidInputError'
-import { mapIssueAttributeValues } from '../../issues/shared/issueAttributes'
+import { createApiClient } from '#infrastructure/api/client'
+import { getInvalidInputError } from '#infrastructure/api/getInvalidInputError'
+import { mapIssueAttributeValues } from '#infrastructure/issues/shared/issueAttributes'
+import type { CreateBoardIssue } from '~/sections/boards/create-issue/deps/createBoardIssue'
 
 export const openApiCreateBoardIssue = (baseUrl: string): CreateBoardIssue => {
   const client = createApiClient(baseUrl)

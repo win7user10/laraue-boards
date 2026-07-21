@@ -1,8 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
-html {
-  scrollbar-gutter: stable;
-}
+/* Base */
 
 * {
   box-sizing: border-box;
@@ -54,6 +52,9 @@ body {
 body:has(dialog[open]) {
   overflow: hidden;
 }
+
+/* Dialogs and popovers */
+
 dialog {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
@@ -109,6 +110,9 @@ dialog h2 {
   justify-content: flex-end;
   margin-top: var(--space-6);
 }
+
+/* Typography and form controls */
+
 p {
   margin: 0;
 }
@@ -230,6 +234,9 @@ textarea::placeholder {
   color: var(--color-muted);
   opacity: 1;
 }
+
+/* Buttons */
+
 .primary,
 .secondary,
 .icon-btn {
@@ -280,6 +287,9 @@ textarea::placeholder {
 .icon-btn:hover {
   background: var(--color-hover);
 }
+
+/* Branding and entity markers */
+
 .logo {
   align-items: center;
   color: var(--color-text);
@@ -319,6 +329,9 @@ textarea::placeholder {
 .entity-avatar {
   border-radius: var(--radius-control);
 }
+
+/* Page headings, toolbars, and states */
+
 .title-row {
   align-items: center;
   display: flex;
@@ -404,6 +417,9 @@ input[type='search'] {
   height: 8px;
   width: 8px;
 }
+
+/* Forms */
+
 button:disabled {
   cursor: not-allowed;
   opacity: 0.5;
@@ -416,7 +432,7 @@ button:disabled {
   justify-content: space-between;
   margin-top: var(--space-6);
 }
-.task-page {
+.issue-form {
   align-items: stretch;
   column-gap: var(--space-8);
   display: grid;
@@ -424,14 +440,14 @@ button:disabled {
   grid-template-columns: minmax(0, 5fr) minmax(0, 3fr);
   width: 100%;
 }
-.task-main {
+.issue-form-main {
   display: flex;
   flex-direction: column;
   grid-area: main;
   min-height: 0;
   min-width: 0;
 }
-.task-page textarea {
+.issue-form textarea {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-control);
@@ -440,14 +456,14 @@ button:disabled {
   padding: var(--space-3);
   width: 100%;
 }
-.task-page .task-side {
+.issue-form .issue-form-side {
   background: transparent;
   border: 0;
   grid-area: side;
   padding: 0;
   place-self: stretch;
 }
-.task-side > .page-actions {
+.issue-form-side > .page-actions {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
   justify-content: start;
@@ -472,23 +488,27 @@ button:disabled {
   border-color: var(--color-danger);
   color: var(--color-danger);
 }
+
+/* Responsive layout */
+
 @media (max-width: 760px) {
-  .task-page {
+  .issue-form {
     column-gap: 0;
     grid-template-areas:
       'main'
       'side';
     grid-template-columns: 1fr;
+    row-gap: var(--space-5);
   }
-  .task-page textarea {
+  .issue-form textarea {
     flex: none;
   }
-  .task-page .task-side {
+  .issue-form .issue-form-side {
     position: static;
     transform: none;
     width: auto;
   }
-  .task-side > label:first-child {
+  .issue-form-side > label:first-child {
     margin-top: 0;
   }
   dialog {
@@ -518,9 +538,13 @@ button:disabled {
     grid-template-columns: 1fr auto auto;
   }
   input[type='search'] {
+    max-width: none;
     min-width: 0;
   }
 }
+
+/* Transitions and motion preferences */
+
 .fade-enter-active,
 .fade-leave-active {
   transition: opacity var(--duration-base) var(--ease-standard);

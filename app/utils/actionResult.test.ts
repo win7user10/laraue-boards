@@ -1,6 +1,6 @@
 import { assert, test } from 'vitest'
 
-import { err, matchActionResult, ok } from './actionResult'
+import { err, matchActionResult, ok } from '~/utils/actionResult'
 
 test('matches an action result', () => {
   const match = (result: ActionResult<number, string>) =>

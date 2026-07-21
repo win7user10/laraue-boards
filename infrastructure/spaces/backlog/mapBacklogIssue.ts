@@ -1,4 +1,5 @@
-import type { components } from '../../api/generated.ts'
+import type { components } from '#infrastructure/api/generated.ts'
+import { COLORS } from '~/constants/colors'
 
 export const mapBacklogIssue = (
   issue: components['schemas']['SearchIssueDto'],
@@ -12,5 +13,5 @@ export const mapBacklogIssue = (
   content: issue.content ?? '',
   issueKey: issue.key,
   status: issue.status?.name ?? 'Backlog',
-  statusColor: issue.status?.color ?? '#98a2b3',
+  statusColor: issue.status?.color ?? COLORS.gray,
 })

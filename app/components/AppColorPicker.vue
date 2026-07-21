@@ -33,7 +33,7 @@
 </template>
 
 <script setup lang="ts">
-import { COLOR_PALETTE } from '../constants/colors'
+import { COLOR_PALETTE } from '~/constants/colors'
 
 defineProps<{ disabled?: boolean }>()
 const model = defineModel<string>({ required: true })

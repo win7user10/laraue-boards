@@ -1,4 +1,4 @@
-import type { components } from '../../api/generated'
+import type { components } from '#infrastructure/api/generated'
 
 type Schemas = components['schemas']
 type IssueFilter =
@@ -102,15 +102,3 @@ export function mapRawIssueFilters(
     filters: mapIssueFilters(filters),
   }
 }
-
-export const createdAtDescending = {
-  $type: 'property' as const,
-  direction: 1,
-  property: 1,
-} satisfies Schemas['IssueSorting']
-
-export const updatedAtDescending = {
-  $type: 'property' as const,
-  direction: 1,
-  property: 2,
-} satisfies Schemas['IssueSorting']

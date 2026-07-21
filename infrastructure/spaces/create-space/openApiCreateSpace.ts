@@ -1,6 +1,6 @@
-import type { CreateSpace } from '../../../app/sections/spaces/create-space/actions/createSpace'
-import { createApiClient } from '../../api/client'
-import { getInvalidInputError } from '../../api/getInvalidInputError'
+import { createApiClient } from '#infrastructure/api/client'
+import { getInvalidInputError } from '#infrastructure/api/getInvalidInputError'
+import type { CreateSpace } from '~/sections/spaces/create-space/deps/createSpace'
 
 export const openApiCreateSpace =
   (baseUrl: string): CreateSpace =>

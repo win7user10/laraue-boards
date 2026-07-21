@@ -1,4 +1,4 @@
-import type { components } from '../../api/generated'
+import type { components } from '#infrastructure/api/generated'
 
 type SpaceMember = components['schemas']['SpaceMember']
 

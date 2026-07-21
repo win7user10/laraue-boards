@@ -1,5 +1,5 @@
-import type { LoadCreateIssueBoards } from '../../../app/sections/issues/create-issue/actions/loadCreateIssueBoards'
-import { createApiClient } from '../../api/client'
+import { createApiClient } from '#infrastructure/api/client'
+import type { LoadCreateIssueBoards } from '~/sections/issues/create-issue/deps/loadCreateIssueBoards'
 
 export const openApiLoadCreateIssueBoards = (
   baseUrl: string,

@@ -1,6 +1,6 @@
-import { DEFAULT_COLOR } from '../../../app/constants/colors'
-import type { ViewOrganizationSettingsPage } from '../../../app/sections/organizations/settings/actions/viewOrganizationSettingsPage'
-import { createApiClient } from '../../api/client'
+import { createApiClient } from '#infrastructure/api/client'
+import { DEFAULT_COLOR } from '~/constants/colors'
+import type { ViewOrganizationSettingsPage } from '~/sections/organizations/settings/deps/viewOrganizationSettingsPage'
 
 export const openApiViewOrganizationSettingsPage =
   (baseUrl: string): ViewOrganizationSettingsPage =>

@@ -1,5 +1,5 @@
-import type { MoveSpaces } from '../../../app/sections/organizations/data-movement/actions/moveSpaces'
-import { createApiClient } from '../../api/client'
+import { createApiClient } from '#infrastructure/api/client'
+import type { MoveSpaces } from '~/sections/organizations/data-movement/deps/moveSpaces'
 
 export const openApiMoveSpaces = (baseUrl: string): MoveSpaces => {
   const client = createApiClient(baseUrl)

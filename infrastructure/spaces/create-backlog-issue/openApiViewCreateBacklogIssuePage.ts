@@ -1,8 +1,8 @@
-import type { ViewCreateBacklogIssuePage } from '../../../app/sections/spaces/create-backlog-issue/actions/viewCreateBacklogIssuePage'
-import { createApiClient } from '../../api/client'
-import { getFirstStatusId } from '../../issues/shared/firstStatusId'
-import { mapIssueAttributes } from '../../issues/shared/issueAttributes'
-import { findSpaceByKey } from '../shared/findSpaceByKey'
+import { createApiClient } from '#infrastructure/api/client'
+import { getFirstStatusId } from '#infrastructure/issues/shared/firstStatusId'
+import { mapIssueAttributes } from '#infrastructure/issues/shared/issueAttributes'
+import { findSpaceByKey } from '#infrastructure/spaces/shared/findSpaceByKey'
+import type { ViewCreateBacklogIssuePage } from '~/sections/spaces/create-backlog-issue/deps/viewCreateBacklogIssuePage'
 
 export const openApiViewCreateBacklogIssuePage = (
   baseUrl: string,

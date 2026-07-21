@@ -1,10 +1,11 @@
-import type { ViewDataMovementPageResult } from '../../../app/sections/organizations/data-movement/actions/viewDataMovementPage'
-import type { components } from '../../api/generated'
+import type { components } from '#infrastructure/api/generated'
+import { COLORS } from '~/constants/colors'
+import type { ViewDataMovementPageResult } from '~/sections/organizations/data-movement/deps/viewDataMovementPage'
 
 type Schemas = components['schemas']
+
 const mapOptions = (items: Array<{ id: number | string; name: string }>) =>
   items.map((item) => ({ label: item.name, value: String(item.id) }))
-
 export function mapDataMovementPage(
   current: { id: number | string },
   organizations: Schemas['OrganizationListDto'][],
@@ -26,7 +27,7 @@ export function mapDataMovementPage(
       spaces: spaces.map((space, index) => ({
         boards: boardsBySpace[index]!.filter((board) => !board.isDefault).map(
           (board) => ({
-            color: board.color ?? '#98a2b3',
+            color: board.color ?? COLORS.gray,
             id: String(board.id),
             name: board.name,
           }),

@@ -1,5 +1,5 @@
-import type { MemberPermissions } from '../../../../app/sections/organizations/permissions/member-permissions/view/MemberPermissionsPage.vue'
-import type { components } from '../../../api/generated'
+import type { components } from '#infrastructure/api/generated'
+import type { MemberPermissions } from '~/sections/organizations/permissions/member-permissions/components/MemberPermissionsForm/MemberPermissionsForm.vue'
 
 type ApiUserPermissions = components['schemas']['UserPermissions']
 

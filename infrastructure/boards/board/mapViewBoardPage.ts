@@ -1,5 +1,5 @@
-import type { ViewBoardPageResult } from '../../../app/sections/boards/board/actions/viewBoardPage'
-import type { components } from '../../api/generated.ts'
+import type { components } from '#infrastructure/api/generated.ts'
+import type { ViewBoardPageResult } from '~/sections/boards/board/deps/viewBoardPage'
 
 type Schemas = components['schemas']
 

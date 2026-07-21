@@ -1,5 +1,5 @@
-import type { MoveBoards } from '../../../app/sections/organizations/data-movement/actions/moveBoards'
-import { createApiClient } from '../../api/client'
+import { createApiClient } from '#infrastructure/api/client'
+import type { MoveBoards } from '~/sections/organizations/data-movement/deps/moveBoards'
 
 export const openApiMoveBoards = (baseUrl: string): MoveBoards => {
   const client = createApiClient(baseUrl)

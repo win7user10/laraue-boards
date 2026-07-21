@@ -3,7 +3,7 @@ import { assert, test } from 'vitest'
 import {
   mapMemberPermissions,
   mapMemberPermissionsRequest,
-} from './mapMemberPermissions'
+} from '#infrastructure/organizations/permissions/member-permissions/mapMemberPermissions'
 
 test('maps organization permissions in both directions', () => {
   const permissions = mapMemberPermissions(

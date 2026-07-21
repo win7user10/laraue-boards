@@ -1,6 +1,6 @@
-import type { ViewPermissionsPage } from '../../../../app/sections/organizations/permissions/list-members/actions/viewPermissionsPage'
-import { createApiClient } from '../../../api/client'
-import { mapOrganizationMembers } from '../shared/mapOrganizationMembers'
+import { createApiClient } from '#infrastructure/api/client'
+import { mapOrganizationMembers } from '#infrastructure/organizations/permissions/shared/mapOrganizationMembers'
+import type { ViewPermissionsPage } from '~/sections/organizations/permissions/list-members/deps/viewPermissionsPage'
 
 export const openApiViewPermissionsPage =
   (baseUrl: string): ViewPermissionsPage =>

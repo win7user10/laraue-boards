@@ -1,8 +1,8 @@
+import type { components } from '#infrastructure/api/generated'
 import type {
   IssuePageAttributeViewModel,
   IssuePageViewModel,
-} from '../../../app/sections/issues/issue/view/IssuePage.vue'
-import type { components } from '../../api/generated'
+} from '~/sections/issues/issue/components/IssueContent.vue'
 
 type IssueDetailDto = components['schemas']['IssueDetailDto']
 type IssueAttributeDto = components['schemas']['DetailIssueAttributeDto']

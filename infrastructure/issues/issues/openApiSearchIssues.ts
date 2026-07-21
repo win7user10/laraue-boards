@@ -1,7 +1,8 @@
-import type { SearchIssues } from '../../../app/sections/issues/issues/actions/searchIssues'
-import { createApiClient } from '../../api/client'
-import { createdAtDescending, mapIssueFilters } from '../shared/issueAttributes'
-import { mapIssuesPageIssue } from './mapIssuesPageIssue'
+import { createApiClient } from '#infrastructure/api/client'
+import { mapIssuesPageIssue } from '#infrastructure/issues/issues/mapIssuesPageIssue'
+import { mapIssueFilters } from '#infrastructure/issues/shared/issueAttributes'
+import { createdAtDescending } from '#infrastructure/issues/shared/issueSorting'
+import type { SearchIssues } from '~/sections/issues/issues/deps/searchIssues'
 
 export const openApiSearchIssues =
   (baseUrl: string): SearchIssues =>

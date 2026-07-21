@@ -1,5 +1,5 @@
-import type { Logout } from '../../../app/sections/common/app-layout/actions/logout'
-import { createApiClient } from '../../api/client'
+import { createApiClient } from '#infrastructure/api/client'
+import type { Logout } from '~/sections/common/app-layout/deps/logout'
 
 export const openApiLogout =
   (baseUrl: string): Logout =>

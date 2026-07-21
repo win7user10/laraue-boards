@@ -1,6 +1,6 @@
 import { assert, test } from 'vitest'
 
-import { useOrganizationRoutes } from './useOrganizationRoutes'
+import { useOrganizationRoutes } from '~/composables/useOrganizationRoutes'
 
 test('adds the current organization to typed routes', () => {
   const originalComputed = Reflect.get(globalThis, 'computed')
