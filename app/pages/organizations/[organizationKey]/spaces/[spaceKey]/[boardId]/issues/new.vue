@@ -9,6 +9,7 @@
 import { openApiCreateBoardIssue } from '#infrastructure/boards/create-issue/openApiCreateBoardIssue'
 import { openApiLoadCreateBoardIssueAssignees } from '#infrastructure/boards/create-issue/openApiLoadCreateBoardIssueAssignees'
 import { openApiViewCreateBoardIssuePage } from '#infrastructure/boards/create-issue/openApiViewCreateBoardIssuePage'
+import { openApiAddIssueAttachments } from '#infrastructure/issues/shared/openApiAddIssueAttachments'
 import CreateBoardIssuePage from '~/sections/boards/create-issue/CreateBoardIssuePage.vue'
 
 const route = useRoute(
@@ -18,6 +19,7 @@ const boardId = computed(() => String(route.params.boardId))
 const spaceKey = computed(() => String(route.params.spaceKey))
 const baseUrl = useRuntimeConfig().public.boardsApiBaseUrl
 const deps = {
+  addIssueAttachments: openApiAddIssueAttachments(baseUrl),
   createBoardIssue: openApiCreateBoardIssue(baseUrl),
   loadCreateBoardIssueAssignees: openApiLoadCreateBoardIssueAssignees(baseUrl),
   viewCreateBoardIssuePage: openApiViewCreateBoardIssuePage(baseUrl),

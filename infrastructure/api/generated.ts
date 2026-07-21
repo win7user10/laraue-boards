@@ -177,6 +177,41 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/files/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/issues/by-status/{statusId}": {
         parameters: {
             query?: never;
@@ -519,6 +554,59 @@ export interface paths {
         };
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/issues/{key}/add-attachment": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    key: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/x-www-form-urlencoded": {
+                        ContentType?: string;
+                        ContentDisposition?: string;
+                        Headers?: {
+                            [key: string]: string[];
+                        };
+                        /** Format: int64 */
+                        Length?: number | string;
+                        Name?: string;
+                        FileName?: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["MediaInfo"];
+                        "application/json": components["schemas"]["MediaInfo"];
+                        "text/json": components["schemas"]["MediaInfo"];
+                    };
+                };
+            };
+        };
         delete?: never;
         options?: never;
         head?: never;
@@ -1825,41 +1913,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/telegram-files/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    id: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description OK */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-            };
-        };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/test/user": {
         parameters: {
             query?: never;
@@ -2285,6 +2338,7 @@ export interface components {
             canEdit: boolean;
             key: string;
             attributeValues: components["schemas"]["DetailIssueAttributeDto"][];
+            media: components["schemas"]["MediaInfo"][];
         };
         IssueKey: {
             /** Format: int32 */
@@ -2311,7 +2365,6 @@ export interface components {
             statusId: number | string;
             /** Format: int64 */
             spaceId: number | string;
-            media?: components["schemas"]["MediaInfo"][];
             attributes?: components["schemas"]["IssueListAttributeDto"][];
         };
         IssueProperty: number;
@@ -2433,7 +2486,6 @@ export interface components {
             statusId: number | string;
             /** Format: int64 */
             spaceId: number | string;
-            media?: components["schemas"]["MediaInfo"][];
             attributes?: components["schemas"]["IssueListAttributeDto"][];
         };
         SearchRequest: {

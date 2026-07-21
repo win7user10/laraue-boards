@@ -26,7 +26,7 @@ export const openApiViewIssuePage =
       }
 
       return ok({
-        IssuePage: mapIssuePage(issue.data),
+        IssuePage: mapIssuePage(issue.data, baseUrl),
       })
     } catch {
       return err('TemporarilyUnavailable')

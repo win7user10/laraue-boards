@@ -1,4 +1,5 @@
 import type { components } from '#infrastructure/api/generated'
+import { mapIssueAttachments } from '#infrastructure/issues/shared/mapIssueAttachments'
 import type {
   IssuePageAttributeViewModel,
   IssuePageViewModel,
@@ -33,11 +34,15 @@ const mapAttribute = (
   }
 }
 
-export const mapIssuePage = (issue: IssueDetailDto): IssuePageViewModel => ({
+export const mapIssuePage = (
+  issue: IssueDetailDto,
+  baseUrl: string,
+): IssuePageViewModel => ({
   assignee: issue.assignee,
   assigneeColor: issue.assigneeColor,
   assigneeId: issue.assigneeId,
   assigneeInitial: issue.assigneeInitial,
+  attachments: mapIssueAttachments(issue.media, baseUrl),
   attributes: issue.attributeValues.map(mapAttribute),
   boardId: String(issue.epicId),
   boardLabel: issue.epicName ?? '',

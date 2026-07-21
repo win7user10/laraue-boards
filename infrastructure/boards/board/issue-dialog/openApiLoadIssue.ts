@@ -22,7 +22,7 @@ export const openApiLoadIssue =
           return err('TemporarilyUnavailable')
       }
       return response.data
-        ? ok({ IssueDialog: mapIssueDialog(response.data) })
+        ? ok({ IssueDialog: mapIssueDialog(response.data, baseUrl) })
         : err('TemporarilyUnavailable')
     } catch {
       return err('TemporarilyUnavailable')

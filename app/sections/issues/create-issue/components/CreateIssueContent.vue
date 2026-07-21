@@ -18,6 +18,7 @@
           assigneeId,
           attributeValues,
           content: content.trim(),
+          files,
           statusId,
         })
       ">
@@ -29,6 +30,11 @@
           placeholder="What needs attention?"
           required
           rows="10" />
+        <IssueAttachments
+          :attachments="[]"
+          :disabled="submitting"
+          :files="files"
+          :on-change="changeFiles" />
       </div>
       <div class="issue-form-side">
         <label for="create-issue-space">Space</label>
@@ -196,6 +202,7 @@ type CreateIssuePageProps = {
     assigneeId: string
     attributeValues: Record<string, string>
     content: string
+    files: File[]
     statusId: string
   }) => void
   submitting: boolean
@@ -206,11 +213,13 @@ type CreateIssuePageProps = {
 <script setup lang="ts">
 import { ListPlus } from 'lucide-vue-next'
 
+import IssueAttachments from '~/components/issues/IssueAttachments.vue'
 import IssueAttributeFields from '~/components/issues/IssueAttributeFields.vue'
 
 const props = defineProps<CreateIssuePageProps>()
 const organizationRoutes = useOrganizationRoutes()
 const content = ref('')
+const files = ref<File[]>([])
 const assigneeId = ref('')
 const assignee = computed(() =>
   props.assignees.find((assignee) => assignee.value === assigneeId.value),
@@ -224,6 +233,10 @@ const attributeValues = ref<Record<string, string>>({})
 function changeSpace() {
   assigneeId.value = ''
   props.onChangeSpace(spaceId.value)
+}
+
+function changeFiles(value: File[]) {
+  files.value = value
 }
 
 watch(

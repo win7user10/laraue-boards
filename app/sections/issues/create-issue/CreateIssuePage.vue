@@ -168,6 +168,7 @@ async function submit(input: {
   assigneeId: string
   attributeValues: Record<string, string>
   content: string
+  files: File[]
   statusId: string
 }) {
   const current = page.value
@@ -177,13 +178,14 @@ async function submit(input: {
   formError.value = null
   submitting.value = true
   const result = await props.deps.createIssue({
-    ...input,
+    assigneeId: input.assigneeId,
     attributeValues: getIssueAttributeValueInput(
       input.attributeValues,
       current.attributes,
     ),
+    content: input.content,
+    statusId: input.statusId,
   })
-  submitting.value = false
   await matchActionResult({
     err: async (error) => {
       formError.value = getErrorMessage({
@@ -195,12 +197,34 @@ async function submit(input: {
         },
       })
     },
-    ok: async () => {
+    ok: async ({ issueKey }) => {
+      if (input.files.length) {
+        const attachmentResult = await props.deps.addIssueAttachments({
+          files: input.files,
+          issueKey,
+        })
+        matchActionResult({
+          err: (error) => {
+            window.alert(
+              getErrorMessage({
+                error,
+                messages: {
+                  AttachmentUploadFailed:
+                    'The issue was created, but one or more attachments could not be uploaded. Open the issue to try again.',
+                },
+              }),
+            )
+          },
+          ok: () => undefined,
+          result: attachmentResult,
+        })
+      }
       await navigateTo(organizationRoutes.issues(), {
         replace: true,
       })
     },
     result,
   })
+  submitting.value = false
 }
 </script>

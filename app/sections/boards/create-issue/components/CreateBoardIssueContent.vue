@@ -18,6 +18,7 @@
           assigneeId,
           attributeValues,
           content: content.trim(),
+          files,
           statusId,
         })
       ">
@@ -29,6 +30,11 @@
           placeholder="What needs attention?"
           required
           rows="10" />
+        <IssueAttachments
+          :attachments="[]"
+          :disabled="submitting"
+          :files="files"
+          :on-change="changeFiles" />
       </div>
       <div class="issue-form-side">
         <label>Board</label>
@@ -140,6 +146,7 @@ type CreateBoardIssuePageProps = {
     assigneeId: string
     attributeValues: Record<string, string>
     content: string
+    files: File[]
     statusId: string
   }) => void
   spaceKey: string
@@ -151,11 +158,13 @@ type CreateBoardIssuePageProps = {
 <script setup lang="ts">
 import { ListPlus } from 'lucide-vue-next'
 
+import IssueAttachments from '~/components/issues/IssueAttachments.vue'
 import IssueAttributeFields from '~/components/issues/IssueAttributeFields.vue'
 
 const props = defineProps<CreateBoardIssuePageProps>()
 const organizationRoutes = useOrganizationRoutes()
 const content = ref('')
+const files = ref<File[]>([])
 const assigneeId = ref('')
 const assignee = computed(() =>
   props.assignees.find((assignee) => assignee.value === assigneeId.value),
@@ -163,6 +172,11 @@ const assignee = computed(() =>
 const assigneeInitial = computed(() => assignee.value?.initials || '?')
 const statusId = ref(props.viewModel.statusId)
 const attributeValues = ref<Record<string, string>>({})
+
+function changeFiles(value: File[]) {
+  files.value = value
+}
+
 watch(
   () => props.viewModel.statusId,
   (value) => (statusId.value = value),

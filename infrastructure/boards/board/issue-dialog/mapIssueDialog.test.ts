@@ -25,6 +25,7 @@ const issue: Parameters<typeof mapIssueDialog>[0] = {
   epicName: 'Board',
   id: 5,
   key: 'DEV-1',
+  media: [],
   ownerColor: COLORS.purple,
   ownerDisplayName: 'User',
   ownerInitials: 'U',
@@ -39,7 +40,7 @@ const issue: Parameters<typeof mapIssueDialog>[0] = {
 }
 
 test('maps a board issue dialog independently', () => {
-  const result = mapIssueDialog(issue)
+  const result = mapIssueDialog(issue, 'https://api.example')
 
   assert.equal(result.issueKey, 'DEV-1')
   assert.equal(result.assignee, 'Assigned User')

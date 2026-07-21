@@ -19,6 +19,7 @@ import { openApiLoadAssignees } from '#infrastructure/issues/issue-details/openA
 import { openApiLoadMoveBoards } from '#infrastructure/issues/issue-details/openApiLoadMoveBoards'
 import { openApiLoadMoveSpaces } from '#infrastructure/issues/issue-details/openApiLoadMoveSpaces'
 import { openApiLoadStatuses } from '#infrastructure/issues/issue-details/openApiLoadStatuses'
+import { openApiAddIssueAttachments } from '#infrastructure/issues/shared/openApiAddIssueAttachments'
 import BoardPage from '~/sections/boards/board/BoardPage.vue'
 import type { BoardPageDeps } from '~/sections/boards/board/BoardPageDeps'
 
@@ -33,6 +34,7 @@ const baseUrl = config.public.boardsApiBaseUrl
 const moveBoardIssue = openApiMoveBoardIssue(baseUrl)
 const deps = {
   issueDialog: {
+    addIssueAttachments: openApiAddIssueAttachments(baseUrl),
     deleteIssue: openApiDeleteIssue(baseUrl),
     issueDetails: {
       loadAssignees: openApiLoadAssignees(baseUrl),

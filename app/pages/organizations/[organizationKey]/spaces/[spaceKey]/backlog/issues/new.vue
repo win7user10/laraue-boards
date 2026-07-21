@@ -5,6 +5,7 @@
 </template>
 
 <script setup lang="ts">
+import { openApiAddIssueAttachments } from '#infrastructure/issues/shared/openApiAddIssueAttachments'
 import { openApiCreateBacklogIssue } from '#infrastructure/spaces/create-backlog-issue/openApiCreateBacklogIssue'
 import { openApiLoadCreateBacklogIssueAssignees } from '#infrastructure/spaces/create-backlog-issue/openApiLoadCreateBacklogIssueAssignees'
 import { openApiViewCreateBacklogIssuePage } from '#infrastructure/spaces/create-backlog-issue/openApiViewCreateBacklogIssuePage'
@@ -16,6 +17,7 @@ const route = useRoute(
 const spaceKey = computed(() => String(route.params.spaceKey))
 const baseUrl = useRuntimeConfig().public.boardsApiBaseUrl
 const deps = {
+  addIssueAttachments: openApiAddIssueAttachments(baseUrl),
   createBacklogIssue: openApiCreateBacklogIssue(baseUrl),
   loadCreateBacklogIssueAssignees:
     openApiLoadCreateBacklogIssueAssignees(baseUrl),

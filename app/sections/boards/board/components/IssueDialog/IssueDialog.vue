@@ -266,6 +266,7 @@ async function saveIssue(input: IssueDetailsSaveInput) {
     },
     ok: async () => {
       if (input.statusId === originalIssue.statusId) {
+        await uploadAttachments(input.files)
         props.onSaved({
           boardId: input.boardId,
           content: input.content,
@@ -304,6 +305,7 @@ async function saveIssue(input: IssueDetailsSaveInput) {
           })
         },
         ok: async () => {
+          await uploadAttachments(input.files)
           props.onSaved({
             boardId: input.boardId,
             content: input.content,
@@ -320,6 +322,31 @@ async function saveIssue(input: IssueDetailsSaveInput) {
     result: updateResult,
   })
   state.saving = false
+}
+
+async function uploadAttachments(files: File[]) {
+  if (!files.length) {
+    return
+  }
+  const result = await props.deps.addIssueAttachments({
+    files,
+    issueKey: props.issueKey,
+  })
+  matchActionResult({
+    err: (error) => {
+      window.alert(
+        getErrorMessage({
+          error,
+          messages: {
+            AttachmentUploadFailed:
+              'The issue was saved, but one or more attachments could not be uploaded. Open the issue to try again.',
+          },
+        }),
+      )
+    },
+    ok: () => undefined,
+    result,
+  })
 }
 
 async function deleteIssue() {

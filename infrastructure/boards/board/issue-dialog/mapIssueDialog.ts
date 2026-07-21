@@ -1,4 +1,5 @@
 import type { components } from '#infrastructure/api/generated'
+import { mapIssueAttachments } from '#infrastructure/issues/shared/mapIssueAttachments'
 import type { IssueDialogViewModel } from '~/sections/boards/board/components/IssueDialog/IssueDialog.vue'
 
 type IssueDetailDto = components['schemas']['IssueDetailDto']
@@ -32,11 +33,13 @@ const mapAttribute = (
 
 export const mapIssueDialog = (
   issue: IssueDetailDto,
+  baseUrl: string,
 ): IssueDialogViewModel => ({
   assignee: issue.assignee,
   assigneeColor: issue.assigneeColor,
   assigneeId: issue.assigneeId,
   assigneeInitial: issue.assigneeInitial,
+  attachments: mapIssueAttachments(issue.media, baseUrl),
   attributes: issue.attributeValues.map(mapAttribute),
   boardId: String(issue.epicId),
   boardLabel: issue.epicName ?? '',
