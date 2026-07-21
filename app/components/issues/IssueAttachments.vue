@@ -4,24 +4,34 @@
     <div
       v-if="attachments.length || pendingPreviews.length"
       class="issue-attachment-gallery">
-      <a
+      <button
         v-for="(attachment, index) in attachments"
         :key="`${attachment.previewUrl}-${index}`"
         :aria-label="`Open attachment ${index + 1}`"
-        :href="attachment.originalUrl"
-        rel="noopener"
-        target="_blank">
+        class="issue-attachment-open"
+        type="button"
+        @click="
+          openLightbox(attachment.originalUrl, `Attachment ${index + 1}`)
+        ">
         <img
           :alt="`Attachment ${index + 1}`"
           :src="attachment.previewUrl" />
-      </a>
+      </button>
       <div
         v-for="(preview, index) in pendingPreviews"
         :key="preview.url"
         class="issue-attachment-preview">
-        <img
-          :alt="preview.file.name"
-          :src="preview.url" />
+        <button
+          :aria-label="`Open ${preview.file.name}`"
+          class="issue-attachment-open"
+          :disabled="disabled"
+          type="button"
+          @click="openLightbox(preview.url, preview.file.name)">
+          <img
+            :alt="preview.file.name"
+            :src="preview.url" />
+          <span>{{ preview.file.name }}</span>
+        </button>
         <button
           v-if="!disabled"
           :aria-label="`Remove ${preview.file.name}`"
@@ -37,7 +47,6 @@
           role="status">
           <LoaderCircle />
         </div>
-        <span v-else>{{ preview.file.name }}</span>
       </div>
     </div>
     <input
@@ -68,6 +77,26 @@
         Clear
       </button>
     </div>
+    <Teleport to="body">
+      <dialog
+        ref="lightboxEl"
+        aria-label="Attachment preview"
+        class="issue-attachment-lightbox"
+        @click="closeLightboxFromBackdrop"
+        @close="activeAttachment = null">
+        <button
+          aria-label="Close attachment preview"
+          class="icon-btn issue-attachment-lightbox-close"
+          type="button"
+          @click="closeLightbox">
+          <X />
+        </button>
+        <img
+          v-if="activeAttachment"
+          :alt="activeAttachment.alt"
+          :src="activeAttachment.url" />
+      </dialog>
+    </Teleport>
   </div>
 </template>
 
@@ -89,8 +118,10 @@ type IssueAttachmentsProps = {
 import { ImagePlus, LoaderCircle, X } from 'lucide-vue-next'
 
 const props = defineProps<IssueAttachmentsProps>()
+const activeAttachment = ref<null | { alt: string; url: string }>(null)
 const inputId = useId()
 const inputEl = ref<HTMLInputElement>()
+const lightboxEl = ref<HTMLDialogElement>()
 const pendingPreviews = ref<Array<{ file: File; url: string }>>([])
 
 watch(
@@ -130,6 +161,22 @@ function revokePreviews() {
     URL.revokeObjectURL(preview.url)
   }
 }
+
+async function openLightbox(url: string, alt: string) {
+  activeAttachment.value = { alt, url }
+  await nextTick()
+  lightboxEl.value?.showModal()
+}
+
+function closeLightbox() {
+  lightboxEl.value?.close()
+}
+
+function closeLightboxFromBackdrop(event: MouseEvent) {
+  if (event.target === lightboxEl.value) {
+    closeLightbox()
+  }
+}
 </script>
 
 <style scoped>
@@ -145,7 +192,7 @@ function revokePreviews() {
   grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
 }
 
-.issue-attachment-gallery a,
+.issue-attachment-gallery > .issue-attachment-open,
 .issue-attachment-preview {
   aspect-ratio: 1;
   border: 1px solid var(--color-border);
@@ -154,13 +201,27 @@ function revokePreviews() {
   position: relative;
 }
 
+.issue-attachment-open {
+  background: transparent;
+  border: 0;
+  color: inherit;
+  cursor: zoom-in;
+  height: 100%;
+  padding: 0;
+  width: 100%;
+}
+
+.issue-attachment-open:disabled {
+  cursor: wait;
+}
+
 .issue-attachment-gallery img {
   height: 100%;
   object-fit: cover;
   width: 100%;
 }
 
-.issue-attachment-preview > span {
+.issue-attachment-preview .issue-attachment-open > span {
   background: color-mix(in srgb, var(--color-surface) 88%, transparent);
   bottom: 0;
   font-size: var(--font-size-caption);
@@ -192,6 +253,7 @@ function revokePreviews() {
   position: absolute;
   right: var(--space-1);
   top: var(--space-1);
+  z-index: 1;
 }
 
 .issue-attachment-remove svg {
@@ -236,5 +298,36 @@ function revokePreviews() {
 .issue-attachment-picker svg {
   height: 18px;
   width: 18px;
+}
+
+.issue-attachment-lightbox {
+  background: #000000eb;
+  border: 0;
+  box-sizing: border-box;
+  height: 100dvh;
+  inset: 0;
+  margin: 0;
+  max-height: none;
+  max-width: none;
+  overflow: hidden;
+  padding: var(--space-8);
+  width: 100vw;
+}
+
+.issue-attachment-lightbox::backdrop {
+  background: transparent;
+}
+
+.issue-attachment-lightbox > img {
+  height: 100%;
+  object-fit: contain;
+  width: 100%;
+}
+
+.issue-attachment-lightbox-close {
+  position: fixed;
+  right: var(--space-4);
+  top: var(--space-4);
+  z-index: 1;
 }
 </style>
