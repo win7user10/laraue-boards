@@ -38,8 +38,14 @@ test('uploads each attachment as a file form field', async () => {
   }
 
   vi.stubGlobal('fetch', async () => Response.json({}, { status: 500 }))
+  const failingAddAttachments = openApiAddIssueAttachments(
+    'https://api.example',
+  )
   assert.deepEqual(
-    await addAttachments({ files: files.slice(0, 1), issueKey: 'DEV-1' }),
+    await failingAddAttachments({
+      files: files.slice(0, 1),
+      issueKey: 'DEV-1',
+    }),
     err('AttachmentUploadFailed'),
   )
 })
