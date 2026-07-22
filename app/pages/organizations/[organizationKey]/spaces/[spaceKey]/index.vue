@@ -5,14 +5,11 @@
 </template>
 
 <script setup lang="ts">
-import { openApiViewSpacePage } from '#infrastructure/spaces/space/openApiViewSpacePage'
+import { createSpacePageDeps } from '~/sections/spaces/space/SpacePage.deps.impl'
 import SpacePage from '~/sections/spaces/space/SpacePage.vue'
 
 const route = useRoute('organizations-organizationKey-spaces-spaceKey')
 const spaceKey = computed(() => String(route.params.spaceKey))
-const config = useRuntimeConfig()
-const baseUrl = config.public.boardsApiBaseUrl
-const deps = {
-  viewSpacePage: openApiViewSpacePage(baseUrl),
-}
+const client = useApiClient()
+const deps = createSpacePageDeps(client)
 </script>
