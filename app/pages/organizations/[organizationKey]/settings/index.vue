@@ -1,16 +1,18 @@
 <template>
-  <OrganizationSettingsPage :deps="deps" />
+  <OrganizationSettingsPage
+    :deps="deps"
+    :on-updated="refreshAppLayoutData" />
 </template>
 
 <script setup lang="ts">
-import { openApiUpdateOrganization } from '#infrastructure/organizations/settings/openApiUpdateOrganization'
-import { openApiViewOrganizationSettingsPage } from '#infrastructure/organizations/settings/openApiViewOrganizationSettingsPage'
+import { createApiClient } from '#infrastructure/api/client'
+import { createOrganizationSettingsPageDeps } from '~/sections/organizations/settings/OrganizationSettingsPage.deps.impl'
 import OrganizationSettingsPage from '~/sections/organizations/settings/OrganizationSettingsPage.vue'
 
 const config = useRuntimeConfig()
-const baseUrl = config.public.boardsApiBaseUrl
-const deps = {
-  updateOrganization: openApiUpdateOrganization(baseUrl),
-  viewOrganizationSettingsPage: openApiViewOrganizationSettingsPage(baseUrl),
-}
+const client = createApiClient({
+  baseUrl: config.public.boardsApiBaseUrl,
+  headers: import.meta.server ? useRequestHeaders(['cookie']) : undefined,
+})
+const deps = createOrganizationSettingsPageDeps(client)
 </script>
