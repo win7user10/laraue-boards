@@ -10,7 +10,8 @@ import { createOrganizationPickerPageDeps } from '~/sections/organizations/selec
 import OrganizationPickerPage from '~/sections/organizations/select-organization/OrganizationPickerPage.vue'
 
 definePageMeta({ layout: false })
-const deps = createOrganizationPickerPageDeps(useApiClient())
+const client = useApiClient()
+const deps = createOrganizationPickerPageDeps(client)
 const onAccessDenied = async (): Promise<void> => {
   await navigateTo('/')
 }
