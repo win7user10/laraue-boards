@@ -1,22 +1,25 @@
 <template>
   <MemberPermissionsPage
     :deps="deps"
-    :member-id="memberId" />
+    :member-id="memberId"
+    :on-saved="onSaved" />
 </template>
 
 <script setup lang="ts">
-import { openApiUpdateMemberPermissions } from '#infrastructure/organizations/permissions/member-permissions/member-permissions-form/openApiUpdateMemberPermissions'
-import { openApiViewMemberPermissionsPage } from '#infrastructure/organizations/permissions/member-permissions/openApiViewMemberPermissionsPage'
+import { createApiClient } from '#infrastructure/api/client'
+import { createMemberPermissionsPageDeps } from '~/sections/organizations/permissions/member-permissions/MemberPermissionsPage.deps.impl'
 import MemberPermissionsPage from '~/sections/organizations/permissions/member-permissions/MemberPermissionsPage.vue'
-import type { MemberPermissionsPageDeps } from '~/sections/organizations/permissions/member-permissions/MemberPermissionsPageDeps'
 
 const route = useRoute('organizations-organizationKey-settings-permissions-id')
 const memberId = computed(() => String(route.params.id))
-const baseUrl = useRuntimeConfig().public.boardsApiBaseUrl
-const deps = {
-  form: {
-    updateMemberPermissions: openApiUpdateMemberPermissions(baseUrl),
-  },
-  viewMemberPermissionsPage: openApiViewMemberPermissionsPage(baseUrl),
-} satisfies MemberPermissionsPageDeps
+const config = useRuntimeConfig()
+const client = createApiClient({
+  baseUrl: config.public.boardsApiBaseUrl,
+  headers: import.meta.server ? useRequestHeaders(['cookie']) : undefined,
+})
+const deps = createMemberPermissionsPageDeps(client)
+const organizationRoutes = useOrganizationRoutes()
+const onSaved = async (): Promise<void> => {
+  await navigateTo(organizationRoutes.permissions())
+}
 </script>

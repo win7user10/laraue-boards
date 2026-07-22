@@ -31,7 +31,7 @@
             :key="permission.key"
             class="permission-option">
             <input
-              v-model="draft.admin[permission.key]"
+              v-model="state.draft.admin[permission.key]"
               type="checkbox" />
             <span>{{ permission.label }}</span>
           </label>
@@ -48,11 +48,13 @@
           <label class="permission-option">
             <input
               aria-label="Read organization"
-              :checked="draft.global.canRead || globalReadInherited"
+              :checked="state.draft.global.canRead || globalReadInherited"
               :disabled="globalReadInherited"
               :title="globalReadInherited ? 'Inherited' : undefined"
               type="checkbox"
-              @change="draft.global.canRead = !draft.global.canRead" />
+              @change="
+                state.draft.global.canRead = !state.draft.global.canRead
+              " />
             <span>Read organization</span>
           </label>
         </div>
@@ -82,7 +84,9 @@
                   :disabled="cell.inherited"
                   :title="cell.inherited ? 'Inherited' : undefined"
                   type="checkbox"
-                  @change="draft.global[cell.key] = !draft.global[cell.key]" />
+                  @change="
+                    state.draft.global[cell.key] = !state.draft.global[cell.key]
+                  " />
               </td>
             </tr>
           </tbody>
@@ -115,7 +119,7 @@
                 <input
                   :aria-label="`Read ${space.name}`"
                   :checked="
-                    draft.direct[space.id]!.canRead ||
+                    state.draft.direct[space.id]!.canRead ||
                     directPermissionTables[space.id]!.readInherited
                   "
                   :disabled="directPermissionTables[space.id]!.readInherited"
@@ -126,8 +130,8 @@
                   "
                   type="checkbox"
                   @change="
-                    draft.direct[space.id]!.canRead =
-                      !draft.direct[space.id]!.canRead
+                    state.draft.direct[space.id]!.canRead =
+                      !state.draft.direct[space.id]!.canRead
                   " />
                 <span>Read space</span>
               </label>
@@ -171,8 +175,8 @@
                       "
                       type="checkbox"
                       @change="
-                        draft.direct[space.id]![cell.key] =
-                          !draft.direct[space.id]![cell.key]
+                        state.draft.direct[space.id]![cell.key] =
+                          !state.draft.direct[space.id]![cell.key]
                       " />
                   </td>
                 </tr>
@@ -183,22 +187,22 @@
       </fieldset>
 
       <p
-        v-if="state.saved"
+        v-if="saved"
         class="form-success">
         Permissions saved.
       </p>
       <p
-        v-if="state.error"
+        v-if="error"
         class="form-error">
-        {{ state.error }}
+        {{ error }}
       </p>
       <div
         v-if="!viewModel.member.isOwner"
         class="form-actions">
         <button
           class="primary"
-          :disabled="state.submitting">
-          {{ state.submitting ? 'Saving…' : 'Save permissions' }}
+          :disabled="submitting">
+          {{ submitting ? 'Saving…' : 'Save permissions' }}
         </button>
       </div>
     </form>
@@ -206,68 +210,20 @@
 </template>
 
 <script lang="ts">
-export type AdminPermissions = {
-  canDeleteOrganization: boolean
-  canManageAttributes: boolean
-  canManageMembers: boolean
-  canMoveData: boolean
-  canUpdateOrganization: boolean
-}
-
-export type GlobalPermissions = {
-  canCreateBoards: boolean
-  canCreateIssues: boolean
-  canCreateSpaces: boolean
-  canDeleteBoards: boolean
-  canDeleteIssues: boolean
-  canDeleteSpaces: boolean
-  canRead: boolean
-  canUpdateBoards: boolean
-  canUpdateIssues: boolean
-  canUpdateSpaces: boolean
-}
-
-export type DirectSpacePermissions = {
-  canCreateBoards: boolean
-  canCreateIssues: boolean
-  canDelete: boolean
-  canDeleteBoards: boolean
-  canDeleteIssues: boolean
-  canRead: boolean
-  canUpdate: boolean
-  canUpdateBoards: boolean
-  canUpdateIssues: boolean
-}
-
-export type MemberPermissions = {
-  admin: AdminPermissions
-  direct: Record<string, DirectSpacePermissions>
-  global: GlobalPermissions
-}
-
-export type MemberPermissionsPageViewModel = {
-  member: {
-    color: string
-    id: string
-    initials: string
-    isAdmin: boolean
-    isOwner: boolean
-    name: string
-  }
-  permissions: MemberPermissions
-  spaces: Array<{
-    color: string
-    id: string
-    isDefault: boolean
-    name: string
-  }>
-}
+import type {
+  AdminPermissions,
+  DirectSpacePermissions,
+  GlobalPermissions,
+  MemberPermissions,
+  MemberPermissionsPageData,
+} from '~/sections/organizations/permissions/member-permissions/MemberPermissionsPage.deps'
 
 type MemberPermissionsFormProps = {
-  deps: MemberPermissionsFormDeps
-  memberId: string
-  onSaved: () => void
-  viewModel: MemberPermissionsPageViewModel
+  error: null | string
+  onSubmit: (permissions: MemberPermissions) => Promise<void>
+  saved: boolean
+  submitting: boolean
+  viewModel: MemberPermissionsPageData
 }
 </script>
 
@@ -275,14 +231,10 @@ type MemberPermissionsFormProps = {
 import { ChevronRight, ShieldCheck } from 'lucide-vue-next'
 
 import { SpaceIcon } from '~/constants/icons'
-import type { MemberPermissionsFormDeps } from '~/sections/organizations/permissions/member-permissions/components/MemberPermissionsForm/MemberPermissionsFormDeps'
-
 const props = defineProps<MemberPermissionsFormProps>()
 const organizationRoutes = useOrganizationRoutes()
 const state = reactive({
-  error: null as null | string,
-  saved: false,
-  submitting: false,
+  draft: structuredClone(toRaw(props.viewModel.permissions)),
 })
 const adminPermissionOptions: Array<{
   key: keyof AdminPermissions
@@ -321,14 +273,13 @@ const permissionDefinitions: Array<{
   },
 ]
 
-const draft = ref(structuredClone(toRaw(props.viewModel.permissions)))
 // Each row inherits the same operation from the rows above it.
 const globalPermissionRows = computed(() => {
   const inherited = [false, false, false]
   return permissionDefinitions.map((definition) => ({
     cells: definition.globalKeys.map((key, index) => {
       const cell = {
-        checked: draft.value.global[key] || inherited[index]!,
+        checked: state.draft.global[key] || inherited[index]!,
         inherited: inherited[index]!,
         key,
       }
@@ -361,7 +312,7 @@ const directPermissionTables = computed(() =>
           }
           const checked =
             !cell.unavailable &&
-            (draft.value.direct[space.id]![key] || cell.inherited)
+            (state.draft.direct[space.id]![key] || cell.inherited)
           inherited[index] = checked
           return { ...cell, checked }
         }),
@@ -371,7 +322,7 @@ const directPermissionTables = computed(() =>
         space.id,
         {
           readInherited:
-            draft.value.global.canRead ||
+            state.draft.global.canRead ||
             globalReadInherited.value ||
             rows.some((row) =>
               row.cells.some((cell) => cell?.checked ?? false),
@@ -385,35 +336,11 @@ const directPermissionTables = computed(() =>
 watch(
   () => props.viewModel.permissions,
   (permissions) => {
-    draft.value = structuredClone(toRaw(permissions))
+    state.draft = structuredClone(toRaw(permissions))
   },
 )
 async function submit() {
-  state.submitting = true
-  state.saved = false
-  state.error = null
-  const result = await props.deps.updateMemberPermissions({
-    memberId: props.memberId,
-    permissions: structuredClone(toRaw(draft.value)),
-  })
-  await matchActionResult({
-    err: async (error) => {
-      state.error = getErrorMessage({
-        error,
-        messages: {
-          AccessDenied: 'You do not have permission to update this member.',
-          MemberNotFound: 'The requested page was not found.',
-          TemporarilyUnavailable: 'Could not save permissions.',
-        },
-      })
-    },
-    ok: async () => {
-      await props.onSaved()
-      state.saved = true
-    },
-    result,
-  })
-  state.submitting = false
+  await props.onSubmit(structuredClone(toRaw(state.draft)))
 }
 </script>
 
