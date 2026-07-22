@@ -72,8 +72,7 @@ A technical Nuxt route wrapper.
 It:
 
 - reads route parameters;
-- reads runtime config;
-- creates an `ApiClient`;
+- gets the configured `ApiClient` through `useApiClient()`;
 - assembles production `deps`;
 - performs navigation through `navigateTo`;
 - passes real dependencies and required callback functions to `SpaceItemsPage`.
@@ -147,17 +146,12 @@ are not copied into this object.
 <script setup lang="ts">
 import SpaceItemsPage from '~/sections/spaces/pages/SpaceItemsPage/SpaceItemsPage.vue'
 import { createSpaceItemsPageDeps } from '~/sections/spaces/pages/SpaceItemsPage/SpaceItemsPage.deps.impl'
-import { createApiClient } from '#infrastructure/api/client'
 
 const route = useRoute()
-const config = useRuntimeConfig()
 
 const spaceId = computed(() => String(route.params.id))
 
-const client = createApiClient({
-  baseUrl: config.public.apiBaseUrl,
-  headers: import.meta.server ? useRequestHeaders(['cookie']) : undefined,
-})
+const client = useApiClient()
 
 const deps = createSpaceItemsPageDeps(client)
 
@@ -218,12 +212,34 @@ export const createApiClient = ({
 export type ApiClient = ReturnType<typeof createApiClient>
 ```
 
-SSR cookie forwarding is performed in the Nuxt route wrapper:
+Nuxt-specific configuration and SSR cookie forwarding are kept in a small
+composable:
+
+```ts
+// app/composables/useApiClient.ts
+export const useApiClient = () => {
+  const config = useRuntimeConfig()
+
+  return createApiClient({
+    baseUrl: config.public.boardsApiBaseUrl,
+    headers: import.meta.server ? useRequestHeaders(['cookie']) : undefined,
+  })
+}
+```
+
+Route wrappers use it directly:
+
+```ts
+const client = useApiClient()
+```
+
+The infrastructure factory remains independent of Nuxt and accepts explicit
+options:
 
 ```ts
 const client = createApiClient({
-  baseUrl: config.public.apiBaseUrl,
-  headers: import.meta.server ? useRequestHeaders(['cookie']) : undefined,
+  baseUrl: 'https://api.test',
+  fetch: fetchMock,
 })
 ```
 
@@ -1662,8 +1678,7 @@ Test separately:
 ```text
 app/pages/<route>.vue
   ├─ route params
-  ├─ runtime config
-  ├─ createApiClient
+  ├─ useApiClient
   ├─ createXxxPageDeps
   └─ navigation callbacks
            │

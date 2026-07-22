@@ -1,40 +1,69 @@
 <template>
-  <CreateAttributeContent
-    :error="error"
-    :on-submit="create"
-    :submitting="submitting" />
+  <section class="form-page">
+    <div class="title-row">
+      <div class="page-heading">
+        <AppBackLink
+          label="Back to attributes"
+          :to="organizationRoutes.attributes()" />
+        <Tags class="page-heading-icon" />
+        <div class="page-heading-text"><h1>Create attribute</h1></div>
+      </div>
+    </div>
+    <CreateAttributeForm
+      :error="state.error"
+      :on-submit="create"
+      :submitting="state.submitting" />
+  </section>
 </template>
 
 <script setup lang="ts">
-import CreateAttributeContent from '~/sections/organizations/attributes/create-attribute/components/CreateAttributeContent.vue'
-import type { CreateAttributePageDeps } from '~/sections/organizations/attributes/create-attribute/CreateAttributePageDeps'
-import type { CreateAttributeInput } from '~/sections/organizations/attributes/create-attribute/deps/createAttribute'
+import { Tags } from 'lucide-vue-next'
 
-const props = defineProps<{ deps: CreateAttributePageDeps }>()
+import CreateAttributeForm from '~/sections/organizations/attributes/create-attribute/components/CreateAttributeForm.vue'
+import type {
+  CreateAttributeFailure,
+  CreateAttributeInput,
+  CreateAttributePageDeps,
+} from '~/sections/organizations/attributes/create-attribute/CreateAttributePage.deps'
+import { matchResult } from '~/utils/actionResult'
+import { assertNever } from '~/utils/assertNever'
+
+const props = defineProps<{
+  deps: CreateAttributePageDeps
+  onCreated: () => Promise<void> | void
+}>()
 const organizationRoutes = useOrganizationRoutes()
 useHead({ title: 'Create attribute' })
-const submitting = ref(false)
-const error = ref<null | string>(null)
+const state = reactive({ error: null as null | string, submitting: false })
 
-async function create(input: CreateAttributeInput) {
-  submitting.value = true
-  error.value = null
-  const result = await props.deps.createAttribute(input)
-  submitting.value = false
-  await matchActionResult({
-    err: async (actionError) => {
-      error.value = getErrorMessage({
-        error: actionError,
-        messages: {
-          AccessDenied: 'You do not have permission to create attributes.',
-          TemporarilyUnavailable: 'Could not create the attribute. Try again.',
-        },
-      })
-    },
-    ok: async () => {
-      await navigateTo(organizationRoutes.attributes())
-    },
-    result,
-  })
+const getFailureMessage = (failure: CreateAttributeFailure): string => {
+  switch (failure.type) {
+    case 'accessDenied':
+      return 'You do not have permission to create attributes.'
+    case 'temporarilyUnavailable':
+      return 'Could not create the attribute. Try again.'
+    case 'invalidInput':
+      return failure.message
+    default:
+      return assertNever(failure)
+  }
+}
+
+async function create(input: CreateAttributeInput): Promise<void> {
+  if (state.submitting) {
+    return
+  }
+  state.submitting = true
+  state.error = null
+  try {
+    await matchResult(await props.deps.create(input), {
+      err: (failure) => {
+        state.error = getFailureMessage(failure)
+      },
+      ok: props.onCreated,
+    })
+  } finally {
+    state.submitting = false
+  }
 }
 </script>

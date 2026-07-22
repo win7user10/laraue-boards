@@ -72,15 +72,11 @@
 </template>
 
 <script lang="ts">
-export type CreateAttributeFormInput = {
-  color: string
-  data: { listValues: string[]; type: 'list' } | { type: 'text' }
-  name: string
-}
+import type { CreateAttributeInput } from '~/sections/organizations/attributes/create-attribute/CreateAttributePage.deps'
 
 type CreateAttributeFormProps = {
   error: null | string
-  onSubmit: (input: CreateAttributeFormInput) => void
+  onSubmit: (input: CreateAttributeInput) => void
   submitting: boolean
 }
 </script>
@@ -100,15 +96,15 @@ type AttributeDraft = {
 }
 
 let nextOptionKey = 0
-const draft = ref<AttributeDraft>({
+const draft = reactive<AttributeDraft>({
   color: DEFAULT_COLOR,
   data: { type: 'text' },
   name: '',
 })
 
 function addOption() {
-  if (draft.value.data.type === 'list') {
-    draft.value.data.listValues.push({
+  if (draft.data.type === 'list') {
+    draft.data.listValues.push({
       key: nextOptionKey++,
       name: '',
     })
@@ -119,19 +115,19 @@ function changeType(event: Event) {
   const type = (event.target as HTMLSelectElement).value
   switch (type) {
     case 'list':
-      draft.value.data = {
+      draft.data = {
         listValues: [{ key: nextOptionKey++, name: '' }],
         type,
       }
       break
     case 'text':
-      draft.value.data = { type }
+      draft.data = { type }
       break
   }
 }
 
 function submit() {
-  const value = draft.value
+  const value = draft
   props.onSubmit(
     value.data.type === 'list'
       ? {
