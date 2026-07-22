@@ -70,6 +70,7 @@ test('maps issue dates and attributes', () => {
   assert.equal(result.ownerColor, COLORS.purple)
   assert.deepEqual(result.attachments, [
     {
+      id: '22222222-2222-2222-2222-222222222222',
       originalUrl:
         'https://api.example/api/files/22222222-2222-2222-2222-222222222222',
       previewUrl:

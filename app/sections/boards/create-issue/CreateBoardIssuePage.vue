@@ -94,6 +94,7 @@ async function submit(input: {
       pageState.value.data.CreateBoardIssuePage.attributes,
     ),
     content: input.content,
+    files: input.files,
     statusId: input.statusId,
   })
   await matchActionResult({
@@ -107,28 +108,7 @@ async function submit(input: {
         },
       })
     },
-    ok: async ({ issueKey }) => {
-      if (input.files.length) {
-        const attachmentResult = await props.deps.addIssueAttachments({
-          files: input.files,
-          issueKey,
-        })
-        matchActionResult({
-          err: (error) => {
-            window.alert(
-              getErrorMessage({
-                error,
-                messages: {
-                  AttachmentUploadFailed:
-                    'The issue was created, but one or more attachments could not be uploaded. Open the issue to try again.',
-                },
-              }),
-            )
-          },
-          ok: () => undefined,
-          result: attachmentResult,
-        })
-      }
+    ok: async () => {
       await navigateTo(
         organizationRoutes.board(props.spaceKey, props.boardId),
         {

@@ -93,7 +93,9 @@ async function save(input: {
       issue.attributes,
     ),
     content: input.content,
+    files: input.files,
     issueKey: props.issueKey,
+    removeAttachmentIds: input.removeAttachmentIds,
   })
   await matchActionResult({
     err: async (actionError) => {
@@ -137,37 +139,11 @@ async function save(input: {
           return
         }
       }
-      await uploadAttachments(input.files)
       await leaveAfterIssueChanged()
     },
     result: updateResult,
   })
   saving.value = false
-}
-
-async function uploadAttachments(files: File[]) {
-  if (!files.length) {
-    return
-  }
-  const result = await props.deps.addIssueAttachments({
-    files,
-    issueKey: props.issueKey,
-  })
-  matchActionResult({
-    err: (actionError) => {
-      window.alert(
-        getErrorMessage({
-          error: actionError,
-          messages: {
-            AttachmentUploadFailed:
-              'The issue was saved, but one or more attachments could not be uploaded. Open the issue to try again.',
-          },
-        }),
-      )
-    },
-    ok: () => undefined,
-    result,
-  })
 }
 
 async function remove() {

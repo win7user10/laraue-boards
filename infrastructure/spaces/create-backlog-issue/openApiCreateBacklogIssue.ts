@@ -1,21 +1,26 @@
 import { createApiClient } from '#infrastructure/api/client'
 import { getInvalidInputError } from '#infrastructure/api/getInvalidInputError'
 import { mapIssueAttributeValues } from '#infrastructure/issues/shared/issueAttributes'
+import { createIssueFormData } from '#infrastructure/issues/shared/issueFormData'
 import type { CreateBacklogIssue } from '~/sections/spaces/create-backlog-issue/deps/createBacklogIssue'
 
 export const openApiCreateBacklogIssue = (
   baseUrl: string,
 ): CreateBacklogIssue => {
   const client = createApiClient(baseUrl)
-  return async ({ assigneeId, attributeValues, content, statusId }) => {
+  return async ({ assigneeId, attributeValues, content, files, statusId }) => {
     try {
+      const mappedAttributeValues = mapIssueAttributeValues(attributeValues)
       const response = await client.POST('/api/issues', {
-        body: {
-          assigneeId,
-          attributeValues: mapIssueAttributeValues(attributeValues),
-          content: content.trim(),
-          statusId,
-        },
+        body: {},
+        bodySerializer: () =>
+          createIssueFormData({
+            assigneeId,
+            attributeValues: mappedAttributeValues,
+            content,
+            files,
+            statusId,
+          }),
         parseAs: 'text',
       })
       switch (response.response.status) {

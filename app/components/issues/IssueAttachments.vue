@@ -2,21 +2,32 @@
   <div class="issue-attachments">
     <strong>Attachments</strong>
     <div
-      v-if="attachments.length || pendingPreviews.length"
+      v-if="visibleAttachments.length || pendingPreviews.length"
       class="issue-attachment-gallery">
-      <button
-        v-for="(attachment, index) in attachments"
-        :key="`${attachment.previewUrl}-${index}`"
-        :aria-label="`Open attachment ${index + 1}`"
-        class="issue-attachment-open"
-        type="button"
-        @click="
-          openLightbox(attachment.originalUrl, `Attachment ${index + 1}`)
-        ">
-        <img
-          :alt="`Attachment ${index + 1}`"
-          :src="attachment.previewUrl" />
-      </button>
+      <div
+        v-for="(attachment, index) in visibleAttachments"
+        :key="attachment.id"
+        class="issue-attachment-preview">
+        <button
+          :aria-label="`Open attachment ${index + 1}`"
+          class="issue-attachment-open"
+          type="button"
+          @click="
+            openLightbox(attachment.originalUrl, `Attachment ${index + 1}`)
+          ">
+          <img
+            :alt="`Attachment ${index + 1}`"
+            :src="attachment.previewUrl" />
+        </button>
+        <button
+          v-if="onRemoveAttachment && !disabled"
+          :aria-label="`Remove attachment ${index + 1}`"
+          class="icon-btn issue-attachment-remove"
+          type="button"
+          @click="onRemoveAttachment(attachment.id)">
+          <X />
+        </button>
+      </div>
       <div
         v-for="(preview, index) in pendingPreviews"
         :key="preview.url"
@@ -104,6 +115,7 @@
 
 <script lang="ts">
 export type IssueAttachmentViewModel = {
+  id: string
   originalUrl: string
   previewUrl: string
 }
@@ -113,6 +125,8 @@ type IssueAttachmentsProps = {
   disabled: boolean
   files: File[]
   onChange: (files: File[]) => void
+  onRemoveAttachment?: (id: string) => void
+  removedAttachmentIds?: string[]
 }
 </script>
 
@@ -126,6 +140,11 @@ const inputEl = ref<HTMLInputElement>()
 const lightboxEl = ref<HTMLDialogElement>()
 const pendingPreviews = ref<Array<{ file: File; url: string }>>([])
 const supportedImageTypes = new Set(['image/jpeg', 'image/png'])
+const visibleAttachments = computed(() =>
+  props.attachments.filter(
+    (attachment) => !props.removedAttachmentIds?.includes(attachment.id),
+  ),
+)
 
 watch(
   () => props.files,
@@ -220,7 +239,6 @@ function closeLightboxFromBackdrop(event: MouseEvent) {
   grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
 }
 
-.issue-attachment-gallery > .issue-attachment-open,
 .issue-attachment-preview {
   aspect-ratio: 1;
   border: 1px solid var(--color-border);

@@ -15,7 +15,9 @@
           :attachments="viewModel.attachments"
           :disabled="!viewModel.canEdit || saving"
           :files="state.files"
-          :on-change="changeFiles" />
+          :on-change="changeFiles"
+          :on-remove-attachment="removeAttachment"
+          :removed-attachment-ids="state.removedAttachmentIds" />
       </div>
       <div class="issue-form-side">
         <label>Space</label>
@@ -263,6 +265,7 @@ export type IssueDetailsSaveInput = {
   boardId: string
   content: string
   files: File[]
+  removeAttachmentIds: string[]
   statusId: string
 }
 
@@ -310,6 +313,7 @@ const state = reactive({
   moveBoards: [] as MoveOption[],
   moveSpaces: [] as MoveOption[],
   pickedSpaceId: props.viewModel.spaceId,
+  removedAttachmentIds: [] as string[],
   spaceLabel: props.viewModel.spaceLabel,
   statuses: [] as Array<{ id: string; name: string }>,
   statusId: props.viewModel.statusId,
@@ -352,6 +356,7 @@ const dirty = computed(
     state.pickedSpaceId !== props.viewModel.spaceId ||
     state.statusId !== props.viewModel.statusId ||
     state.files.length > 0 ||
+    state.removedAttachmentIds.length > 0 ||
     props.viewModel.attributes.some(
       (attribute) => state.attributeValues[attribute.id] !== attribute.value,
     ),
@@ -374,7 +379,9 @@ watch(
       boardId: viewModel.boardId,
       boardLabel: viewModel.boardLabel,
       content: viewModel.content,
+      files: [],
       pickedSpaceId: viewModel.spaceId,
+      removedAttachmentIds: [],
       spaceLabel: viewModel.spaceLabel,
       statusId: viewModel.statusId,
     })
@@ -541,12 +548,17 @@ function save() {
     boardId: state.boardId,
     content: state.content,
     files: state.files,
+    removeAttachmentIds: state.removedAttachmentIds,
     statusId: state.statusId,
   })
 }
 
 function changeFiles(files: File[]) {
   state.files = files
+}
+
+function removeAttachment(id: string) {
+  state.removedAttachmentIds.push(id)
 }
 
 function resetLookups() {
@@ -560,6 +572,7 @@ function resetLookups() {
     lookupError: null,
     moveBoards: [],
     moveSpaces: [],
+    removedAttachmentIds: [],
     statuses: [],
   })
 }

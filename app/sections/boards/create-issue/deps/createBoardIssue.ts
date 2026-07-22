@@ -13,5 +13,6 @@ export type CreateBoardIssue = (input: {
     | { attributeId: string; type: 'text'; value: string }
   >
   content: string
+  files: File[]
   statusId: string
 }) => Promise<ActionResult<CreateBoardIssueResult, CreateBoardIssueError>>

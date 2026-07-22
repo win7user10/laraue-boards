@@ -13,5 +13,7 @@ export type UpdateIssue = (input: {
     | { attributeId: string; type: 'text'; value: string }
   >
   content: string
+  files: File[]
   issueKey: string
+  removeAttachmentIds: string[]
 }) => Promise<ActionResult<UpdateIssueResult, UpdateIssueError>>

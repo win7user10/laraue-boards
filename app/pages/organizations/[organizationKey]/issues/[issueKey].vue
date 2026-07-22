@@ -13,14 +13,12 @@ import { openApiDeleteIssue } from '#infrastructure/issues/issue/openApiDeleteIs
 import { openApiMoveIssue } from '#infrastructure/issues/issue/openApiMoveIssue'
 import { openApiUpdateIssue } from '#infrastructure/issues/issue/openApiUpdateIssue'
 import { openApiViewIssuePage } from '#infrastructure/issues/issue/openApiViewIssuePage'
-import { openApiAddIssueAttachments } from '#infrastructure/issues/shared/openApiAddIssueAttachments'
 import IssuePage from '~/sections/issues/issue/IssuePage.vue'
 const route = useRoute('organizations-organizationKey-issues-issueKey')
 const issueKey = computed(() => String(route.params.issueKey))
 const config = useRuntimeConfig()
 const baseUrl = config.public.boardsApiBaseUrl
 const deps = {
-  addIssueAttachments: openApiAddIssueAttachments(baseUrl),
   deleteIssue: openApiDeleteIssue(baseUrl),
   issueDetails: {
     loadAssignees: openApiLoadAssignees(baseUrl),

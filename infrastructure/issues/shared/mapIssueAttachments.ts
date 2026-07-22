@@ -20,6 +20,7 @@ export const mapIssueAttachments = (
       new URL(`/api/files/${encodeURIComponent(id)}`, baseUrl).href
     return [
       {
+        id: originalId,
         originalUrl: fileUrl(originalId),
         previewUrl: fileUrl(previewId),
       },
