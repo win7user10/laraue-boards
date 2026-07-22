@@ -34,10 +34,17 @@
 
 <script setup lang="ts">
 import { DEFAULT_COLOR } from '~/constants/colors'
-import type { CreateSpacePageDeps } from '~/sections/spaces/create-space/CreateSpacePageDeps'
+import type {
+  CreateSpaceFailure,
+  CreateSpacePageDeps,
+} from '~/sections/spaces/create-space/CreateSpacePage.deps'
+import { matchResult } from '~/utils/actionResult'
+import { assertNever } from '~/utils/assertNever'
 
-const props = defineProps<{ deps: CreateSpacePageDeps }>()
-const organizationRoutes = useOrganizationRoutes()
+const props = defineProps<{
+  deps: CreateSpacePageDeps
+  onCreated: (spaceKey: string) => Promise<void> | void
+}>()
 const state = reactive({
   color: DEFAULT_COLOR,
   error: null as null | string,
@@ -47,31 +54,41 @@ const state = reactive({
 })
 useHead({ title: 'Create space' })
 
-async function submit() {
+const getFailureMessage = (failure: CreateSpaceFailure): string => {
+  switch (failure.type) {
+    case 'accessDenied':
+      return 'You do not have permission to create spaces.'
+    case 'invalidInput':
+      return failure.message
+    case 'organizationNotFound':
+      return 'The organization was not found.'
+    case 'temporarilyUnavailable':
+      return 'Could not create space. Try again.'
+    default:
+      return assertNever(failure)
+  }
+}
+
+async function submit(): Promise<void> {
+  if (state.submitting) {
+    return
+  }
   state.submitting = true
   state.error = null
-  const result = await props.deps.createSpace({
-    color: state.color,
-    key: state.key.trim(),
-    name: state.name.trim(),
-  })
-  state.submitting = false
-  await matchActionResult({
-    err: async (error) => {
-      state.error = getErrorMessage({
-        error,
-        messages: {
-          AccessDenied: 'You do not have permission to create spaces.',
-          OrganizationNotFound: 'The organization was not found.',
-          TemporarilyUnavailable: 'Could not create space. Try again.',
-        },
-      })
-    },
-    ok: async ({ spaceKey }) => {
-      await refreshAppLayoutData()
-      await navigateTo(organizationRoutes.space(spaceKey))
-    },
-    result,
-  })
+  try {
+    const result = await props.deps.create({
+      color: state.color,
+      key: state.key.trim(),
+      name: state.name.trim(),
+    })
+    await matchResult(result, {
+      err: (failure) => {
+        state.error = getFailureMessage(failure)
+      },
+      ok: ({ spaceKey }) => props.onCreated(spaceKey),
+    })
+  } finally {
+    state.submitting = false
+  }
 }
 </script>
