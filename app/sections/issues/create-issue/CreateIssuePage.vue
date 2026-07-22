@@ -1,90 +1,328 @@
 <template>
-  <CreateIssueContent
-    v-if="pageState.type === 'ready'"
-    :assignees="assignees"
-    :error="formError"
-    :loading-assignees="loadingAssignees"
-    :loading-boards="loadingBoards"
-    :loading-statuses="loadingStatuses"
-    :on-change-board="changeBoard"
-    :on-change-space="changeSpace"
-    :on-load-assignees="loadAssignees"
-    :on-load-boards="loadBoards"
-    :on-load-statuses="loadStatuses"
-    :on-submit="submit"
-    :submitting="submitting"
-    :view-model="pageState.data.CreateIssuePage" />
-  <PageLoadState
-    v-else
-    :error-text="pageState.type === 'error' ? pageState.message : ''"
-    :loading="pageState.type === 'pending'"
+  <PageState
+    error-title="Could not load issue form"
     loading-text="Loading issue form…"
-    :on-retry="refresh" />
+    :on-retry="query.refresh"
+    :state="pageState">
+    <template #default="{ data }">
+      <section>
+        <div class="title-row">
+          <div class="page-heading">
+            <AppBackLink
+              label="Back to issues"
+              :to="backTo" />
+            <ListPlus class="page-heading-icon" />
+            <div class="page-heading-text">
+              <h1>Add issue</h1>
+            </div>
+          </div>
+        </div>
+        <form
+          class="issue-form"
+          @submit.prevent="submitForm">
+          <div class="issue-form-main">
+            <label for="create-issue-content">Issue text</label>
+            <textarea
+              id="create-issue-content"
+              v-model="state.content"
+              placeholder="What needs attention?"
+              required
+              rows="10" />
+            <IssueAttachments
+              :attachments="[]"
+              :disabled="state.submitting"
+              :files="state.files"
+              :on-change="changeFiles" />
+          </div>
+          <div class="issue-form-side">
+            <label for="create-issue-space">Space</label>
+            <select
+              id="create-issue-space"
+              v-model="state.spaceId"
+              :disabled="state.loadingBoards || data.spaces.length === 0"
+              required
+              @change="changeSelectedSpace">
+              <option
+                v-if="data.spaces.length === 0"
+                disabled
+                value="">
+                No spaces available
+              </option>
+              <option
+                v-for="space in data.spaces"
+                :key="space.value"
+                :value="space.value">
+                {{ space.label }}
+              </option>
+            </select>
+
+            <label for="create-issue-board">Board</label>
+            <select
+              id="create-issue-board"
+              v-model="state.boardId"
+              :disabled="!state.spaceId"
+              required
+              @change="changeBoard(state.boardId)"
+              @focus="loadBoards(state.spaceId)">
+              <option
+                disabled
+                value="">
+                Select board
+              </option>
+              <option
+                v-if="state.loadingBoards"
+                disabled
+                value="__loading">
+                Loading boards…
+              </option>
+              <option
+                v-for="board in data.boards"
+                :key="board.value"
+                :value="board.value">
+                {{ board.label }}
+              </option>
+            </select>
+
+            <label for="create-issue-status">Status</label>
+            <select
+              id="create-issue-status"
+              v-model="state.statusId"
+              :disabled="!state.boardId"
+              required
+              @focus="loadStatuses(state.boardId)">
+              <option
+                disabled
+                value="">
+                Select status
+              </option>
+              <option
+                v-if="state.loadingStatuses"
+                disabled
+                value="__loading">
+                Loading statuses…
+              </option>
+              <option
+                v-for="status in data.statuses"
+                :key="status.value"
+                :value="status.value">
+                {{ status.label }}
+              </option>
+            </select>
+
+            <IssueAttributeFields
+              v-model="state.attributeValues"
+              :attributes="data.attributes" />
+
+            <label for="create-issue-assignee">Assignee</label>
+            <div class="issue-assignee">
+              <span
+                class="avatar"
+                :style="{ background: assignee?.color }">
+                {{ assignee?.initials ?? '?' }}
+              </span>
+              <select
+                id="create-issue-assignee"
+                v-model="state.assigneeId"
+                required
+                @focus="loadAssignees(state.spaceId)">
+                <option
+                  disabled
+                  value="">
+                  Select assignee
+                </option>
+                <option
+                  v-if="state.loadingAssignees"
+                  disabled
+                  value="__loading">
+                  Loading assignees…
+                </option>
+                <option
+                  v-for="option in state.assignees"
+                  :key="option.value"
+                  :value="option.value">
+                  {{ option.label }}
+                </option>
+              </select>
+            </div>
+
+            <p
+              v-if="state.error"
+              class="form-error">
+              {{ state.error }}
+            </p>
+            <div class="page-actions">
+              <button
+                class="primary"
+                :disabled="
+                  state.submitting || !state.statusId || !state.assigneeId
+                ">
+                {{ state.submitting ? 'Adding…' : 'Add issue' }}
+              </button>
+            </div>
+          </div>
+        </form>
+      </section>
+    </template>
+  </PageState>
 </template>
 
 <script setup lang="ts">
-import CreateIssueContent from '~/sections/issues/create-issue/components/CreateIssueContent.vue'
-import type { CreateIssuePageDeps } from '~/sections/issues/create-issue/CreateIssuePageDeps'
+import { ListPlus } from 'lucide-vue-next'
+import type { RouteLocationRaw } from 'vue-router'
+
+import IssueAttachments from '~/components/issues/IssueAttachments.vue'
+import IssueAttributeFields from '~/components/issues/IssueAttributeFields.vue'
+import type {
+  CreateIssueAssignee,
+  CreateIssueFailure,
+  CreateIssuePageDeps,
+  LoadSpaceDataFailure,
+  LoadStatusesFailure,
+  ViewCreateIssueFailure,
+} from '~/sections/issues/create-issue/CreateIssuePage.deps'
+import { matchResult } from '~/utils/actionResult'
+import { assertNever } from '~/utils/assertNever'
+import { toAsyncResultState } from '~/utils/asyncResultState'
 import { getIssueAttributeValueInput } from '~/utils/issueAttributeValues'
 
-const props = defineProps<{ deps: CreateIssuePageDeps }>()
-const organizationRoutes = useOrganizationRoutes()
-useHead({ title: 'Add issue' })
-const { refresh, state: pageState } = await useActionData({
-  action: () => props.deps.viewCreateIssuePage(),
-  fallbackMessage: 'Could not load issue form. Try again.',
-  messages: {
-    AccessDenied: 'You do not have permission to add issues.',
-    TemporarilyUnavailable:
-      'Could not load issue form. The service is temporarily unavailable.',
-  },
+const props = defineProps<{
+  backTo: RouteLocationRaw
+  deps: CreateIssuePageDeps
+  onCreated: (issueKey: string) => Promise<void> | void
+}>()
+const state = reactive({
+  assigneeId: '',
+  assignees: [] as CreateIssueAssignee[],
+  attributeValues: {} as Record<string, string>,
+  boardId: '',
+  content: '',
+  error: null as null | string,
+  files: [] as File[],
+  loadingAssignees: false,
+  loadingBoards: false,
+  loadingStatuses: false,
+  spaceId: '',
+  statusId: '',
+  submitting: false,
 })
-const page = computed(() =>
-  pageState.value.type === 'ready'
-    ? pageState.value.data.CreateIssuePage
-    : null,
-)
-const formError = ref<null | string>(null)
-const assignees = ref<
-  Array<{ color: string; initials: string; label: string; value: string }>
->([])
-const loadingAssignees = ref(false)
-const loadingBoards = ref(false)
-const loadingStatuses = ref(false)
-const submitting = ref(false)
 
-async function loadAssignees(spaceId: string) {
-  if (!spaceId || loadingAssignees.value || assignees.value.length) {
-    return
+useHead({ title: 'Add issue' })
+const query = await useAsyncData('create-issue', (_nuxtApp, { signal }) =>
+  props.deps.view({ signal }),
+)
+const getViewFailureMessage = (failure: ViewCreateIssueFailure): string => {
+  switch (failure.type) {
+    case 'accessDenied':
+      return 'You do not have permission to add issues.'
+    case 'temporarilyUnavailable':
+      return 'Could not load issue form. The service is temporarily unavailable.'
+    default:
+      return assertNever(failure)
   }
-  formError.value = null
-  loadingAssignees.value = true
-  const result = await props.deps.loadCreateIssueAssignees({ spaceId })
-  loadingAssignees.value = false
-  matchActionResult({
-    err: (error) => {
-      formError.value = getErrorMessage({
-        error,
-        messages: {
-          AccessDenied: 'You do not have access to space members.',
-          SpaceNotFound: 'The selected space was not found.',
-          TemporarilyUnavailable: 'Could not load assignees. Try again.',
-        },
-      })
-    },
-    ok: (value) => {
-      assignees.value = value.assignees
-    },
-    result,
-  })
+}
+const pageState = computed(() =>
+  toAsyncResultState({
+    error: query.error.value,
+    getErrorMessage: getViewFailureMessage,
+    result: query.data.value,
+    status: query.status.value,
+  }),
+)
+const page = computed(() =>
+  pageState.value.type === 'ready' ? pageState.value.data : null,
+)
+const assignee = computed(() =>
+  state.assignees.find((assignee) => assignee.value === state.assigneeId),
+)
+
+watch(
+  () => page.value?.spaceId,
+  (value) => (state.spaceId = value ?? ''),
+  { immediate: true },
+)
+watch(
+  () => page.value?.boardId,
+  (value) => (state.boardId = value ?? ''),
+)
+watch(
+  () => page.value?.statusId,
+  (value) => (state.statusId = value ?? ''),
+)
+
+const getSpaceFailureMessage = (
+  failure: LoadSpaceDataFailure,
+  resource: 'assignees' | 'boards',
+): string => {
+  switch (failure.type) {
+    case 'accessDenied':
+      return resource === 'assignees'
+        ? 'You do not have access to space members.'
+        : 'You do not have access to this space.'
+    case 'spaceNotFound':
+      return 'The selected space was not found.'
+    case 'temporarilyUnavailable':
+      return `Could not load ${resource}. Try again.`
+    default:
+      return assertNever(failure)
+  }
 }
 
-function changeSpace(spaceId: string) {
-  assignees.value = []
-  loadingAssignees.value = false
-  loadingBoards.value = false
-  loadingStatuses.value = false
+const getStatusesFailureMessage = (failure: LoadStatusesFailure): string => {
+  switch (failure.type) {
+    case 'accessDenied':
+      return 'You do not have permission to use this board.'
+    case 'boardNotFound':
+      return 'The selected board was not found.'
+    case 'temporarilyUnavailable':
+      return 'Could not load board statuses. Try again.'
+    default:
+      return assertNever(failure)
+  }
+}
+
+const getCreateFailureMessage = (failure: CreateIssueFailure): string => {
+  switch (failure.type) {
+    case 'accessDenied':
+      return 'You do not have permission to add this issue.'
+    case 'invalidInput':
+      return failure.message
+    case 'statusNotFound':
+      return 'The selected status was not found.'
+    case 'temporarilyUnavailable':
+      return 'Could not add issue. Try again.'
+    default:
+      return assertNever(failure)
+  }
+}
+
+async function loadAssignees(spaceId: string): Promise<void> {
+  if (!spaceId || state.loadingAssignees || state.assignees.length) {
+    return
+  }
+  state.error = null
+  state.loadingAssignees = true
+  try {
+    const result = await props.deps.loadAssignees({ spaceId })
+    matchResult(result, {
+      err: (failure) => {
+        state.error = getSpaceFailureMessage(failure, 'assignees')
+      },
+      ok: (assignees) => {
+        state.assignees = assignees
+      },
+    })
+  } finally {
+    state.loadingAssignees = false
+  }
+}
+
+function changeSpace(spaceId: string): void {
   const current = page.value
+  state.assignees = []
+  state.loadingAssignees = false
+  state.loadingBoards = false
+  state.loadingStatuses = false
+  state.error = null
   if (!current) {
     return
   }
@@ -93,118 +331,121 @@ function changeSpace(spaceId: string) {
   current.statusId = ''
   current.boards = []
   current.statuses = []
-  formError.value = null
 }
 
-async function loadBoards(spaceId: string) {
+function changeSelectedSpace(): void {
+  state.assigneeId = ''
+  changeSpace(state.spaceId)
+}
+
+function changeFiles(files: File[]): void {
+  state.files = files
+}
+
+async function loadBoards(spaceId: string): Promise<void> {
   const current = page.value
-  if (!current || current.boards.length > 0) {
+  if (!current || current.boards.length || state.loadingBoards) {
     return
   }
-  formError.value = null
-  loadingBoards.value = true
-  const result = await props.deps.loadCreateIssueBoards({ spaceId })
-  loadingBoards.value = false
-  matchActionResult({
-    err: (error) => {
-      formError.value = getErrorMessage({
-        error,
-        messages: {
-          AccessDenied: 'You do not have access to this space.',
-          SpaceNotFound: 'The selected space was not found.',
-          TemporarilyUnavailable: 'Could not load boards. Try again.',
-        },
-      })
-    },
-    ok: (value) => {
-      current.boards = value.boards
-      current.boardId = value.boardId
-    },
-    result,
-  })
+  state.error = null
+  state.loadingBoards = true
+  try {
+    const result = await props.deps.loadBoards({ spaceId })
+    matchResult(result, {
+      err: (failure) => {
+        state.error = getSpaceFailureMessage(failure, 'boards')
+      },
+      ok: ({ boardId, boards }) => {
+        current.boardId = boardId
+        current.boards = boards
+      },
+    })
+  } finally {
+    state.loadingBoards = false
+  }
 }
 
-function changeBoard(boardId: string) {
-  loadingStatuses.value = false
+function changeBoard(boardId: string): void {
   const current = page.value
+  state.loadingStatuses = false
+  state.error = null
   if (!current) {
     return
   }
   current.boardId = boardId
   current.statusId = ''
   current.statuses = []
-  formError.value = null
 }
 
-async function loadStatuses(boardId: string) {
+async function loadStatuses(boardId: string): Promise<void> {
   const current = page.value
-  if (!current || current.statuses.length > 0) {
+  if (!current || current.statuses.length || state.loadingStatuses) {
     return
   }
-  formError.value = null
-  loadingStatuses.value = true
-  const result = await props.deps.loadCreateIssueStatuses({ boardId })
-  loadingStatuses.value = false
-  matchActionResult({
-    err: (error) => {
-      formError.value = getErrorMessage({
-        error,
-        messages: {
-          AccessDenied: 'You do not have permission to use this board.',
-          BoardNotFound: 'The selected board was not found.',
-          TemporarilyUnavailable: 'Could not load board statuses. Try again.',
-        },
-      })
-    },
-    ok: (value) => {
-      current.statuses = value.statuses
-      current.statusId = current.statuses[0]?.value ?? ''
-    },
-    result,
-  })
+  state.error = null
+  state.loadingStatuses = true
+  try {
+    const result = await props.deps.loadStatuses({ boardId })
+    matchResult(result, {
+      err: (failure) => {
+        state.error = getStatusesFailureMessage(failure)
+      },
+      ok: (statuses) => {
+        current.statuses = statuses
+        current.statusId = statuses[0]?.value ?? ''
+      },
+    })
+  } finally {
+    state.loadingStatuses = false
+  }
 }
 
-async function submit(input: {
-  assigneeId: string
-  attributeValues: Record<string, string>
-  content: string
-  files: File[]
-  statusId: string
-}) {
+async function submitForm(): Promise<void> {
   const current = page.value
-  if (!current) {
+  if (!current || state.submitting) {
     return
   }
-  formError.value = null
-  submitting.value = true
-  const result = await props.deps.createIssue({
-    assigneeId: input.assigneeId,
-    attributeValues: getIssueAttributeValueInput(
-      input.attributeValues,
-      current.attributes,
-    ),
-    content: input.content,
-    files: input.files,
-    statusId: input.statusId,
-  })
-  await matchActionResult({
-    err: async (error) => {
-      formError.value = getErrorMessage({
-        error,
-        messages: {
-          AccessDenied: 'You do not have permission to add this issue.',
-          StatusNotFound: 'The selected status was not found.',
-          TemporarilyUnavailable: 'Could not add issue. Try again.',
-        },
-      })
-    },
-    ok: async () => {
-      await navigateTo(organizationRoutes.issues(), {
-        replace: true,
-      })
-    },
-    result,
-  })
-  submitting.value = false
+  state.error = null
+  state.submitting = true
+  try {
+    const result = await props.deps.create({
+      assigneeId: state.assigneeId,
+      attributeValues: getIssueAttributeValueInput(
+        state.attributeValues,
+        current.attributes,
+      ),
+      content: state.content.trim(),
+      files: state.files,
+      statusId: state.statusId,
+    })
+    await matchResult(result, {
+      err: (failure) => {
+        state.error = getCreateFailureMessage(failure)
+      },
+      ok: ({ issueKey }) => props.onCreated(issueKey),
+    })
+  } finally {
+    state.submitting = false
+  }
 }
 </script>
+
+<style scoped>
+.issue-assignee {
+  align-items: center;
+  display: flex;
+  gap: var(--space-2);
+  min-height: var(--control-height);
+}
+
+.issue-assignee .avatar {
+  font-size: var(--font-size-caption);
+  height: 28px;
+  width: 28px;
+}
+
+.issue-assignee select {
+  flex: 1;
+  min-width: 0;
+}
+</style>
