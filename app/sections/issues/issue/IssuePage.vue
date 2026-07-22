@@ -18,6 +18,7 @@
 </template>
 
 <script setup lang="ts">
+import type { IssueDetailsSaveInput } from '~/components/issues/issue-details/IssueDetails.vue'
 import IssueContent from '~/sections/issues/issue/components/IssueContent.vue'
 import type { IssuePageDeps } from '~/sections/issues/issue/IssuePageDeps'
 import { getIssueAttributeValueInput } from '~/utils/issueAttributeValues'
@@ -73,13 +74,7 @@ function setDirty(value: boolean) {
   dirty.value = value
 }
 
-async function save(input: {
-  assigneeId: string
-  attributeValues: Record<string, string>
-  content: string
-  files: File[]
-  statusId: string
-}) {
+async function save(input: IssueDetailsSaveInput) {
   if (pageState.value.type !== 'ready') {
     return
   }

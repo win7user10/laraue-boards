@@ -74,20 +74,18 @@ import {
   SquareKanban,
 } from 'lucide-vue-next'
 
-import type { LoginViaTelegramWidgetInput } from '~/sections/auth/login/deps/loginViaTelegramWidget'
-import type { LoginPageDeps } from '~/sections/auth/login/LoginPageDeps'
+import type {
+  LoginFailure,
+  LoginPageDeps,
+  TelegramUser,
+} from '~/sections/auth/login/LoginPage.deps'
+import { matchResult } from '~/utils/actionResult'
 
-type TelegramUser = {
-  auth_date: number
-  first_name: string
-  hash: string
-  id: number
-  last_name?: string
-  photo_url?: string
-  username?: string
-}
-
-const props = defineProps<{ botName: string; deps: LoginPageDeps }>()
+const props = defineProps<{
+  botName: string
+  deps: LoginPageDeps
+  onLoggedIn: () => Promise<void> | void
+}>()
 const widgetContainer = ref<HTMLElement | null>(null)
 const state = reactive({ error: null as null | string, submitting: false })
 const telegramWindow = globalThis as typeof globalThis & {
@@ -113,54 +111,56 @@ onBeforeUnmount(() => delete telegramWindow.onTelegramAuth)
 onMounted(loginViaTelegramMiniApp)
 useHead({ title: 'Sign in' })
 
-function setLoginError(
-  error: 'InvalidTelegramData' | 'TemporarilyUnavailable',
-) {
-  state.error = getErrorMessage({
-    error,
-    messages: {
-      InvalidTelegramData: 'Telegram sign-in data is invalid or has expired.',
-      TemporarilyUnavailable: 'Could not sign in with Telegram. Try again.',
-    },
-  })
-}
-
-async function finishLogin() {
-  clearNuxtData()
-  await navigateTo('/organizations')
+function getLoginFailureMessage(failure: LoginFailure): string {
+  switch (failure.type) {
+    case 'invalidTelegramData':
+      return 'Telegram sign-in data is invalid or has expired.'
+    case 'temporarilyUnavailable':
+      return 'Could not sign in with Telegram. Try again.'
+    default:
+      return assertNever(failure)
+  }
 }
 
 async function loginViaTelegramMiniApp() {
   state.submitting = true
-  const result = await props.deps.loginViaTelegramMiniApp()
-  await matchActionResult({
-    err: setLoginError,
-    ok: async (authenticated) => {
-      state.error = null
-      if (authenticated) {
-        await finishLogin()
-      }
-    },
-    result,
-  })
-  state.submitting = false
+  try {
+    const result = await props.deps.loginViaTelegramMiniApp()
+    await matchResult(result, {
+      err: (failure) => {
+        state.error = getLoginFailureMessage(failure)
+      },
+      ok: async (authenticated) => {
+        state.error = null
+        if (authenticated) {
+          await props.onLoggedIn()
+        }
+      },
+    })
+  } finally {
+    state.submitting = false
+  }
 }
 
-async function loginViaTelegramWidget(input: LoginViaTelegramWidgetInput) {
+async function loginViaTelegramWidget(input: TelegramUser) {
   if (state.submitting) {
     return
   }
   state.submitting = true
-  const result = await props.deps.loginViaTelegramWidget(input)
-  await matchActionResult({
-    err: setLoginError,
-    ok: async () => {
-      state.error = null
-      await finishLogin()
-    },
-    result,
-  })
-  state.submitting = false
+  try {
+    const result = await props.deps.loginViaTelegramWidget(input)
+    await matchResult(result, {
+      err: (failure) => {
+        state.error = getLoginFailureMessage(failure)
+      },
+      ok: async () => {
+        state.error = null
+        await props.onLoggedIn()
+      },
+    })
+  } finally {
+    state.submitting = false
+  }
 }
 </script>
 
