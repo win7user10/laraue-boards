@@ -56,9 +56,17 @@
 
 <script setup lang="ts">
 import { DEFAULT_COLOR } from '~/constants/colors'
-import type { CreateOrganizationPageDeps } from '~/sections/organizations/create-organization/CreateOrganizationPageDeps'
+import type {
+  CreateOrganizationFailure,
+  CreateOrganizationPageDeps,
+} from '~/sections/organizations/create-organization/CreateOrganizationPage.deps'
+import { matchResult } from '~/utils/actionResult'
+import { assertNever } from '~/utils/assertNever'
 
-const props = defineProps<{ deps: CreateOrganizationPageDeps }>()
+const props = defineProps<{
+  deps: CreateOrganizationPageDeps
+  onCreated: () => Promise<void> | void
+}>()
 const state = reactive({
   color: DEFAULT_COLOR,
   error: null as null | string,
@@ -68,30 +76,42 @@ const state = reactive({
 })
 useHead({ title: 'Create organization' })
 
+function getFailureMessage(failure: CreateOrganizationFailure): string {
+  switch (failure.type) {
+    case 'accessDenied':
+      return 'Sign in to create an organization.'
+    case 'invalidInput':
+      return failure.message
+    case 'temporarilyUnavailable':
+      return 'Could not create organization. Try again.'
+    default:
+      return assertNever(failure)
+  }
+}
+
 async function submit() {
+  if (state.submitting) {
+    return
+  }
   state.submitting = true
   state.error = null
-  const result = await props.deps.createOrganization({
-    color: state.color,
-    name: state.name.trim(),
-    slug: state.slug.trim(),
-  })
-  state.submitting = false
-  await matchActionResult({
-    err: async (error) => {
-      state.error = getErrorMessage({
-        error,
-        messages: {
-          AccessDenied: 'Sign in to create an organization.',
-          TemporarilyUnavailable: 'Could not create organization. Try again.',
+  try {
+    await matchResult(
+      await props.deps.create({
+        color: state.color,
+        name: state.name.trim(),
+        slug: state.slug.trim(),
+      }),
+      {
+        err: (failure) => {
+          state.error = getFailureMessage(failure)
         },
-      })
-    },
-    ok: async () => {
-      await navigateTo('/organizations')
-    },
-    result,
-  })
+        ok: props.onCreated,
+      },
+    )
+  } finally {
+    state.submitting = false
+  }
 }
 </script>
 
