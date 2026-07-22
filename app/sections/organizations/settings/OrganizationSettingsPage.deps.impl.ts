@@ -53,7 +53,7 @@ export function createOrganizationSettingsPageDeps(
         },
         params: { path: { id: Number(input.id) } },
       })
-      if (response.response.ok) {
+      if ('data' in response) {
         return ok(undefined)
       }
 
@@ -69,21 +69,26 @@ export function createOrganizationSettingsPageDeps(
         client.GET('/api/organizations', { signal }),
       ])
 
-      for (const response of [current, organizations]) {
-        if (response.response.ok) {
-          continue
+      if ('error' in current) {
+        const failure = mapViewFailure(current.response.status)
+        if (failure) {
+          return err(failure)
         }
+        return unrecognizedResponse(
+          'view organization settings',
+          current.response.status,
+        )
+      }
+      if ('error' in organizations) {
+        const response = organizations
         const failure = mapViewFailure(response.response.status)
         if (failure) {
           return err(failure)
         }
-        unrecognizedResponse(
+        return unrecognizedResponse(
           'view organization settings',
           response.response.status,
         )
-      }
-      if (!current.data || !organizations.data) {
-        throw new Error('Organization settings response has no data')
       }
 
       const organization = organizations.data.find(

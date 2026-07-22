@@ -160,7 +160,7 @@ export function createMemberPermissionsPageDeps(
           params: { path: { organizationUserId: Number(input.memberId) } },
         },
       )
-      if (response.response.ok) {
+      if ('data' in response) {
         return ok(undefined)
       }
       const failure = mapUpdateFailure(response.response.status, response.error)
@@ -182,8 +182,9 @@ export function createMemberPermissionsPageDeps(
         client.GET('/api/organizations/permittable-entities', { signal }),
       ])
 
+      const [membersResponse, permissionsResponse, spacesResponse] = responses
       for (const response of responses) {
-        if (response.response.ok) {
+        if ('data' in response) {
           continue
         }
         const failure = mapViewFailure(response.response.status)
@@ -195,13 +196,12 @@ export function createMemberPermissionsPageDeps(
         )
       }
 
-      const [membersResponse, permissionsResponse, spacesResponse] = responses
       if (
-        !membersResponse.data ||
-        !permissionsResponse.data ||
-        !spacesResponse.data
+        'error' in membersResponse ||
+        'error' in permissionsResponse ||
+        'error' in spacesResponse
       ) {
-        throw new Error('Member permissions response has no data')
+        throw new Error('Unreachable member permissions response')
       }
       const member = mapOrganizationMembers(membersResponse.data).find(
         (item) => item.id === memberId,

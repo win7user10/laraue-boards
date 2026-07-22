@@ -67,7 +67,7 @@ export function createAttributePageDeps(client: ApiClient): AttributePageDeps {
         '/api/organizations/attributes/{id}',
         { params: { path: { id: Number(id) } } },
       )
-      if (response.response.ok) {
+      if ('data' in response) {
         return ok(undefined)
       }
       const failure = mapViewFailure(response.response.status)
@@ -94,7 +94,7 @@ export function createAttributePageDeps(client: ApiClient): AttributePageDeps {
         },
         params: { path: { id: Number(input.id) } },
       })
-      if (response.response.ok) {
+      if ('data' in response) {
         return ok(undefined)
       }
       const failure = mapChangeFailure(response.response.status, response.error)
@@ -109,7 +109,7 @@ export function createAttributePageDeps(client: ApiClient): AttributePageDeps {
       const response = await client.GET('/api/organizations/attributes', {
         signal,
       })
-      if (!response.response.ok) {
+      if ('error' in response) {
         const failure = mapViewFailure(response.response.status)
         if (failure) {
           return err(failure)
@@ -117,9 +117,6 @@ export function createAttributePageDeps(client: ApiClient): AttributePageDeps {
         throw new Error(
           `Unrecognized attribute response: ${response.response.status}`,
         )
-      }
-      if (!response.data) {
-        throw new Error('Attribute response has no data')
       }
       const attribute = response.data.find(
         (item) => String(item.id) === attributeId,

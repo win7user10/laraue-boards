@@ -26,7 +26,7 @@ export function createPermissionsPageDeps(
       const response = await client.GET('/api/organizations/members', {
         signal,
       })
-      if (!response.response.ok) {
+      if ('error' in response) {
         const failure = mapFailure(response.response.status)
         if (failure) {
           return err(failure)
@@ -34,9 +34,6 @@ export function createPermissionsPageDeps(
         throw new Error(
           `Unrecognized permissions response: ${response.response.status}`,
         )
-      }
-      if (!response.data) {
-        throw new Error('Permissions response has no data')
       }
       return ok(mapOrganizationMembers(response.data))
     },

@@ -98,7 +98,7 @@ export function createDataMovementPageDeps(
         '/api/movement/organization/{id}/spaces',
         { params: { path: { id: Number(organizationId) } } },
       )
-      if (!response.response.ok) {
+      if ('error' in response) {
         const failure = mapLoadFailure(response.response.status)
         if (failure) {
           return err(failure)
@@ -106,9 +106,6 @@ export function createDataMovementPageDeps(
         throw new Error(
           `Unrecognized destination spaces response: ${response.response.status}`,
         )
-      }
-      if (!response.data) {
-        throw new Error('Destination spaces response has no data')
       }
       return ok(mapMoveOptions(response.data))
     },
@@ -130,7 +127,7 @@ export function createDataMovementPageDeps(
         ),
       )
       for (const response of responses) {
-        if (response.response.ok) {
+        if ('data' in response) {
           continue
         }
         const failure = mapMoveFailure(response.response.status)
@@ -164,7 +161,7 @@ export function createDataMovementPageDeps(
         ),
       )
       for (const response of responses) {
-        if (response.response.ok) {
+        if ('data' in response) {
           continue
         }
         const failure = mapMoveFailure(response.response.status)
@@ -180,7 +177,7 @@ export function createDataMovementPageDeps(
 
     async view({ signal }) {
       const current = await client.GET('/api/organizations/current', { signal })
-      if (!current.response.ok) {
+      if ('error' in current) {
         const failure = mapViewFailure(current.response.status, true)
         if (failure) {
           return err(failure)
@@ -188,9 +185,6 @@ export function createDataMovementPageDeps(
         throw new Error(
           `Unrecognized current organization response: ${current.response.status}`,
         )
-      }
-      if (!current.data) {
-        throw new Error('Current organization response has no data')
       }
       if (!current.data.canMassMove) {
         return err({ type: 'accessDenied' })
@@ -205,7 +199,7 @@ export function createDataMovementPageDeps(
         }),
       ])
       for (const response of responses) {
-        if (response.response.ok) {
+        if ('data' in response) {
           continue
         }
         const failure = mapViewFailure(response.response.status)
@@ -217,8 +211,12 @@ export function createDataMovementPageDeps(
         )
       }
       const [organizations, spaces, destinationSpaces] = responses
-      if (!organizations.data || !spaces.data || !destinationSpaces.data) {
-        throw new Error('Data movement response has no data')
+      if (
+        'error' in organizations ||
+        'error' in spaces ||
+        'error' in destinationSpaces
+      ) {
+        throw new Error('Unreachable data movement response')
       }
 
       const boardResponses = await Promise.all(
@@ -230,10 +228,7 @@ export function createDataMovementPageDeps(
         ),
       )
       for (const response of boardResponses) {
-        if (response.response.ok) {
-          if (!response.data) {
-            throw new Error('Boards response has no data')
-          }
+        if ('data' in response) {
           continue
         }
         const failure = mapViewFailure(response.response.status)
@@ -245,13 +240,20 @@ export function createDataMovementPageDeps(
         )
       }
 
+      const boardsBySpace = boardResponses.map((response) => {
+        if ('error' in response) {
+          throw new Error('Unreachable boards response')
+        }
+        return response.data
+      })
+
       return ok(
         mapPage(
           current.data,
           organizations.data,
           spaces.data,
           destinationSpaces.data,
-          boardResponses.map((response) => response.data!),
+          boardsBySpace,
         ),
       )
     },

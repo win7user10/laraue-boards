@@ -40,7 +40,7 @@ export function createCreateAttributePageDeps(
           type: input.data.type === 'list' ? 1 : 0,
         },
       })
-      if (!response.response.ok) {
+      if ('error' in response) {
         const failure = mapFailure(response.response.status, response.error)
         if (failure) {
           return err(failure)
@@ -48,9 +48,6 @@ export function createCreateAttributePageDeps(
         throw new Error(
           `Unrecognized create attribute response: ${response.response.status}`,
         )
-      }
-      if (response.data === undefined) {
-        throw new Error('Create attribute response has no data')
       }
       return ok({ id: String(response.data) })
     },

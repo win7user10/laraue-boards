@@ -42,21 +42,21 @@ export function createOrganizationPickerPageDeps(
         body: { organizationId },
         parseAs: 'text',
       })
-      if (!response.response.ok) {
-        const failure = mapSelectFailure(response.response.status)
-        if (failure) {
-          return err(failure)
-        }
-        throw new Error(
-          `Unrecognized select organization response: ${response.response.status}`,
-        )
+      if ('data' in response) {
+        return ok(null)
       }
-      return ok(null)
+      const failure = mapSelectFailure(response.response.status)
+      if (failure) {
+        return err(failure)
+      }
+      throw new Error(
+        `Unrecognized select organization response: ${response.response.status}`,
+      )
     },
 
     async view({ signal }) {
       const response = await client.GET('/api/organizations', { signal })
-      if (!response.response.ok) {
+      if ('error' in response) {
         const failure = mapViewFailure(response.response.status)
         if (failure) {
           return err(failure)
@@ -64,9 +64,6 @@ export function createOrganizationPickerPageDeps(
         throw new Error(
           `Unrecognized organizations response: ${response.response.status}`,
         )
-      }
-      if (!response.data) {
-        throw new Error('Organizations response has no data')
       }
       return ok(
         response.data.map((organization) => {

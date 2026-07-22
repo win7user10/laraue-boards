@@ -30,7 +30,7 @@ export function createCreateOrganizationPageDeps(
   return {
     async create(input) {
       const response = await client.POST('/api/organizations', { body: input })
-      if (!response.response.ok) {
+      if ('error' in response) {
         const failure = mapFailure(response.response.status, response.error)
         if (failure) {
           return err(failure)
@@ -39,7 +39,7 @@ export function createCreateOrganizationPageDeps(
           `Unrecognized create organization response: ${response.response.status}`,
         )
       }
-      if (response.data?.id === undefined) {
+      if (response.data.id === undefined) {
         throw new Error('Create organization response has no id')
       }
       return ok({ organizationId: String(response.data.id) })

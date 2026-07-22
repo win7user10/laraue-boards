@@ -43,7 +43,7 @@ export function createLoginPageDeps(
         body: { initData },
         parseAs: 'text',
       })
-      return response.response.ok
+      return 'data' in response
         ? ok(true)
         : err(failureFrom(response.response.status))
     },
@@ -53,7 +53,7 @@ export function createLoginPageDeps(
         body: input,
         parseAs: 'text',
       })
-      return response.response.ok
+      return 'data' in response
         ? ok(undefined)
         : err(failureFrom(response.response.status))
     },

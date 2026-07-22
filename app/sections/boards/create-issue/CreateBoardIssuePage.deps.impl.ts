@@ -88,7 +88,7 @@ export function createCreateBoardIssuePageDeps(
           }),
         parseAs: 'text',
       })
-      if (!response.response.ok) {
+      if ('error' in response) {
         const failure = mapCreateFailure(
           response.response.status,
           response.error,
@@ -100,15 +100,12 @@ export function createCreateBoardIssuePageDeps(
           `Unrecognized create issue response: ${response.response.status}`,
         )
       }
-      if (response.data === undefined) {
-        throw new Error('Create issue response has no issue key')
-      }
       return ok({ issueKey: String(response.data) })
     },
 
     async loadAssignees({ spaceKey }) {
       const spaces = await client.GET('/api/spaces')
-      if (!spaces.response.ok) {
+      if ('error' in spaces) {
         const failure = mapLoadFailure(spaces.response.status)
         if (failure) {
           return err(failure)
@@ -116,9 +113,6 @@ export function createCreateBoardIssuePageDeps(
         throw new Error(
           `Unrecognized spaces response: ${spaces.response.status}`,
         )
-      }
-      if (!spaces.data) {
-        throw new Error('Spaces response has no data')
       }
       const space = findSpaceByKey(spaces.data, spaceKey)
       if (!space) {
@@ -128,7 +122,7 @@ export function createCreateBoardIssuePageDeps(
       const response = await client.GET('/api/spaces/{id}/members', {
         params: { path: { id: Number(space.id) } },
       })
-      if (!response.response.ok) {
+      if ('error' in response) {
         const failure = mapLoadFailure(response.response.status)
         if (failure) {
           return err(failure)
@@ -136,9 +130,6 @@ export function createCreateBoardIssuePageDeps(
         throw new Error(
           `Unrecognized space members response: ${response.response.status}`,
         )
-      }
-      if (!response.data) {
-        throw new Error('Space members response has no data')
       }
       return ok(mapOrganizationAssignees(response.data))
     },
@@ -151,14 +142,14 @@ export function createCreateBoardIssuePageDeps(
         }),
         client.GET('/api/organizations/attributes', { signal }),
       ])
-      if (!board.response.ok) {
+      if ('error' in board) {
         const failure = mapViewFailure(board.response.status)
         if (failure) {
           return err(failure)
         }
         throw new Error(`Unrecognized board response: ${board.response.status}`)
       }
-      if (!attributes.response.ok) {
+      if ('error' in attributes) {
         const failure = mapAccessFailure(attributes.response.status)
         if (failure) {
           return err(failure)
@@ -166,9 +157,6 @@ export function createCreateBoardIssuePageDeps(
         throw new Error(
           `Unrecognized attributes response: ${attributes.response.status}`,
         )
-      }
-      if (!board.data || !attributes.data) {
-        throw new Error('Create board issue page response has no data')
       }
       if (!board.data.canCreateIssues) {
         return err({ type: 'accessDenied' })

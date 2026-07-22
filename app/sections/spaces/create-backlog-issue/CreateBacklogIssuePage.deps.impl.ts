@@ -91,7 +91,7 @@ export function createCreateBacklogIssuePageDeps(
           }),
         parseAs: 'text',
       })
-      if (!response.response.ok) {
+      if ('error' in response) {
         const failure = mapCreateFailure(
           response.response.status,
           response.error,
@@ -103,9 +103,6 @@ export function createCreateBacklogIssuePageDeps(
           `Unrecognized create issue response: ${response.response.status}`,
         )
       }
-      if (response.data === undefined) {
-        throw new Error('Create issue response has no issue key')
-      }
       return ok({ issueKey: String(response.data) })
     },
 
@@ -113,7 +110,7 @@ export function createCreateBacklogIssuePageDeps(
       const response = await client.GET('/api/spaces/{id}/members', {
         params: { path: { id: Number(spaceId) } },
       })
-      if (!response.response.ok) {
+      if ('error' in response) {
         const failure = mapLoadFailure(response.response.status)
         if (failure) {
           return err(failure)
@@ -121,9 +118,6 @@ export function createCreateBacklogIssuePageDeps(
         throw new Error(
           `Unrecognized space members response: ${response.response.status}`,
         )
-      }
-      if (!response.data) {
-        throw new Error('Space members response has no data')
       }
       return ok(mapOrganizationAssignees(response.data))
     },
@@ -133,7 +127,7 @@ export function createCreateBacklogIssuePageDeps(
         client.GET('/api/spaces', { signal }),
         client.GET('/api/organizations/attributes', { signal }),
       ])
-      if (!spaces.response.ok) {
+      if ('error' in spaces) {
         const failure = mapAccessFailure(spaces.response.status)
         if (failure) {
           return err(failure)
@@ -142,7 +136,7 @@ export function createCreateBacklogIssuePageDeps(
           `Unrecognized spaces response: ${spaces.response.status}`,
         )
       }
-      if (!attributes.response.ok) {
+      if ('error' in attributes) {
         const failure = mapAccessFailure(attributes.response.status)
         if (failure) {
           return err(failure)
@@ -150,9 +144,6 @@ export function createCreateBacklogIssuePageDeps(
         throw new Error(
           `Unrecognized attributes response: ${attributes.response.status}`,
         )
-      }
-      if (!spaces.data || !attributes.data) {
-        throw new Error('Create backlog issue page response has no data')
       }
       const space = findSpaceByKey(spaces.data, spaceKey)
       if (!space) {
@@ -163,7 +154,7 @@ export function createCreateBacklogIssuePageDeps(
         params: { path: { id: Number(space.id) } },
         signal,
       })
-      if (!boards.response.ok) {
+      if ('error' in boards) {
         const failure = mapViewFailure(boards.response.status, 'spaceNotFound')
         if (failure) {
           return err(failure)
@@ -171,9 +162,6 @@ export function createCreateBacklogIssuePageDeps(
         throw new Error(
           `Unrecognized boards response: ${boards.response.status}`,
         )
-      }
-      if (!boards.data) {
-        throw new Error('Boards response has no data')
       }
       const backlog = boards.data.find((board) => board.isDefault)
       if (!backlog) {
@@ -184,7 +172,7 @@ export function createCreateBacklogIssuePageDeps(
         params: { path: { id: Number(backlog.id) } },
         signal,
       })
-      if (!board.response.ok) {
+      if ('error' in board) {
         const failure = mapViewFailure(board.response.status, 'backlogNotFound')
         if (failure) {
           return err(failure)
@@ -192,9 +180,6 @@ export function createCreateBacklogIssuePageDeps(
         throw new Error(
           `Unrecognized backlog response: ${board.response.status}`,
         )
-      }
-      if (!board.data) {
-        throw new Error('Backlog response has no data')
       }
       if (!board.data.canCreateIssues) {
         return err({ type: 'accessDenied' })

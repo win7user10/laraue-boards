@@ -37,7 +37,7 @@ export function createAttributesPageDeps(
       const response = await client.GET('/api/organizations/attributes', {
         signal,
       })
-      if (!response.response.ok) {
+      if ('error' in response) {
         const failure = mapFailure(response.response.status)
         if (failure) {
           return err(failure)
@@ -45,9 +45,6 @@ export function createAttributesPageDeps(
         throw new Error(
           `Unrecognized attributes response: ${response.response.status}`,
         )
-      }
-      if (!response.data) {
-        throw new Error('Attributes response has no data')
       }
       return ok(
         response.data.map((attribute) => {

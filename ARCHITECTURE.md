@@ -742,7 +742,7 @@ async function moveItems(
       mapMoveItemsInput(input),
     )
 
-    if (response.error) {
+    if (!('data' in response)) {
       const failure = mapMoveItemsFailure(response)
 
       if (failure) {
@@ -764,6 +764,44 @@ async function moveItems(
   }
 }
 ```
+
+### Narrowing `openapi-fetch` Responses
+
+An `openapi-fetch` result is narrowed through the top-level `data`/`error`
+union, not through the nested native `Response`. Prefer the positive
+`'data' in response` success discriminator:
+
+```ts
+const response = await client.GET('/api/spaces')
+
+if (!('data' in response)) {
+  const failure = mapViewFailure(response.response.status)
+  if (failure) {
+    return err(failure)
+  }
+  throw new Error(`Unrecognized response: ${response.response.status}`)
+}
+
+return ok(response.data)
+```
+
+Do not use `response.response.ok` as the TypeScript discriminator. It is a
+runtime property of the nested Fetch `Response`, so TypeScript does not connect
+it to the outer `data`/`error` union.
+
+Checking only `'error' in response` is insufficient for success responses with
+an intentionally empty body. `openapi-fetch` represents them as
+`{ data: undefined, response }`, so the presence of the top-level `data` key is
+the reliable success discriminator.
+
+After the error branch terminates, trust the generated OpenAPI success type. If
+the declared successful response has a required body, do not add a redundant
+`if (!response.data)` check. A successful endpoint that intentionally has no
+body is represented as such by its generated response type.
+
+For several responses loaded through `Promise.all`, narrow each original
+response variable explicitly before reading its `data`. Checking the responses
+only through a shared loop does not preserve narrowing for those variables.
 
 ### Key Rule
 

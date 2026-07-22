@@ -85,7 +85,7 @@ export function createCreateIssuePageDeps(
           }),
         parseAs: 'text',
       })
-      if (!response.response.ok) {
+      if ('error' in response) {
         const failure = mapCreateFailure(
           response.response.status,
           response.error,
@@ -97,9 +97,6 @@ export function createCreateIssuePageDeps(
           `Unrecognized create issue response: ${response.response.status}`,
         )
       }
-      if (response.data === undefined) {
-        throw new Error('Create issue response has no issue key')
-      }
       return ok({ issueKey: String(response.data) })
     },
 
@@ -107,7 +104,7 @@ export function createCreateIssuePageDeps(
       const response = await client.GET('/api/spaces/{id}/members', {
         params: { path: { id: Number(spaceId) } },
       })
-      if (!response.response.ok) {
+      if ('error' in response) {
         const failure = mapSpaceFailure(response.response.status)
         if (failure) {
           return err(failure)
@@ -116,9 +113,6 @@ export function createCreateIssuePageDeps(
           `Unrecognized space members response: ${response.response.status}`,
         )
       }
-      if (!response.data) {
-        throw new Error('Space members response has no data')
-      }
       return ok(mapOrganizationAssignees(response.data))
     },
 
@@ -126,7 +120,7 @@ export function createCreateIssuePageDeps(
       const response = await client.GET('/api/spaces/{id}/epics', {
         params: { path: { id: Number(spaceId) } },
       })
-      if (!response.response.ok) {
+      if ('error' in response) {
         const failure = mapSpaceFailure(response.response.status)
         if (failure) {
           return err(failure)
@@ -134,9 +128,6 @@ export function createCreateIssuePageDeps(
         throw new Error(
           `Unrecognized space boards response: ${response.response.status}`,
         )
-      }
-      if (!response.data) {
-        throw new Error('Space boards response has no data')
       }
       return ok({
         boardId: String(
@@ -155,7 +146,7 @@ export function createCreateIssuePageDeps(
       const response = await client.GET('/api/epics/{id}', {
         params: { path: { id: Number(boardId) } },
       })
-      if (!response.response.ok) {
+      if ('error' in response) {
         const failure = mapStatusFailure(response.response.status)
         if (failure) {
           return err(failure)
@@ -163,9 +154,6 @@ export function createCreateIssuePageDeps(
         throw new Error(
           `Unrecognized board response: ${response.response.status}`,
         )
-      }
-      if (!response.data) {
-        throw new Error('Board response has no data')
       }
       if (!response.data.canCreateIssues) {
         return err({ type: 'accessDenied' })
@@ -187,19 +175,23 @@ export function createCreateIssuePageDeps(
         client.GET('/api/spaces', { signal }),
         client.GET('/api/organizations/attributes', { signal }),
       ])
-      for (const response of [spaces, attributes]) {
-        if (!response.response.ok) {
-          const failure = mapAccessFailure(response.response.status)
-          if (failure) {
-            return err(failure)
-          }
-          throw new Error(
-            `Unrecognized create issue page response: ${response.response.status}`,
-          )
+      if ('error' in spaces) {
+        const failure = mapAccessFailure(spaces.response.status)
+        if (failure) {
+          return err(failure)
         }
+        throw new Error(
+          `Unrecognized create issue page response: ${spaces.response.status}`,
+        )
       }
-      if (!spaces.data || !attributes.data) {
-        throw new Error('Create issue page response has no data')
+      if ('error' in attributes) {
+        const failure = mapAccessFailure(attributes.response.status)
+        if (failure) {
+          return err(failure)
+        }
+        throw new Error(
+          `Unrecognized create issue page response: ${attributes.response.status}`,
+        )
       }
       const spaceOptions = spaces.data.map((space) => {
         if (space.id === undefined) {
