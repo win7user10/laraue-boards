@@ -1,26 +1,23 @@
 <template>
-  <IssuesPage :deps="deps" />
+  <IssuesPage
+    :deps="deps"
+    :on-update-query="onUpdateQuery"
+    :organization-key="organizationKey"
+    :route-query="route.query" />
 </template>
 
 <script setup lang="ts">
-import { openApiLoadMoveBoards } from '#infrastructure/issues/issue-list/organization/openApiLoadMoveBoards'
-import { openApiLoadMoveSpaces } from '#infrastructure/issues/issue-list/organization/openApiLoadMoveSpaces'
-import { openApiLoadMoveStatuses } from '#infrastructure/issues/issue-list/organization/openApiLoadMoveStatuses'
-import { openApiMoveIssues } from '#infrastructure/issues/issue-list/organization/openApiMoveIssues'
-import { openApiSearchIssues } from '#infrastructure/issues/issues/openApiSearchIssues'
-import { openApiViewIssuesPage } from '#infrastructure/issues/issues/openApiViewIssuesPage'
+import type { LocationQueryRaw } from 'vue-router'
+
+import { createIssuesPageDeps } from '~/sections/issues/issues/IssuesPage.deps.impl'
 import IssuesPage from '~/sections/issues/issues/IssuesPage.vue'
-import type { IssuesPageDeps } from '~/sections/issues/issues/IssuesPageDeps'
-const config = useRuntimeConfig()
-const baseUrl = config.public.boardsApiBaseUrl
-const deps = {
-  issueList: {
-    loadMoveBoards: openApiLoadMoveBoards(baseUrl),
-    loadMoveSpaces: openApiLoadMoveSpaces(baseUrl),
-    loadMoveStatuses: openApiLoadMoveStatuses(baseUrl),
-    moveIssues: openApiMoveIssues(baseUrl),
-  },
-  searchIssues: openApiSearchIssues(baseUrl),
-  viewIssuesPage: openApiViewIssuesPage(baseUrl),
-} satisfies IssuesPageDeps
+
+const route = useRoute('organizations-organizationKey-issues')
+const organizationKey = computed(() => String(route.params.organizationKey))
+const router = useRouter()
+const client = useApiClient()
+const deps = createIssuesPageDeps(client)
+const onUpdateQuery = async (query: LocationQueryRaw): Promise<void> => {
+  await router.replace({ query })
+}
 </script>

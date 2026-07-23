@@ -1,35 +1,81 @@
 <template>
-  <IssuesContent
-    v-if="pageState.type === 'ready'"
-    :filter-value="filterValue"
-    :filtering="state.filtering"
-    :move="state.move"
-    :on-change-move-board="changeMoveBoard"
-    :on-change-move-space="changeMoveSpace"
-    :on-load-move-boards="loadMoveBoards"
-    :on-load-move-spaces="loadMoveSpaces"
-    :on-load-move-statuses="loadMoveStatuses"
-    :on-move="moveIssues"
-    :on-update-filters="updateFilters"
-    :on-update-page="updatePage"
-    :on-update-search="updateSearch"
-    :page="request.page"
-    :search="request.search"
-    :view-model="pageState.data.IssuesPage" />
-  <PageLoadState
-    v-else
-    :error-text="pageState.type === 'error' ? pageState.message : ''"
-    :loading="pageState.type === 'pending'"
+  <PageState
+    error-title="Could not load issues"
     loading-text="Loading issues…"
-    :on-retry="refresh" />
+    :on-retry="query.refresh"
+    :state="pageState">
+    <template #default="{ data }">
+      <section>
+        <div class="title-row">
+          <div class="page-heading">
+            <ClipboardList class="page-heading-icon" />
+            <div class="page-heading-text">
+              <h1>All issues</h1>
+            </div>
+          </div>
+          <NuxtLink
+            v-if="data.spaces.length"
+            class="primary"
+            :to="organizationRoutes.newIssue()">
+            <Plus />
+            <span class="btn-label">Add issue</span>
+          </NuxtLink>
+        </div>
+        <div class="toolbar">
+          <input
+            aria-label="Search issues"
+            placeholder="Search issues"
+            type="search"
+            :value="request.search"
+            @input="updateSearch(($event.target as HTMLInputElement).value)" />
+          <IssueFilters
+            :attributes="data.attributes"
+            :loading="state.filtering"
+            :model-value="filterValue"
+            :spaces="data.spaces"
+            @update:model-value="
+              updateFilters({
+                attributes: $event.attributes,
+                spaceIds: $event.spaceIds ?? [],
+              })
+            " />
+        </div>
+        <IssueList
+          empty-text="No issues yet."
+          :filtering="state.filtering"
+          :has-next-page="data.hasNextPage"
+          :issues="data.issues"
+          :move="state.move"
+          :on-change-move-board="changeMoveBoard"
+          :on-change-move-space="changeMoveSpace"
+          :on-load-move-boards="loadMoveBoards"
+          :on-load-move-spaces="loadMoveSpaces"
+          :on-load-move-statuses="loadMoveStatuses"
+          :on-move="moveIssues"
+          :on-update-page="updatePage"
+          :page="request.page" />
+      </section>
+    </template>
+  </PageState>
 </template>
 
 <script setup lang="ts">
 import { debounce } from 'es-toolkit'
+import { ClipboardList, Plus } from 'lucide-vue-next'
+import type { LocationQuery, LocationQueryRaw } from 'vue-router'
 
-import type { IssuesPageFilterValue } from '~/sections/issues/issues/components/IssuesContent.vue'
-import IssuesContent from '~/sections/issues/issues/components/IssuesContent.vue'
-import type { IssuesPageDeps } from '~/sections/issues/issues/IssuesPageDeps'
+import IssueList from '~/components/issues/issue-list/IssueList.vue'
+import IssueFilters from '~/components/issues/IssueFilters.vue'
+import type {
+  IssuesPageDeps,
+  LoadMoveBoardsFailure,
+  LoadMoveStatusesFailure,
+  MoveIssuesFailure,
+  ViewIssuesFailure,
+} from '~/sections/issues/issues/IssuesPage.deps'
+import { err, matchResult, ok } from '~/utils/actionResult'
+import { assertNever } from '~/utils/assertNever'
+import { toAsyncResultState } from '~/utils/asyncResultState'
 import {
   getIssueAttributeFilterInput,
   normalizeIssueAttributeFilters,
@@ -38,84 +84,61 @@ import {
   withIssueAttributeFilters,
 } from '~/utils/issueAttributeFilters'
 
-const props = defineProps<{ deps: IssuesPageDeps }>()
-useHead({ title: 'All issues' })
+type FilterValue = {
+  attributes: Record<string, string | string[]>
+  spaceIds: string[]
+}
 
-// Page loading and filtering
-const route = useRoute('organizations-organizationKey-issues')
+const props = defineProps<{
+  deps: IssuesPageDeps
+  onUpdateQuery: (query: LocationQueryRaw) => Promise<void> | void
+  organizationKey: string
+  routeQuery: LocationQuery
+}>()
+const organizationRoutes = useOrganizationRoutes()
 const request = computed(() => ({
-  attributeQuery: readIssueAttributeQuery(route.query),
-  page: Math.max(1, Number(route.query.page) || 1),
-  search: typeof route.query.search === 'string' ? route.query.search : '',
-  spaceIds: readIssueSpaceQuery(route.query.space),
+  attributeQuery: readIssueAttributeQuery(props.routeQuery),
+  page: Math.max(1, Number(props.routeQuery.page) || 1),
+  search:
+    typeof props.routeQuery.search === 'string' ? props.routeQuery.search : '',
+  spaceIds: readIssueSpaceQuery(props.routeQuery.space),
 }))
-const router = useRouter()
-const {
-  actionResult: outcome,
-  refresh,
-  state: pageState,
-} = await useActionData({
-  action: () => props.deps.viewIssuesPage(request.value),
-  fallbackMessage: 'Could not load issues. Try again.',
-  messages: {
-    AccessDenied: 'You do not have access to organization issues.',
-    TemporarilyUnavailable:
-      'Could not load issues. The service is temporarily unavailable.',
-  },
-})
-const issueAttributes = computed(() =>
-  pageState.value.type === 'ready'
-    ? pageState.value.data.IssuesPage.attributes
-    : [],
+const query = await useAsyncData(
+  () => `issues:${props.organizationKey}`,
+  (_nuxtApp, { signal }) => props.deps.view({ ...request.value, signal }),
+  { watch: [() => props.organizationKey] },
+)
+const getViewFailureMessage = (failure: ViewIssuesFailure): string => {
+  switch (failure.type) {
+    case 'accessDenied':
+      return 'You do not have access to organization issues.'
+    case 'temporarilyUnavailable':
+      return 'Could not load issues. The service is temporarily unavailable.'
+    default:
+      return assertNever(failure)
+  }
+}
+const pageState = computed(() =>
+  toAsyncResultState({
+    error: query.error.value,
+    getErrorMessage: getViewFailureMessage,
+    result: query.data.value,
+    status: query.status.value,
+  }),
+)
+const attributes = computed(() =>
+  pageState.value.type === 'ready' ? pageState.value.data.attributes : [],
 )
 const attributeFilters = computed(() =>
   normalizeIssueAttributeFilters(
     request.value.attributeQuery,
-    issueAttributes.value,
+    attributes.value,
   ),
 )
-const filterValue = computed<IssuesPageFilterValue>(() => ({
+const filterValue = computed<FilterValue>(() => ({
   attributes: attributeFilters.value,
   spaceIds: request.value.spaceIds,
 }))
-
-function updateFilters(value: IssuesPageFilterValue) {
-  const query = withIssueAttributeFilters(
-    route.query,
-    value.attributes,
-    issueAttributes.value,
-  )
-  if (value.spaceIds.length) {
-    query.space = value.spaceIds
-  } else {
-    delete query.space
-  }
-  void router.replace({ query })
-}
-
-function updatePage(value: number) {
-  const query = { ...route.query }
-  if (value > 1) {
-    query.page = String(value)
-  } else {
-    delete query.page
-  }
-  void router.replace({ query })
-}
-
-function updateSearch(value: string) {
-  const query = { ...route.query }
-  delete query.page
-  if (value) {
-    query.search = value
-  } else {
-    delete query.search
-  }
-  void router.replace({ query })
-}
-
-// Issue search
-const runSearch = createLatestRequest()
 const state = reactive({
   filtering: false,
   move: {
@@ -129,54 +152,80 @@ const state = reactive({
     statuses: [] as Array<{ id: string; name: string }>,
   },
 })
+const runSearch = createLatestRequest()
+const scheduleSearch = debounce(searchIssues, 300)
 
-async function searchIssues(input: typeof request.value) {
+function updateFilters(value: FilterValue) {
+  const nextQuery = withIssueAttributeFilters(
+    props.routeQuery,
+    value.attributes,
+    attributes.value,
+  )
+  if (value.spaceIds.length) {
+    nextQuery.space = value.spaceIds
+  } else {
+    delete nextQuery.space
+  }
+  void props.onUpdateQuery(nextQuery)
+}
+
+function updatePage(value: number) {
+  const nextQuery: LocationQueryRaw = { ...props.routeQuery }
+  if (value > 1) {
+    nextQuery.page = String(value)
+  } else {
+    delete nextQuery.page
+  }
+  void props.onUpdateQuery(nextQuery)
+}
+
+function updateSearch(value: string) {
+  const nextQuery: LocationQueryRaw = { ...props.routeQuery }
+  delete nextQuery.page
+  if (value) {
+    nextQuery.search = value
+  } else {
+    delete nextQuery.search
+  }
+  void props.onUpdateQuery(nextQuery)
+}
+
+async function searchIssues() {
   scheduleSearch.cancel()
-  state.filtering = true
-  const latest = await runSearch({
-    onLatest: (result) => {
-      matchActionResult({
-        err: (error) => {
-          outcome.value = { error, ok: false }
+  const current = query.data.value
+  if (!current) {
+    return
+  }
+  await matchResult(current, {
+    err: () => undefined,
+    ok: async (data) => {
+      state.filtering = true
+      const result = await runSearch({
+        request: () =>
+          props.deps.search({
+            filters: getIssueAttributeFilterInput(
+              attributeFilters.value,
+              attributes.value,
+            ),
+            page: request.value.page,
+            search: request.value.search,
+            spaceIds: request.value.spaceIds,
+          }),
+      })
+      if (!result) {
+        return
+      }
+      state.filtering = false
+      matchResult(result, {
+        err: (failure) => {
+          query.data.value = err(failure)
         },
         ok: (value) => {
-          const current = outcome.value
-          if (!current) {
-            return
-          }
-          matchActionResult({
-            err: () => undefined,
-            ok: (currentValue) => {
-              outcome.value = {
-                ok: true,
-                value: {
-                  IssuesPage: {
-                    ...currentValue.IssuesPage,
-                    ...value.IssuesPage,
-                  },
-                },
-              }
-            },
-            result: current,
-          })
+          query.data.value = ok({ ...data, ...value })
         },
-        result,
       })
     },
-    request: () =>
-      props.deps.searchIssues({
-        filters: getIssueAttributeFilterInput(
-          attributeFilters.value,
-          issueAttributes.value,
-        ),
-        page: input.page,
-        search: input.search,
-        spaceIds: input.spaceIds,
-      }),
   })
-  if (latest) {
-    state.filtering = false
-  }
 }
 
 function changeMoveSpace() {
@@ -196,72 +245,92 @@ function changeMoveBoard() {
 async function loadMoveSpaces() {
   state.move.error = null
   state.move.loadingSpaces = true
-  const result = await props.deps.issueList.loadMoveSpaces()
+  const result = await props.deps.loadMoveSpaces()
   state.move.loadingSpaces = false
-  matchActionResult({
-    err: (error) => {
-      state.move.error = getErrorMessage({
-        error,
-        messages: {
-          AccessDenied: 'You do not have access to available spaces.',
-          TemporarilyUnavailable: 'Could not load available spaces.',
-        },
-      })
+  matchResult(result, {
+    err: (failure) => {
+      state.move.error =
+        failure.type === 'accessDenied'
+          ? 'You do not have access to available spaces.'
+          : 'Could not load available spaces.'
     },
     ok: ({ spaces }) => {
       state.move.spaces = spaces
     },
-    result,
   })
+}
+
+const getBoardsFailureMessage = (failure: LoadMoveBoardsFailure): string => {
+  switch (failure.type) {
+    case 'accessDenied':
+      return 'You do not have access to this space.'
+    case 'spaceNotFound':
+      return 'This space no longer exists.'
+    case 'temporarilyUnavailable':
+      return 'Could not load space boards.'
+    default:
+      return assertNever(failure)
+  }
 }
 
 async function loadMoveBoards(spaceId: string) {
   state.move.error = null
   state.move.loadingBoards = true
-  const result = await props.deps.issueList.loadMoveBoards({
-    sourceBoardId: null,
-    spaceId,
-  })
+  const result = await props.deps.loadMoveBoards({ spaceId })
   state.move.loadingBoards = false
-  matchActionResult({
-    err: (error) => {
-      state.move.error = getErrorMessage({
-        error,
-        messages: {
-          AccessDenied: 'You do not have access to this space.',
-          SpaceNotFound: 'This space no longer exists.',
-          TemporarilyUnavailable: 'Could not load space boards.',
-        },
-      })
+  matchResult(result, {
+    err: (failure) => {
+      state.move.error = getBoardsFailureMessage(failure)
     },
     ok: ({ boards }) => {
       state.move.boards = boards
     },
-    result,
   })
+}
+
+const getStatusesFailureMessage = (
+  failure: LoadMoveStatusesFailure,
+): string => {
+  switch (failure.type) {
+    case 'accessDenied':
+      return 'You do not have access to this board.'
+    case 'boardNotFound':
+      return 'This board no longer exists.'
+    case 'temporarilyUnavailable':
+      return 'Could not load board columns.'
+    default:
+      return assertNever(failure)
+  }
 }
 
 async function loadMoveStatuses(boardId: string) {
   state.move.error = null
   state.move.loadingStatuses = true
-  const result = await props.deps.issueList.loadMoveStatuses({ boardId })
+  const result = await props.deps.loadMoveStatuses({ boardId })
   state.move.loadingStatuses = false
-  matchActionResult({
-    err: (error) => {
-      state.move.error = getErrorMessage({
-        error,
-        messages: {
-          AccessDenied: 'You do not have access to this board.',
-          BoardNotFound: 'This board no longer exists.',
-          TemporarilyUnavailable: 'Could not load board columns.',
-        },
-      })
+  matchResult(result, {
+    err: (failure) => {
+      state.move.error = getStatusesFailureMessage(failure)
     },
     ok: ({ statuses }) => {
       state.move.statuses = statuses
     },
-    result,
   })
+}
+
+const getMoveFailureMessage = (failure: MoveIssuesFailure): string => {
+  switch (failure.type) {
+    case 'accessDenied':
+      return 'You do not have permission to move some issues.'
+    case 'invalidStatus':
+      return 'Select a valid board column.'
+    case 'resourceNotFound':
+      return 'An issue or board column was not found.'
+    case 'temporarilyUnavailable':
+      return 'Could not move some issues. Try again.'
+    default:
+      return assertNever(failure)
+  }
 }
 
 async function moveIssues(input: {
@@ -270,34 +339,25 @@ async function moveIssues(input: {
 }): Promise<boolean> {
   state.move.error = null
   state.move.moving = true
-  const result = await props.deps.issueList.moveIssues(input)
-  const moved = await matchActionResult({
-    err: async (error) => {
-      state.move.error = getErrorMessage({
-        error,
-        messages: {
-          AccessDenied: 'You do not have permission to move some issues.',
-          InvalidStatus: 'Select a valid board column.',
-          ResourceNotFound: 'An issue or board column was not found.',
-          TemporarilyUnavailable: 'Could not move some issues. Try again.',
-        },
-      })
+  const result = await props.deps.moveIssues(input)
+  const moved = await matchResult(result, {
+    err: (failure) => {
+      state.move.error = getMoveFailureMessage(failure)
       return false
     },
     ok: async () => {
-      await searchIssues(request.value)
+      await searchIssues()
       return true
     },
-    result,
   })
   state.move.moving = false
   return moved
 }
 
-const scheduleSearch = debounce(searchIssues, 300)
-watch(request, (input) => {
+watch(request, () => {
   state.filtering = true
-  scheduleSearch(input)
+  scheduleSearch()
 })
 onScopeDispose(scheduleSearch.cancel)
+useHead({ title: 'All issues' })
 </script>
