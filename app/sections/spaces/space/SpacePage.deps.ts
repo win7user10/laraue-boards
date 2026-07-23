@@ -1,6 +1,6 @@
 import type { Result } from '~/utils/actionResult'
 
-export type SpaceBoardSummary = {
+type SpaceBoardSummary = {
   color: string
   id: string
   issueCount: number

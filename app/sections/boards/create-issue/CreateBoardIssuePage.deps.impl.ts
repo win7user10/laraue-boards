@@ -1,20 +1,33 @@
 import type { ApiClient } from '#infrastructure/api/client'
 import { getInvalidInputError } from '#infrastructure/api/getInvalidInputError'
-import { getFirstStatusId } from '#infrastructure/issues/shared/firstStatusId'
-import {
-  mapIssueAttributes,
-  mapIssueAttributeValues,
-} from '#infrastructure/issues/shared/issueAttributes'
-import { createIssueFormData } from '#infrastructure/issues/shared/issueFormData'
-import { mapOrganizationAssignees } from '#infrastructure/issues/shared/mapOrganizationAssignees'
-import { findSpaceByKey } from '#infrastructure/spaces/shared/findSpaceByKey'
 import type {
   CreateBoardIssueFailure,
   CreateBoardIssuePageDeps,
   LoadBoardAssigneesFailure,
   ViewBoardIssueFailure,
 } from '~/sections/boards/create-issue/CreateBoardIssuePage.deps'
+import {
+  mapIssueAttributes,
+  mapIssueAttributeValues,
+} from '~/sections/issues/shared/api/issueAttributes'
+import { createIssueFormData } from '~/sections/issues/shared/api/issueFormData'
+import { findSpaceByKey } from '~/sections/spaces/shared/findSpaceByKey'
 import { err, ok } from '~/utils/actionResult'
+
+const mapOrganizationAssignees = (
+  members: Array<{
+    color: string
+    displayName: string
+    initials: string
+    userId: string
+  }>,
+) =>
+  members.map((member) => ({
+    color: member.color,
+    initials: member.initials,
+    label: member.displayName,
+    value: member.userId,
+  }))
 
 const mapViewFailure = (status: number): undefined | ViewBoardIssueFailure => {
   if (status === 401 || status === 403) {
@@ -173,7 +186,6 @@ export function createCreateBoardIssuePageDeps(
             label: status.name,
             value: String(status.id),
           })),
-        statusId: getFirstStatusId(statuses) ?? '',
       })
     },
   }

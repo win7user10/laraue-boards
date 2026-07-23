@@ -13,7 +13,7 @@ export type BacklogIssue = {
   statusColor: string
 }
 
-export type BacklogAttribute =
+type BacklogAttribute =
   | { color: string; id: string; name: string; type: 'text' }
   | {
       color: string
@@ -23,7 +23,7 @@ export type BacklogAttribute =
       type: 'list'
     }
 
-export type BacklogPageData = {
+type BacklogPageData = {
   attributes: BacklogAttribute[]
   backlogBoardId: string
   color: string
@@ -33,7 +33,7 @@ export type BacklogPageData = {
   title: string
 }
 
-export type BacklogFilter =
+type BacklogFilter =
   | { attributeId: string; searchString: string; type: 'text' }
   | { attributeId: string; type: 'list'; valueIds: string[] }
 
@@ -47,7 +47,7 @@ export type LoadMoveBoardsFailure =
   | { type: 'spaceNotFound' }
   | { type: 'temporarilyUnavailable' }
 
-export type LoadMoveSpacesFailure =
+type LoadMoveSpacesFailure =
   | { type: 'accessDenied' }
   | { type: 'temporarilyUnavailable' }
 

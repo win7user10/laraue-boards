@@ -56,7 +56,7 @@
 </template>
 
 <script lang="ts">
-export type IssueListItemViewModel = {
+type IssueListItemViewModel = {
   assignee: string
   assigneeColor: string
   assigneeInitial: string
@@ -71,7 +71,7 @@ export type IssueListItemViewModel = {
   statusColor: string
 }
 
-export type IssueListProps = {
+type IssueListProps = {
   emptyText: string
   filtering: boolean
   hasNextPage: boolean
@@ -87,7 +87,7 @@ export type IssueListProps = {
   page: number
 }
 
-export type IssueListMoveState = {
+type IssueListMoveState = {
   boards: Array<{ label: string; value: string }>
   error: null | string
   loadingBoards: boolean

@@ -1,6 +1,6 @@
 import type { Result } from '~/utils/actionResult'
 
-export type CreateOrganizationInput = {
+type CreateOrganizationInput = {
   color: string
   name: string
   slug: string

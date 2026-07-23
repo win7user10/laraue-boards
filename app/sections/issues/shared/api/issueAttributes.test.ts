@@ -1,12 +1,12 @@
 import { assert, test } from 'vitest'
 
+import { COLORS } from '~/constants/colors'
 import {
   mapIssueAttributes,
   mapIssueAttributeValues,
   mapIssueFilters,
   mapRawIssueFilters,
-} from '#infrastructure/issues/shared/issueAttributes'
-import { COLORS } from '~/constants/colors'
+} from '~/sections/issues/shared/api/issueAttributes'
 
 const attributeDtos = [
   { color: COLORS.gray, id: 1, listValues: [], name: 'Reference', type: 0 },

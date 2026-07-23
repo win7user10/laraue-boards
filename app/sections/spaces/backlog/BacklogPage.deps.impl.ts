@@ -1,12 +1,11 @@
 import type { ApiClient } from '#infrastructure/api/client'
 import type { components } from '#infrastructure/api/generated'
+import { COLORS } from '~/constants/colors'
 import {
   mapIssueFilters,
   mapRawIssueFilters,
-} from '#infrastructure/issues/shared/issueAttributes'
-import { createdAtDescending } from '#infrastructure/issues/shared/issueSorting'
-import { findSpaceByKey } from '#infrastructure/spaces/shared/findSpaceByKey'
-import { COLORS } from '~/constants/colors'
+} from '~/sections/issues/shared/api/issueAttributes'
+import { createdAtDescending } from '~/sections/issues/shared/api/issueSorting'
 import type {
   BacklogIssue,
   BacklogPageDeps,
@@ -15,6 +14,7 @@ import type {
   MoveIssuesFailure,
   ViewBacklogFailure,
 } from '~/sections/spaces/backlog/BacklogPage.deps'
+import { findSpaceByKey } from '~/sections/spaces/shared/findSpaceByKey'
 import { err, ok } from '~/utils/actionResult'
 
 type Schemas = components['schemas']

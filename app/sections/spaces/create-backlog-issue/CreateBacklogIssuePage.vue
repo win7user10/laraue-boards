@@ -36,6 +36,29 @@
             <label>Board</label>
             <div class="selected-entity">{{ data.boardName }}</div>
 
+            <label for="create-backlog-issue-status">Status</label>
+            <select
+              id="create-backlog-issue-status"
+              v-model="state.statusId"
+              :disabled="data.statuses.length === 0"
+              required>
+              <option
+                disabled
+                value="">
+                {{
+                  data.statuses.length === 0
+                    ? 'No statuses available'
+                    : 'Select status'
+                }}
+              </option>
+              <option
+                v-for="status in data.statuses"
+                :key="status.value"
+                :value="status.value">
+                {{ status.label }}
+              </option>
+            </select>
+
             <IssueAttributeFields
               v-model="state.attributeValues"
               :attributes="data.attributes" />
@@ -81,7 +104,7 @@
               <button
                 class="primary"
                 :disabled="
-                  state.submitting || !data.statusId || !state.assigneeId
+                  state.submitting || !state.statusId || !state.assigneeId
                 ">
                 {{ state.submitting ? 'Adding…' : 'Add issue' }}
               </button>
@@ -124,6 +147,7 @@ const state = reactive({
   error: null as null | string,
   files: [] as File[],
   loadingAssignees: false,
+  statusId: '',
   submitting: false,
 })
 
@@ -235,7 +259,7 @@ async function submit(): Promise<void> {
       ),
       content: state.content.trim(),
       files: state.files,
-      statusId: current.statusId,
+      statusId: state.statusId,
     })
     await matchResult(result, {
       err: (failure) => (state.error = getCreateFailureMessage(failure)),

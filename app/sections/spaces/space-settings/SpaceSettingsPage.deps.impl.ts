@@ -1,6 +1,6 @@
 import type { ApiClient } from '#infrastructure/api/client'
 import { getInvalidInputError } from '#infrastructure/api/getInvalidInputError'
-import { findSpaceByKey } from '#infrastructure/spaces/shared/findSpaceByKey'
+import { findSpaceByKey } from '~/sections/spaces/shared/findSpaceByKey'
 import type {
   ChangeSpaceFailure,
   SpaceSettingsPageDeps,

@@ -263,7 +263,7 @@ export type IssueDetailsSaveInput = {
 type MoveOption = { label: string; value: string }
 type AssigneeOption = MoveOption & { color: string; initials: string }
 
-export type IssueDetailsLookupState = {
+type IssueDetailsLookupState = {
   assignees: AssigneeOption[]
   boards: MoveOption[]
   error: null | string
@@ -275,7 +275,7 @@ export type IssueDetailsLookupState = {
   statuses: Array<{ id: string; name: string }>
 }
 
-export type IssueDetailsProps = {
+type IssueDetailsProps = {
   error: null | string
   formId: string
   lookup: IssueDetailsLookupState

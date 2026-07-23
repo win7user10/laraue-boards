@@ -50,7 +50,7 @@ type IssueAttributeViewModel =
       type: 'text'
     }
 
-export type IssueAttributeFieldsProps = {
+type IssueAttributeFieldsProps = {
   attributes: IssueAttributeViewModel[]
   modelValue: Record<string, string>
 }

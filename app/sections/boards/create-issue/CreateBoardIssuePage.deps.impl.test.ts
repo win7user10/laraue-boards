@@ -34,7 +34,6 @@ test('maps board issue page data', async () => {
         { label: 'Todo', value: '1' },
         { label: 'Done', value: '2' },
       ],
-      statusId: '1',
     },
   })
 })

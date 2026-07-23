@@ -1,10 +1,10 @@
 import type { ApiClient } from '#infrastructure/api/client'
 import { getInvalidInputError } from '#infrastructure/api/getInvalidInputError'
-import { findSpaceByKey } from '#infrastructure/spaces/shared/findSpaceByKey'
 import type {
   CreateBoardFailure,
   CreateBoardPageDeps,
 } from '~/sections/boards/create-board/CreateBoardPage.deps'
+import { findSpaceByKey } from '~/sections/spaces/shared/findSpaceByKey'
 import { err, ok } from '~/utils/actionResult'
 
 const mapSpacesFailure = (status: number): CreateBoardFailure | undefined => {

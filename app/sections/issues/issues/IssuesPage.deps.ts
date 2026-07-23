@@ -15,7 +15,7 @@ export type IssuesPageIssue = {
   statusColor: string
 }
 
-export type IssuesPageAttribute =
+type IssuesPageAttribute =
   | { color: string; id: string; name: string; type: 'text' }
   | {
       color: string
@@ -25,14 +25,14 @@ export type IssuesPageAttribute =
       type: 'list'
     }
 
-export type IssuesPageData = {
+type IssuesPageData = {
   attributes: IssuesPageAttribute[]
   hasNextPage: boolean
   issues: IssuesPageIssue[]
   spaces: Array<{ label: string; value: string }>
 }
 
-export type IssuesFilter =
+type IssuesFilter =
   | { attributeId: string; searchString: string; type: 'text' }
   | { attributeId: string; type: 'list'; valueIds: string[] }
 
@@ -45,7 +45,7 @@ export type LoadMoveBoardsFailure =
   | { type: 'spaceNotFound' }
   | { type: 'temporarilyUnavailable' }
 
-export type LoadMoveSpacesFailure =
+type LoadMoveSpacesFailure =
   | { type: 'accessDenied' }
   | { type: 'temporarilyUnavailable' }
 

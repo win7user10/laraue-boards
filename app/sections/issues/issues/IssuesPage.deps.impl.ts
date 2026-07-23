@@ -1,10 +1,5 @@
 import type { ApiClient } from '#infrastructure/api/client'
 import type { components } from '#infrastructure/api/generated'
-import {
-  mapIssueFilters,
-  mapRawIssueFilters,
-} from '#infrastructure/issues/shared/issueAttributes'
-import { createdAtDescending } from '#infrastructure/issues/shared/issueSorting'
 import { COLORS } from '~/constants/colors'
 import type {
   IssuesPageDeps,
@@ -14,6 +9,11 @@ import type {
   MoveIssuesFailure,
   ViewIssuesFailure,
 } from '~/sections/issues/issues/IssuesPage.deps'
+import {
+  mapIssueFilters,
+  mapRawIssueFilters,
+} from '~/sections/issues/shared/api/issueAttributes'
+import { createdAtDescending } from '~/sections/issues/shared/api/issueSorting'
 import { err, ok } from '~/utils/actionResult'
 
 type Schemas = components['schemas']

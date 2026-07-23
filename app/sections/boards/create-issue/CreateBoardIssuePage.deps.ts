@@ -1,6 +1,6 @@
 import type { Result } from '~/utils/actionResult'
 
-export type BoardIssueAttribute =
+type BoardIssueAttribute =
   | { color: string; id: string; name: string; type: 'text' }
   | {
       color: string
@@ -17,11 +17,10 @@ export type BoardIssueAssignee = {
   value: string
 }
 
-export type CreateBoardIssuePageData = {
+type CreateBoardIssuePageData = {
   attributes: BoardIssueAttribute[]
   boardName: string
   statuses: Array<{ label: string; value: string }>
-  statusId: string
 }
 
 export type ViewBoardIssueFailure =

@@ -1,6 +1,6 @@
 import type { Result } from '~/utils/actionResult'
 
-export type SpaceSettingsPageData = {
+type SpaceSettingsPageData = {
   canDelete: boolean
   canUpdate: boolean
   color: string

@@ -67,7 +67,7 @@
 <script lang="ts">
 import type { RouteLocationRaw } from 'vue-router'
 
-export type IssueListRowProps = {
+type IssueListRowProps = {
   assignee: string
   assigneeColor: string
   assigneeInitial: string

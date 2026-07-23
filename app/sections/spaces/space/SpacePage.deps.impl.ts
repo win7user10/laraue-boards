@@ -1,7 +1,7 @@
 import type { ApiClient } from '#infrastructure/api/client'
 import type { components } from '#infrastructure/api/generated'
-import { findSpaceByKey } from '#infrastructure/spaces/shared/findSpaceByKey'
 import { COLORS } from '~/constants/colors'
+import { findSpaceByKey } from '~/sections/spaces/shared/findSpaceByKey'
 import type {
   SpacePageData,
   SpacePageDeps,

@@ -115,6 +115,54 @@ They:
 - do not coordinate page-level scenarios;
 - do not know about the router.
 
+### Nested Feature Containers
+
+A child component may receive its own `deps` when it coordinates an independent
+asynchronous user scenario, for example a lazily loaded dialog that loads,
+updates, moves, and deletes an entity.
+
+The child container owns and declares its dependency contract:
+
+```ts
+// IssueDialog.deps.ts
+export type IssueDialogDeps = {
+  view: (input: ViewIssueInput) => Promise<Result<IssueData, ViewIssueFailure>>
+  save: (input: SaveIssueInput) => Promise<Result<null, SaveIssueFailure>>
+}
+```
+
+When the child adapts API calls itself, it also owns a colocated production
+factory. The parent factory composes it rather than reimplementing its methods:
+
+```ts
+const issueDialog = createIssueDialogDeps(client)
+
+return {
+  issueDialog,
+  moveBoardIssue: issueDialog.moveIssue,
+}
+```
+
+The parent dependency contract only composes the child contract:
+
+```ts
+export type BoardPageDeps = {
+  issueDialog: IssueDialogDeps
+  view: (input: ViewBoardInput) => Promise<Result<BoardData, ViewBoardFailure>>
+}
+```
+
+The parent passes the narrow dependency object without redefining or indexing
+the child operations:
+
+```vue
+<IssueDialog :deps="deps.issueDialog" />
+```
+
+This forms an explicit dependency tree matching feature-container ownership. It
+does not mean that every component receives `deps`. Presentational forms, lists,
+buttons, and layout fragments continue to receive only data and callbacks.
+
 Local UI state includes:
 
 - an open menu;
@@ -319,6 +367,14 @@ export type SpaceItemsPageDeps = {
 - `deps` is passed as an explicit prop.
 - `provide/inject` is not used as a service locator.
 - `deps` is not passed to child presentational components.
+- A nested feature container with its own asynchronous scenario may declare and
+  receive its own colocated `XxxDeps`.
+- A nested container that adapts API operations owns `XxxDeps.impl.ts`; a parent
+  factory composes `createXxxDeps(client)` instead of reimplementing the child
+  methods.
+- A parent deps contract composes a child container contract as
+  `{ childName: ChildDeps }`; the child never types its dependencies through
+  `ParentDeps['childName']`.
 - Pages intentionally do not reuse each other’s complete page-level deps.
 - A mock file is optional.
 - Tests may use an inline mock or a test factory.

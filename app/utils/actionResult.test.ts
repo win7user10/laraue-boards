@@ -1,12 +1,11 @@
 import { assert, test } from 'vitest'
 
-import { err, matchActionResult, ok } from '~/utils/actionResult'
+import { err, matchResult, ok } from '~/utils/actionResult'
 
-const match = (result: ActionResult<number, string>) =>
-  matchActionResult({
+const match = (result: Result<number, string>) =>
+  matchResult(result, {
     err: (error) => error,
     ok: (value) => String(value),
-    result,
   })
 
 test('matches an action result', () => {

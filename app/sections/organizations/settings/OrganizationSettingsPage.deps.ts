@@ -1,6 +1,6 @@
 import type { Result } from '~/utils/actionResult'
 
-export type OrganizationSettingsPageData = {
+type OrganizationSettingsPageData = {
   canUpdate: boolean
   color: string
   id: string

@@ -1,11 +1,5 @@
 import type { ApiClient } from '#infrastructure/api/client'
 import { getInvalidInputError } from '#infrastructure/api/getInvalidInputError'
-import {
-  mapIssueAttributes,
-  mapIssueAttributeValues,
-} from '#infrastructure/issues/shared/issueAttributes'
-import { createIssueFormData } from '#infrastructure/issues/shared/issueFormData'
-import { mapOrganizationAssignees } from '#infrastructure/issues/shared/mapOrganizationAssignees'
 import type {
   CreateIssueFailure,
   CreateIssuePageDeps,
@@ -13,7 +7,27 @@ import type {
   LoadStatusesFailure,
   ViewCreateIssueFailure,
 } from '~/sections/issues/create-issue/CreateIssuePage.deps'
+import {
+  mapIssueAttributes,
+  mapIssueAttributeValues,
+} from '~/sections/issues/shared/api/issueAttributes'
+import { createIssueFormData } from '~/sections/issues/shared/api/issueFormData'
 import { err, ok } from '~/utils/actionResult'
+
+const mapOrganizationAssignees = (
+  members: Array<{
+    color: string
+    displayName: string
+    initials: string
+    userId: string
+  }>,
+) =>
+  members.map((member) => ({
+    color: member.color,
+    initials: member.initials,
+    label: member.displayName,
+    value: member.userId,
+  }))
 
 const mapAccessFailure = (
   status: number,

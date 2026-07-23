@@ -1,19 +1,14 @@
 import type { ApiClient } from '#infrastructure/api/client'
 import type { components } from '#infrastructure/api/generated'
-import { getInvalidInputError } from '#infrastructure/api/getInvalidInputError'
-import { getFirstStatusId } from '#infrastructure/issues/shared/firstStatusId'
-import {
-  mapIssueAttributeValues,
-  mapIssueFilters,
-  mapRawIssueFilters,
-} from '#infrastructure/issues/shared/issueAttributes'
-import { updateIssueFormData } from '#infrastructure/issues/shared/issueFormData'
-import { createdAtDescending } from '#infrastructure/issues/shared/issueSorting'
-import { mapOrganizationAssignees } from '#infrastructure/issues/shared/mapOrganizationAssignees'
-import { findSpaceByKey } from '#infrastructure/spaces/shared/findSpaceByKey'
 import type { BoardPageDeps } from '~/sections/boards/board/BoardPage.deps'
 import type { BoardPageViewModel } from '~/sections/boards/board/BoardPage.vue'
-import type { IssueDialogViewModel } from '~/sections/boards/board/components/IssueDialog/IssueDialog.vue'
+import { createIssueDialogDeps } from '~/sections/boards/board/components/IssueDialog/IssueDialog.deps.impl'
+import {
+  mapIssueFilters,
+  mapRawIssueFilters,
+} from '~/sections/issues/shared/api/issueAttributes'
+import { createdAtDescending } from '~/sections/issues/shared/api/issueSorting'
+import { findSpaceByKey } from '~/sections/spaces/shared/findSpaceByKey'
 import { err, ok } from '~/utils/actionResult'
 
 type Schemas = components['schemas']
@@ -80,268 +75,11 @@ const mapBoardPage = (
   }
 }
 
-const mapDialogAttribute = (
-  attribute: Schemas['DetailIssueAttributeDto'],
-): IssueDialogViewModel['attributes'][number] => {
-  const base = {
-    color: attribute.color,
-    id: String(attribute.id),
-    name: attribute.name,
-    value: attribute.value,
-  }
-  switch (attribute.type) {
-    case 0:
-      return { ...base, type: 'text' }
-    case 1:
-      return {
-        ...base,
-        options: attribute.listValues.map((option) => ({
-          label: option.name,
-          value: String(option.id),
-        })),
-        type: 'list',
-      }
-    default:
-      throw new RangeError(`Unsupported attribute type: ${attribute.type}`)
-  }
-}
-
-const mapDialogAttachments = (
-  attachments: Schemas['AttachmentData'][],
-  baseUrl: string,
-): IssueDialogViewModel['attachments'] =>
-  attachments.flatMap((attachment) => {
-    if (attachment.type !== 0) {
-      return []
-    }
-    const previewId = attachment.previewFileId ?? attachment.originalFileId
-    if (!previewId) {
-      return []
-    }
-    const originalId = attachment.originalFileId ?? previewId
-    const fileUrl = (id: string) =>
-      new URL(`/api/files/${encodeURIComponent(id)}`, baseUrl).href
-    return [
-      {
-        id: attachment.id,
-        originalUrl: fileUrl(originalId),
-        previewUrl: fileUrl(previewId),
-      },
-    ]
-  })
-
-const mapIssueDialog = (
-  issue: Schemas['IssueDetailDto'],
-  baseUrl: string,
-): IssueDialogViewModel => ({
-  assignee: issue.assignee,
-  assigneeColor: issue.assigneeColor,
-  assigneeId: issue.assigneeId,
-  assigneeInitial: issue.assigneeInitial,
-  attachments: mapDialogAttachments(issue.attachments, baseUrl),
-  attributes: issue.attributeValues.map(mapDialogAttribute),
-  boardId: String(issue.epicId),
-  boardLabel: issue.epicName ?? '',
-  canEdit: issue.canEdit,
-  content: issue.content ?? '',
-  createdAt: issue.time,
-  issueKey: issue.key,
-  owner: issue.ownerDisplayName ?? 'Unknown owner',
-  ownerColor: issue.ownerColor,
-  ownerInitial: issue.ownerInitials ?? '?',
-  spaceId: String(issue.spaceId),
-  spaceLabel: issue.spaceName,
-  statusId: String(issue.statusId),
-  statusLabel: issue.statusName ?? '',
-  updatedAt: issue.updatedAt,
-})
-
 export function createBoardPageDeps(client: ApiClient): BoardPageDeps {
-  const moveBoardIssue: BoardPageDeps['moveBoardIssue'] = async ({
-    issueKey,
-    statusId,
-  }) => {
-    if (!statusId) {
-      return err('InvalidStatus')
-    }
-    const response = await client.POST(
-      '/api/movement/issue/{key}/move-to-status/{statusId}',
-      {
-        params: { path: { key: issueKey, statusId: Number(statusId) } },
-      },
-    )
-    switch (response.response.status) {
-      case 200:
-        return ok(null)
-      case 400:
-        return err('InvalidStatus')
-      case 401:
-      case 403:
-        return err('AccessDenied')
-      case 404:
-        return err('ResourceNotFound')
-      default:
-        return err('TemporarilyUnavailable')
-    }
-  }
+  const issueDialog = createIssueDialogDeps(client)
 
   return {
-    issueDialog: {
-      async deleteIssue({ issueKey }) {
-        const response = await client.DELETE('/api/issues/{key}', {
-          params: { path: { key: issueKey } },
-        })
-        switch (response.response.status) {
-          case 200:
-          case 204:
-            return ok(null)
-          case 401:
-          case 403:
-            return err('AccessDenied')
-          case 404:
-            return err('IssueNotFound')
-          default:
-            return err('TemporarilyUnavailable')
-        }
-      },
-      issueDetails: {
-        async loadAssignees({ spaceId }) {
-          const response = await client.GET('/api/spaces/{id}/members', {
-            params: { path: { id: Number(spaceId) } },
-          })
-          switch (response.response.status) {
-            case 200:
-              return response.data
-                ? ok({
-                    assignees: mapOrganizationAssignees(response.data),
-                  })
-                : err('TemporarilyUnavailable')
-            case 401:
-            case 403:
-              return err('AccessDenied')
-            case 404:
-              return err('SpaceNotFound')
-            default:
-              return err('TemporarilyUnavailable')
-          }
-        },
-        async loadMoveBoards({ spaceId }) {
-          const response = await client.GET('/api/spaces/{id}/epics', {
-            params: { path: { id: Number(spaceId) } },
-          })
-          switch (response.response.status) {
-            case 200:
-              return response.data
-                ? ok({
-                    boards: response.data.map((board) => ({
-                      label: board.name,
-                      value: String(board.id),
-                    })),
-                  })
-                : err('TemporarilyUnavailable')
-            case 401:
-            case 403:
-              return err('AccessDenied')
-            case 404:
-              return err('SpaceNotFound')
-            default:
-              return err('TemporarilyUnavailable')
-          }
-        },
-        async loadMoveSpaces() {
-          const response = await client.GET('/api/spaces')
-          switch (response.response.status) {
-            case 200:
-              return response.data
-                ? ok({
-                    spaces: response.data.map((space) => ({
-                      label: space.name,
-                      value: String(space.id),
-                    })),
-                  })
-                : err('TemporarilyUnavailable')
-            case 401:
-            case 403:
-              return err('AccessDenied')
-            default:
-              return err('TemporarilyUnavailable')
-          }
-        },
-        async loadStatuses({ boardId }) {
-          const response = await client.GET('/api/epics/{id}', {
-            params: { path: { id: Number(boardId) } },
-          })
-          switch (response.response.status) {
-            case 200:
-              return response.data
-                ? ok({
-                    statuses: (response.data.statuses ?? [])
-                      .toSorted(
-                        (a, b) => Number(a.sortOrder) - Number(b.sortOrder),
-                      )
-                      .map((status) => ({
-                        id: String(status.id),
-                        name: status.name,
-                      })),
-                  })
-                : err('TemporarilyUnavailable')
-            case 401:
-            case 403:
-              return err('AccessDenied')
-            case 404:
-              return err('BoardNotFound')
-            default:
-              return err('TemporarilyUnavailable')
-          }
-        },
-      },
-      async loadIssue({ issueKey }) {
-        const response = await client.GET('/api/issues/{key}', {
-          params: { path: { key: issueKey } },
-        })
-        switch (response.response.status) {
-          case 200:
-            return response.data
-              ? ok({
-                  IssueDialog: mapIssueDialog(response.data, client.baseUrl),
-                })
-              : err('TemporarilyUnavailable')
-          case 401:
-          case 403:
-            return err('AccessDenied')
-          case 404:
-            return err('IssueNotFound')
-          default:
-            return err('TemporarilyUnavailable')
-        }
-      },
-      moveIssue: moveBoardIssue,
-      async updateIssue(input) {
-        const response = await client.PUT('/api/issues/{key}', {
-          body: {},
-          bodySerializer: () =>
-            updateIssueFormData({
-              ...input,
-              attributeValues: mapIssueAttributeValues(input.attributeValues),
-            }),
-          params: { path: { key: input.issueKey } },
-        })
-        switch (response.response.status) {
-          case 200:
-          case 204:
-            return ok(null)
-          case 400:
-            return err(getInvalidInputError(response.error))
-          case 401:
-          case 403:
-            return err('AccessDenied')
-          case 404:
-            return err('IssueNotFound')
-          default:
-            return err('TemporarilyUnavailable')
-        }
-      },
-    },
+    issueDialog,
 
     async loadMoreBoardIssues({ filters, offset, search, statusId, take }) {
       const response = await client.POST(
@@ -364,88 +102,90 @@ export function createBoardPageDeps(client: ApiClient): BoardPageDeps {
                 hasNext: response.data.hasNext ?? false,
                 issues: response.data.data.map(mapIssueListItem),
               })
-            : err('TemporarilyUnavailable')
+            : err({ type: 'temporarilyUnavailable' })
         case 401:
         case 403:
-          return err('AccessDenied')
+          return err({ type: 'accessDenied' })
         default:
-          return err('TemporarilyUnavailable')
+          return err({ type: 'temporarilyUnavailable' })
       }
     },
 
-    moveBoardIssue,
+    moveBoardIssue: issueDialog.moveIssue,
 
     async moveIssueToBacklog({ boardId, issueKey, spaceKey }) {
       const spaces = await client.GET('/api/spaces')
       if (spaces.response.status === 401 || spaces.response.status === 403) {
-        return err('AccessDenied')
+        return err({ type: 'accessDenied' })
       }
       if (spaces.response.status !== 200 || !spaces.data) {
-        return err('TemporarilyUnavailable')
+        return err({ type: 'temporarilyUnavailable' })
       }
       const space = findSpaceByKey(spaces.data, spaceKey)
       if (!space) {
-        return err('ResourceNotFound')
+        return err({ type: 'resourceNotFound' })
       }
       const boards = await client.GET('/api/spaces/{id}/epics', {
         params: { path: { id: Number(space.id) } },
       })
       if (boards.response.status === 401 || boards.response.status === 403) {
-        return err('AccessDenied')
-      }
-      if (boards.response.status === 404) {
-        return err('ResourceNotFound')
+        return err({ type: 'accessDenied' })
       }
       if (boards.response.status !== 200 || !boards.data) {
-        return err('TemporarilyUnavailable')
+        return err(
+          boards.response.status === 404
+            ? { type: 'resourceNotFound' }
+            : { type: 'temporarilyUnavailable' },
+        )
       }
-      if (!boards.data.some((board) => String(board.id) === boardId)) {
-        return err('ResourceNotFound')
-      }
+      const current = boards.data.find((board) => String(board.id) === boardId)
       const backlog = boards.data.find((board) => board.isDefault)
-      if (!backlog) {
-        return err('ResourceNotFound')
+      if (!current || !backlog) {
+        return err({ type: 'resourceNotFound' })
       }
-      if (String(backlog.id) === boardId) {
-        return err('AlreadyInBacklog')
+      if (current.id === backlog.id) {
+        return err({ type: 'alreadyInBacklog' })
       }
-      const backlogBoard = await client.GET('/api/epics/{id}', {
+      const response = await client.GET('/api/epics/{id}', {
         params: { path: { id: Number(backlog.id) } },
       })
       if (
-        backlogBoard.response.status === 401 ||
-        backlogBoard.response.status === 403
+        response.response.status === 401 ||
+        response.response.status === 403
       ) {
-        return err('AccessDenied')
+        return err({ type: 'accessDenied' })
       }
-      if (backlogBoard.response.status === 404) {
-        return err('ResourceNotFound')
+      if (response.response.status !== 200 || !response.data) {
+        return err(
+          response.response.status === 404
+            ? { type: 'resourceNotFound' }
+            : { type: 'temporarilyUnavailable' },
+        )
       }
-      if (backlogBoard.response.status !== 200 || !backlogBoard.data) {
-        return err('TemporarilyUnavailable')
+      const status = (response.data.statuses ?? []).toSorted(
+        (left, right) => Number(left.sortOrder) - Number(right.sortOrder),
+      )[0]
+      if (!status) {
+        return err({ type: 'temporarilyUnavailable' })
       }
-      const statusId = getFirstStatusId(backlogBoard.data.statuses ?? [])
-      if (!statusId) {
-        return err('TemporarilyUnavailable')
-      }
-      const response = await client.POST(
+      const moveResponse = await client.POST(
         '/api/movement/issue/{key}/move-to-status/{statusId}',
         {
           params: {
-            path: { key: issueKey, statusId: Number(statusId) },
+            path: { key: issueKey, statusId: Number(status.id) },
           },
         },
       )
-      switch (response.response.status) {
+      switch (moveResponse.response.status) {
         case 200:
           return ok(null)
         case 401:
         case 403:
-          return err('AccessDenied')
+          return err({ type: 'accessDenied' })
         case 404:
-          return err('ResourceNotFound')
+          return err({ type: 'resourceNotFound' })
         default:
-          return err('TemporarilyUnavailable')
+          return err({ type: 'temporarilyUnavailable' })
       }
     },
 
@@ -463,14 +203,14 @@ export function createBoardPageDeps(client: ApiClient): BoardPageDeps {
         case 200:
           return response.data
             ? ok(mapBoardIssues(response.data))
-            : err('TemporarilyUnavailable')
+            : err({ type: 'temporarilyUnavailable' })
         case 401:
         case 403:
-          return err('AccessDenied')
+          return err({ type: 'accessDenied' })
         case 404:
-          return err('BoardNotFound')
+          return err({ type: 'boardNotFound' })
         default:
-          return err('TemporarilyUnavailable')
+          return err({ type: 'temporarilyUnavailable' })
       }
     },
 
@@ -480,7 +220,7 @@ export function createBoardPageDeps(client: ApiClient): BoardPageDeps {
       })
       if ('data' in attributes) {
         if (attributes.data === undefined) {
-          return err('TemporarilyUnavailable')
+          return err({ type: 'temporarilyUnavailable' })
         }
         const attributeData = mapRawIssueFilters(
           attributeQuery,
@@ -505,7 +245,7 @@ export function createBoardPageDeps(client: ApiClient): BoardPageDeps {
         if ('data' in board) {
           if ('data' in issues) {
             if (board.data === undefined || issues.data === undefined) {
-              return err('TemporarilyUnavailable')
+              return err({ type: 'temporarilyUnavailable' })
             }
             return ok(
               mapBoardPage(
@@ -520,28 +260,28 @@ export function createBoardPageDeps(client: ApiClient): BoardPageDeps {
             issues.response.status === 401 ||
             issues.response.status === 403
           ) {
-            return err('AccessDenied')
+            return err({ type: 'accessDenied' })
           }
           if (issues.response.status === 404) {
-            return err('BoardNotFound')
+            return err({ type: 'boardNotFound' })
           }
-          return err('TemporarilyUnavailable')
+          return err({ type: 'temporarilyUnavailable' })
         }
         if (board.response.status === 401 || board.response.status === 403) {
-          return err('AccessDenied')
+          return err({ type: 'accessDenied' })
         }
         if (board.response.status === 404) {
-          return err('BoardNotFound')
+          return err({ type: 'boardNotFound' })
         }
-        return err('TemporarilyUnavailable')
+        return err({ type: 'temporarilyUnavailable' })
       }
       if (
         attributes.response.status === 401 ||
         attributes.response.status === 403
       ) {
-        return err('AccessDenied')
+        return err({ type: 'accessDenied' })
       }
-      return err('TemporarilyUnavailable')
+      return err({ type: 'temporarilyUnavailable' })
     },
   }
 }

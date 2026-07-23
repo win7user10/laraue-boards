@@ -127,7 +127,7 @@ type IssueFiltersValue = {
   spaceIds?: string[]
 }
 
-export type IssueFiltersProps = {
+type IssueFiltersProps = {
   attributes: IssueFilterAttribute[]
   loading: boolean
   modelValue: IssueFiltersValue

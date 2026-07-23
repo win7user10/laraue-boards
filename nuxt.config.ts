@@ -39,16 +39,6 @@ export default defineNuxtConfig({
 
   modules: ['nuxt-gtag'],
 
-  optimization: {
-    keyedComposables: [
-      {
-        argumentLength: 2,
-        name: 'useActionData',
-        source: '~/composables/useActionData',
-      },
-    ],
-  },
-
   runtimeConfig: {
     public: {
       boardsApiBaseUrl: 'http://localhost:5200',

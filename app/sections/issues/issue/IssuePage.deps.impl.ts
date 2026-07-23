@@ -1,9 +1,6 @@
 import type { ApiClient } from '#infrastructure/api/client'
 import type { components } from '#infrastructure/api/generated'
 import { getInvalidInputError } from '#infrastructure/api/getInvalidInputError'
-import { mapIssueAttributeValues } from '#infrastructure/issues/shared/issueAttributes'
-import { updateIssueFormData } from '#infrastructure/issues/shared/issueFormData'
-import { mapOrganizationAssignees } from '#infrastructure/issues/shared/mapOrganizationAssignees'
 import type {
   IssuePageData,
   IssuePageDeps,
@@ -12,9 +9,19 @@ import type {
   LoadSpaceFailure,
   MoveIssueFailure,
 } from '~/sections/issues/issue/IssuePage.deps'
+import { mapIssueAttributeValues } from '~/sections/issues/shared/api/issueAttributes'
+import { updateIssueFormData } from '~/sections/issues/shared/api/issueFormData'
 import { err, ok } from '~/utils/actionResult'
 
 type Schemas = components['schemas']
+
+const mapOrganizationAssignees = (members: Schemas['SpaceMember'][]) =>
+  members.map((member) => ({
+    color: member.color,
+    initials: member.initials,
+    label: member.displayName,
+    value: member.userId,
+  }))
 
 const mapResourceFailure = (
   status: number,

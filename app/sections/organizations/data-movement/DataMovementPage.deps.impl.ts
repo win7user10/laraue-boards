@@ -1,6 +1,5 @@
 import type { ApiClient } from '#infrastructure/api/client'
 import type { components } from '#infrastructure/api/generated'
-import { mapMoveOptions } from '#infrastructure/shared/mapMoveOptions'
 import { COLORS } from '~/constants/colors'
 import type {
   DataMovementPageData,
@@ -12,6 +11,9 @@ import type {
 import { err, ok } from '~/utils/actionResult'
 
 type Schemas = components['schemas']
+
+const mapMoveOptions = (items: Array<{ id: number | string; name: string }>) =>
+  items.map((item) => ({ label: item.name, value: String(item.id) }))
 
 const mapPage = (
   current: { id: number | string },

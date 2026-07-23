@@ -181,12 +181,6 @@ const page = computed(() =>
 const assignee = computed(() =>
   state.assignees.find((option) => option.value === state.assigneeId),
 )
-watch(
-  () => page.value?.statusId,
-  (statusId) => (state.statusId = statusId ?? ''),
-  { immediate: true },
-)
-
 const getLoadFailureMessage = (failure: LoadBoardAssigneesFailure): string => {
   switch (failure.type) {
     case 'accessDenied':

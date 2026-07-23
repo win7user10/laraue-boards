@@ -113,7 +113,7 @@
 <script lang="ts">
 type MoveOption = { label: string; value: string }
 
-export type MoveIssuesDialogProps = {
+type MoveIssuesDialogProps = {
   boards: MoveOption[]
   error: null | string
   loadingBoards: boolean

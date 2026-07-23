@@ -1,10 +1,29 @@
 import type { ApiClient } from '#infrastructure/api/client'
-import { mapOrganizationMembers } from '#infrastructure/organizations/permissions/shared/mapOrganizationMembers'
+import type { components } from '#infrastructure/api/generated'
 import type {
   PermissionsPageDeps,
   ViewPermissionsFailure,
 } from '~/sections/organizations/permissions/list-members/PermissionsPage.deps'
 import { err, ok } from '~/utils/actionResult'
+
+type OrganizationMember = components['schemas']['OrganizationMember']
+
+const mapOrganizationMembers = (members: OrganizationMember[]) =>
+  members.flatMap((member) => {
+    if (member.organizationUserId === undefined) {
+      return []
+    }
+    return [
+      {
+        color: member.color,
+        id: String(member.organizationUserId),
+        initials: member.initials,
+        isAdmin: member.adminAccessLevel !== 0,
+        isOwner: member.isOwner,
+        name: member.displayName,
+      },
+    ]
+  })
 
 const mapFailure = (status: number): undefined | ViewPermissionsFailure => {
   if (status === 401 || status === 403) {

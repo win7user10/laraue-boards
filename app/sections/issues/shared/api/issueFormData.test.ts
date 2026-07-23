@@ -3,7 +3,7 @@ import { assert, test } from 'vitest'
 import {
   createIssueFormData,
   updateIssueFormData,
-} from '#infrastructure/issues/shared/issueFormData'
+} from '~/sections/issues/shared/api/issueFormData'
 
 const input = {
   assigneeId: '00000000-0000-0000-0000-000000000001',

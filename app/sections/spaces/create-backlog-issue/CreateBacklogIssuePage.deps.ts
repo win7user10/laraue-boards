@@ -1,6 +1,6 @@
 import type { Result } from '~/utils/actionResult'
 
-export type BacklogIssueAttribute =
+type BacklogIssueAttribute =
   | { color: string; id: string; name: string; type: 'text' }
   | {
       color: string
@@ -17,11 +17,11 @@ export type BacklogIssueAssignee = {
   value: string
 }
 
-export type CreateBacklogIssuePageData = {
+type CreateBacklogIssuePageData = {
   attributes: BacklogIssueAttribute[]
   boardName: string
   spaceId: string
-  statusId: string
+  statuses: Array<{ label: string; value: string }>
 }
 
 export type ViewBacklogIssueFailure =

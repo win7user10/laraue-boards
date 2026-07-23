@@ -1,20 +1,33 @@
 import type { ApiClient } from '#infrastructure/api/client'
 import { getInvalidInputError } from '#infrastructure/api/getInvalidInputError'
-import { getFirstStatusId } from '#infrastructure/issues/shared/firstStatusId'
 import {
   mapIssueAttributes,
   mapIssueAttributeValues,
-} from '#infrastructure/issues/shared/issueAttributes'
-import { createIssueFormData } from '#infrastructure/issues/shared/issueFormData'
-import { mapOrganizationAssignees } from '#infrastructure/issues/shared/mapOrganizationAssignees'
-import { findSpaceByKey } from '#infrastructure/spaces/shared/findSpaceByKey'
+} from '~/sections/issues/shared/api/issueAttributes'
+import { createIssueFormData } from '~/sections/issues/shared/api/issueFormData'
 import type {
   CreateBacklogIssueFailure,
   CreateBacklogIssuePageDeps,
   LoadBacklogAssigneesFailure,
   ViewBacklogIssueFailure,
 } from '~/sections/spaces/create-backlog-issue/CreateBacklogIssuePage.deps'
+import { findSpaceByKey } from '~/sections/spaces/shared/findSpaceByKey'
 import { err, ok } from '~/utils/actionResult'
+
+const mapOrganizationAssignees = (
+  members: Array<{
+    color: string
+    displayName: string
+    initials: string
+    userId: string
+  }>,
+) =>
+  members.map((member) => ({
+    color: member.color,
+    initials: member.initials,
+    label: member.displayName,
+    value: member.userId,
+  }))
 
 const mapViewFailure = (
   status: number,
@@ -188,7 +201,14 @@ export function createCreateBacklogIssuePageDeps(
         attributes: mapIssueAttributes(attributes.data),
         boardName: backlog.name,
         spaceId: String(space.id),
-        statusId: getFirstStatusId(board.data.statuses ?? []) ?? '',
+        statuses: (board.data.statuses ?? [])
+          .toSorted(
+            (left, right) => Number(left.sortOrder) - Number(right.sortOrder),
+          )
+          .map((status) => ({
+            label: status.name,
+            value: String(status.id),
+          })),
       })
     },
   }

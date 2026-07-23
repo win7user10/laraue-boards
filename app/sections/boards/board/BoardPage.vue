@@ -94,18 +94,11 @@
         </DragDropProvider>
         <IssueDialog
           v-if="issueKey && !state.closingIssueDialog"
-          :delete-issue="deps.issueDialog.deleteIssue"
+          :deps="deps.issueDialog"
           :issue-key="issueKey"
-          :load-assignees="deps.issueDialog.issueDetails.loadAssignees"
-          :load-issue="deps.issueDialog.loadIssue"
-          :load-move-boards="deps.issueDialog.issueDetails.loadMoveBoards"
-          :load-move-spaces="deps.issueDialog.issueDetails.loadMoveSpaces"
-          :load-statuses="deps.issueDialog.issueDetails.loadStatuses"
-          :move-issue="deps.issueDialog.moveIssue"
           :on-close="closeIssueDialog"
           :on-deleted="handleIssueDeleted"
-          :on-saved="handleIssueSaved"
-          :update-issue="deps.issueDialog.updateIssue" />
+          :on-saved="handleIssueSaved" />
       </section>
     </template>
   </PageState>
@@ -115,11 +108,10 @@
 import type {
   LoadMoreBoardIssuesResult,
   SearchBoardIssuesResult,
-  ViewBoardPageFailure,
 } from '~/sections/boards/board/BoardPage.deps'
 import type { BoardColumnViewModel } from '~/sections/boards/board/components/BoardColumn/BoardColumn.vue'
 
-export type BoardPageAttributeViewModel =
+type BoardPageAttributeViewModel =
   | { color: string; id: string; name: string; type: 'text' }
   | {
       color: string
@@ -129,7 +121,7 @@ export type BoardPageAttributeViewModel =
       type: 'list'
     }
 
-export type BoardPageFilterValue = {
+type BoardPageFilterValue = {
   attributes: Record<string, string | string[]>
 }
 
@@ -185,10 +177,17 @@ import type { LocationQuery, LocationQueryRaw } from 'vue-router'
 
 import IssueFilters from '~/components/issues/IssueFilters.vue'
 import { BoardIcon } from '~/constants/icons'
-import type { BoardPageDeps } from '~/sections/boards/board/BoardPage.deps'
+import type {
+  BoardPageDeps,
+  LoadBoardIssuesFailure,
+  MoveIssueToBacklogFailure,
+  ViewBoardPageFailure,
+} from '~/sections/boards/board/BoardPage.deps'
 import BoardColumn from '~/sections/boards/board/components/BoardColumn/BoardColumn.vue'
 import BoardScrollMap from '~/sections/boards/board/components/BoardScrollMap/BoardScrollMap.vue'
+import type { MoveIssueFailure } from '~/sections/boards/board/components/IssueDialog/IssueDialog.deps'
 import type { IssueDialogSavedIssue } from '~/sections/boards/board/components/IssueDialog/IssueDialog.vue'
+import { assertNever } from '~/utils/assertNever'
 import { toAsyncResultState } from '~/utils/asyncResultState'
 import {
   getIssueAttributeFilterInput,
@@ -253,19 +252,70 @@ const query = await useAsyncData(
     }),
   { watch: [() => props.boardId] },
 )
+
+const getViewFailureMessage = (failure: ViewBoardPageFailure): string => {
+  switch (failure.type) {
+    case 'accessDenied':
+      return 'You do not have access to this board.'
+    case 'boardNotFound':
+      return 'The board was not found or is not available to you.'
+    case 'temporarilyUnavailable':
+      return 'Could not load the board. The service is temporarily unavailable.'
+    default:
+      return assertNever(failure)
+  }
+}
+
+const getIssuesFailureMessage = (
+  failure: LoadBoardIssuesFailure,
+  temporarilyUnavailable: string,
+): string => {
+  switch (failure.type) {
+    case 'accessDenied':
+      return 'You do not have permission to view these issues.'
+    case 'temporarilyUnavailable':
+      return temporarilyUnavailable
+    default:
+      return assertNever(failure)
+  }
+}
+
+const getMoveFailureMessage = (failure: MoveIssueFailure): string => {
+  switch (failure.type) {
+    case 'accessDenied':
+      return 'You do not have permission to move this issue.'
+    case 'invalidStatus':
+      return 'This issue cannot be moved to that column.'
+    case 'resourceNotFound':
+      return 'The issue or destination column no longer exists.'
+    case 'temporarilyUnavailable':
+      return 'Could not move the issue. Try again.'
+    default:
+      return assertNever(failure)
+  }
+}
+
+const getMoveToBacklogFailureMessage = (
+  failure: MoveIssueToBacklogFailure,
+): string => {
+  switch (failure.type) {
+    case 'accessDenied':
+      return 'You do not have permission to move this issue.'
+    case 'alreadyInBacklog':
+      return 'This issue is already in the backlog.'
+    case 'resourceNotFound':
+      return 'The issue or backlog board no longer exists.'
+    case 'temporarilyUnavailable':
+      return 'Could not move the issue to the backlog. Try again.'
+    default:
+      return assertNever(failure)
+  }
+}
+
 const pageState = computed(() =>
   toAsyncResultState({
     error: query.error.value,
-    getErrorMessage: (failure: ViewBoardPageFailure) =>
-      getErrorMessage({
-        error: failure,
-        messages: {
-          AccessDenied: 'You do not have access to this board.',
-          BoardNotFound: 'The board was not found or is not available to you.',
-          TemporarilyUnavailable:
-            'Could not load the board. The service is temporarily unavailable.',
-        },
-      }),
+    getErrorMessage: getViewFailureMessage,
     result: query.data.value,
     status: query.status.value,
   }),
@@ -413,7 +463,7 @@ async function searchIssues() {
     return
   }
   state.filtering = false
-  matchActionResult({
+  matchResult(result, {
     err: (error) => {
       outcome.value = { error, ok: false }
     },
@@ -422,7 +472,7 @@ async function searchIssues() {
       if (!current) {
         return
       }
-      matchActionResult({
+      matchResult(current, {
         err: () => undefined,
         ok: (currentValue) => {
           const issuesByColumn = new Map(
@@ -446,10 +496,8 @@ async function searchIssues() {
             },
           }
         },
-        result: current,
       })
     },
-    result,
   })
 }
 
@@ -492,32 +540,24 @@ async function refreshLoadedIssues(statusIds: ReadonlySet<string>) {
 
   const refreshedColumns = new Map<string, LoadMoreBoardIssuesResult>()
   for (const response of result.columns) {
-    matchActionResult({
+    matchResult(response.result, {
       err: (error) => {
         state.loadMoreErrors.set(
           response.columnId,
-          getErrorMessage({
-            error,
-            messages: {
-              AccessDenied: 'You do not have permission to view these issues.',
-              TemporarilyUnavailable: 'Could not refresh this column.',
-            },
-          }),
+          getIssuesFailureMessage(error, 'Could not refresh this column.'),
         )
       },
       ok: (value) => {
         state.loadMoreErrors.delete(response.columnId)
         refreshedColumns.set(response.columnId, value)
       },
-      result: response.result,
     })
   }
 
   let refreshedSummary: SearchBoardIssuesResult | undefined
-  matchActionResult({
+  matchResult(result.summary, {
     err: () => undefined,
     ok: (value) => (refreshedSummary = value),
-    result: result.summary,
   })
 
   const latest = viewModel.value
@@ -566,7 +606,7 @@ async function moveIssue(input: { issueKey: string; statusId: string }) {
     },
   }
   const result = await props.deps.moveBoardIssue(input)
-  matchActionResult({
+  matchResult(result, {
     err: (error) => {
       const optimistic = viewModel.value
       if (optimistic) {
@@ -581,66 +621,38 @@ async function moveIssue(input: { issueKey: string; statusId: string }) {
           },
         }
       }
-      state.moveError = getErrorMessage({
-        error,
-        messages: {
-          AccessDenied: 'You do not have permission to move this issue.',
-          InvalidStatus: 'This issue cannot be moved to that column.',
-          ResourceNotFound: 'The issue or destination column no longer exists.',
-          TemporarilyUnavailable: 'Could not move the issue. Try again.',
-        },
-      })
+      state.moveError = getMoveFailureMessage(error)
     },
     ok: () => undefined,
-    result,
   })
   state.movingIssueKeys.delete(input.issueKey)
 }
 
 async function moveToBacklog(issueKey: string) {
   const current = viewModel.value
-  const sourceColumn = current?.BoardPage.columns.find((column) =>
-    column.issues.some((issue) => issue.issueKey === issueKey),
-  )
-  if (!current || !sourceColumn || state.movingIssueKeys.has(issueKey)) {
+  if (!current || state.movingIssueKeys.has(issueKey)) {
     return
   }
 
-  scheduleSearch.cancel()
-  runSearch.cancel()
-  state.filtering = false
   state.moveError = null
   state.movingIssueKeys.add(issueKey)
-  outcome.value = {
-    ok: true,
-    value: {
-      BoardPage: removeIssueFromBoard(current.BoardPage, issueKey),
-    },
-  }
   const result = await props.deps.moveIssueToBacklog({
     boardId: props.boardId,
     issueKey,
     spaceKey: props.spaceKey,
   })
-  matchActionResult({
+  matchResult(result, {
     err: (error) => {
-      const optimistic = viewModel.value
-      if (optimistic) {
-        outcome.value = { ok: true, value: { BoardPage: current.BoardPage } }
-      }
-      state.moveError = getErrorMessage({
-        error,
-        messages: {
-          AccessDenied: 'You do not have permission to move this issue.',
-          AlreadyInBacklog: 'This issue is already in the backlog.',
-          ResourceNotFound: 'The issue or backlog board no longer exists.',
-          TemporarilyUnavailable:
-            'Could not move the issue to the backlog. Try again.',
-        },
-      })
+      state.moveError = getMoveToBacklogFailureMessage(error)
     },
-    ok: () => undefined,
-    result,
+    ok: () => {
+      outcome.value = {
+        ok: true,
+        value: {
+          BoardPage: removeIssueFromBoard(current.BoardPage, issueKey),
+        },
+      }
+    },
   })
   state.movingIssueKeys.delete(issueKey)
 }
@@ -678,18 +690,14 @@ async function loadMoreIssues(statusId: string) {
   ) {
     return
   }
-  matchActionResult({
+  matchResult(result, {
     err: (error) => {
       state.loadMoreErrors.set(
         statusId,
-        getErrorMessage({
+        getIssuesFailureMessage(
           error,
-          messages: {
-            AccessDenied: 'You do not have permission to view these issues.',
-            TemporarilyUnavailable:
-              'Could not load more issues. Scroll to retry.',
-          },
-        }),
+          'Could not load more issues. Scroll to retry.',
+        ),
       )
     },
     ok: (value) => {
@@ -715,7 +723,6 @@ async function loadMoreIssues(statusId: string) {
         },
       }
     },
-    result,
   })
 }
 

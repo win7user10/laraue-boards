@@ -1,6 +1,11 @@
 import type { BoardPageViewModel } from '~/sections/boards/board/BoardPage.vue'
-import type { IssueDialogViewModel } from '~/sections/boards/board/components/IssueDialog/IssueDialog.vue'
-import type { InvalidInputError, Result } from '~/utils/actionResult'
+import type {
+  IssueDialogDeps,
+  MoveIssue,
+} from '~/sections/boards/board/components/IssueDialog/IssueDialog.deps'
+import type { Result } from '~/utils/actionResult'
+
+type Failure<Type extends string> = Type extends string ? { type: Type } : never
 
 type IssueItem = {
   assigneeColor: string
@@ -33,93 +38,20 @@ export type SearchBoardIssuesResult = {
 }
 
 export type ViewBoardPageFailure =
-  | 'AccessDenied'
-  | 'BoardNotFound'
-  | 'TemporarilyUnavailable'
+  | Failure<'accessDenied'>
+  | Failure<'boardNotFound'>
+  | Failure<'temporarilyUnavailable'>
 
-type IssueDialogDeps = {
-  deleteIssue: (input: {
-    issueKey: string
-  }) => Promise<
-    Result<null, 'AccessDenied' | 'IssueNotFound' | 'TemporarilyUnavailable'>
-  >
-  issueDetails: {
-    loadAssignees: (input: { spaceId: string }) => Promise<
-      Result<
-        {
-          assignees: Array<{
-            color: string
-            initials: string
-            label: string
-            value: string
-          }>
-        },
-        'AccessDenied' | 'SpaceNotFound' | 'TemporarilyUnavailable'
-      >
-    >
-    loadMoveBoards: (input: {
-      spaceId: string
-    }) => Promise<
-      Result<
-        { boards: Array<{ label: string; value: string }> },
-        'AccessDenied' | 'SpaceNotFound' | 'TemporarilyUnavailable'
-      >
-    >
-    loadMoveSpaces: () => Promise<
-      Result<
-        { spaces: Array<{ label: string; value: string }> },
-        'AccessDenied' | 'TemporarilyUnavailable'
-      >
-    >
-    loadStatuses: (input: {
-      boardId: string
-    }) => Promise<
-      Result<
-        { statuses: Array<{ id: string; name: string }> },
-        'AccessDenied' | 'BoardNotFound' | 'TemporarilyUnavailable'
-      >
-    >
-  }
-  loadIssue: (input: {
-    issueKey: string
-  }) => Promise<
-    Result<
-      { IssueDialog: IssueDialogViewModel },
-      'AccessDenied' | 'IssueNotFound' | 'TemporarilyUnavailable'
-    >
-  >
-  moveIssue: (input: {
-    issueKey: string
-    statusId: string
-  }) => Promise<
-    Result<
-      null,
-      | 'AccessDenied'
-      | 'InvalidStatus'
-      | 'ResourceNotFound'
-      | 'TemporarilyUnavailable'
-    >
-  >
-  updateIssue: (input: {
-    assigneeId: string
-    attributeValues: Array<
-      | { attributeId: string; type: 'list'; valueId: string }
-      | { attributeId: string; type: 'text'; value: string }
-    >
-    content: string
-    files: File[]
-    issueKey: string
-    removeAttachmentIds: string[]
-  }) => Promise<
-    Result<
-      null,
-      | 'AccessDenied'
-      | 'IssueNotFound'
-      | 'TemporarilyUnavailable'
-      | InvalidInputError
-    >
-  >
-}
+export type LoadBoardIssuesFailure = Failure<
+  'accessDenied' | 'temporarilyUnavailable'
+>
+
+export type MoveIssueToBacklogFailure = Failure<
+  | 'accessDenied'
+  | 'alreadyInBacklog'
+  | 'resourceNotFound'
+  | 'temporarilyUnavailable'
+>
 
 export type BoardPageDeps = {
   issueDialog: IssueDialogDeps
@@ -129,23 +61,13 @@ export type BoardPageDeps = {
     search: string
     statusId: string
     take: number
-  }) => Promise<
-    Result<LoadMoreBoardIssuesResult, 'AccessDenied' | 'TemporarilyUnavailable'>
-  >
-  moveBoardIssue: IssueDialogDeps['moveIssue']
+  }) => Promise<Result<LoadMoreBoardIssuesResult, LoadBoardIssuesFailure>>
+  moveBoardIssue: MoveIssue
   moveIssueToBacklog: (input: {
     boardId: string
     issueKey: string
     spaceKey: string
-  }) => Promise<
-    Result<
-      null,
-      | 'AccessDenied'
-      | 'AlreadyInBacklog'
-      | 'ResourceNotFound'
-      | 'TemporarilyUnavailable'
-    >
-  >
+  }) => Promise<Result<null, MoveIssueToBacklogFailure>>
   searchBoardIssues: (input: {
     boardId: string
     filters: IssueFilter[]
@@ -154,7 +76,7 @@ export type BoardPageDeps = {
   }) => Promise<
     Result<
       SearchBoardIssuesResult,
-      'AccessDenied' | 'BoardNotFound' | 'TemporarilyUnavailable'
+      Failure<'accessDenied' | 'boardNotFound' | 'temporarilyUnavailable'>
     >
   >
   view: (input: {

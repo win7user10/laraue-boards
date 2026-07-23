@@ -21,7 +21,6 @@
     "pre-commit": "pnpm fix && pnpm typecheck && pnpm test"
   },
   "dependencies": {
-    "@dnd-kit/abstract": "^0.5.0",
     "@dnd-kit/dom": "^0.5.0",
     "@dnd-kit/helpers": "^0.5.0",
     "@dnd-kit/vue": "^0.5.0",
@@ -48,5 +47,14 @@
     "typescript": "^6.0.3",
     "vitest": "^4.1.10",
     "vue-tsc": "^3.3.7"
+  },
+  "knip": {
+    "entry": [
+      "app/**/*.test.ts",
+      "infrastructure/**/*.test.ts"
+    ],
+    "ignore": [
+      "infrastructure/api/generated.ts"
+    ]
   }
 }

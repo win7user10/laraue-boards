@@ -391,7 +391,6 @@ async function loadStatuses(boardId: string): Promise<void> {
       },
       ok: (statuses) => {
         current.statuses = statuses
-        current.statusId = statuses[0]?.value ?? ''
       },
     })
   } finally {

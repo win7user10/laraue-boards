@@ -1,6 +1,6 @@
 import type { Result } from '~/utils/actionResult'
 
-export type OrganizationPickerItem = {
+type OrganizationPickerItem = {
   color: string
   description: string
   id: string

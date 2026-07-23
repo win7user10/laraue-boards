@@ -40,7 +40,7 @@ test('maps backlog issue page data', async () => {
       attributes: [],
       boardName: 'Backlog',
       spaceId: '4',
-      statusId: '3',
+      statuses: [{ label: 'Open', value: '3' }],
     },
   })
 })

@@ -1,6 +1,6 @@
 import type { Result } from '~/utils/actionResult'
 
-export type PermissionsPageMember = {
+type PermissionsPageMember = {
   color: string
   id: string
   initials: string

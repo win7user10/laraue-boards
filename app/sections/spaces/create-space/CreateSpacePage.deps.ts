@@ -1,6 +1,6 @@
 import type { Result } from '~/utils/actionResult'
 
-export type CreateSpaceInput = {
+type CreateSpaceInput = {
   color: string
   key: string
   name: string
