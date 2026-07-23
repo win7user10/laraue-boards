@@ -1,246 +1,173 @@
 <template>
-  <BoardSettingsContent
-    v-if="pageState.type === 'ready'"
-    :error="error"
-    :on-delete="remove"
-    :on-update="update"
-    :space-key="spaceKey"
-    :submitting="submitting"
-    :view-model="pageState.data.BoardSettingsPage" />
-  <PageLoadState
-    v-else
-    :error-text="pageState.type === 'error' ? pageState.message : ''"
-    :loading="pageState.type === 'pending'"
+  <PageState
+    error-title="Could not load board"
     loading-text="Loading board…"
-    :on-retry="refresh" />
+    :on-retry="query.refresh"
+    :state="pageState">
+    <template #default="{ data }">
+      <section class="form-page">
+        <div class="title-row">
+          <div class="page-heading">
+            <AppBackLink
+              label="Back to board"
+              :to="backTo" />
+            <BoardIcon
+              class="page-heading-icon"
+              :style="{ color: data.color }" />
+            <div class="page-heading-text"><h1>Edit board</h1></div>
+          </div>
+        </div>
+        <BoardSettingsForm
+          :error="state.error"
+          :on-delete="remove"
+          :on-update="(input) => save(data, input)"
+          :submitting="state.submitting"
+          :view-model="data" />
+      </section>
+    </template>
+  </PageState>
 </template>
 
 <script setup lang="ts">
-import type { BoardSettingsPageDeps } from '~/sections/boards/board-settings/BoardSettingsPageDeps'
-import BoardSettingsContent from '~/sections/boards/board-settings/components/BoardSettingsContent.vue'
+import type { RouteLocationRaw } from 'vue-router'
+
+import { BoardIcon } from '~/constants/icons'
+import type {
+  BoardSettingsColumnDraft,
+  BoardSettingsPageData,
+  BoardSettingsPageDeps,
+  ChangeBoardFailure,
+  SaveBoardFailure,
+  ViewBoardSettingsFailure,
+} from '~/sections/boards/board-settings/BoardSettingsPage.deps'
+import BoardSettingsForm from '~/sections/boards/board-settings/components/BoardSettingsForm.vue'
+import { matchResult } from '~/utils/actionResult'
+import { assertNever } from '~/utils/assertNever'
+import { toAsyncResultState } from '~/utils/asyncResultState'
+
 const props = defineProps<{
+  backTo: RouteLocationRaw
   boardId: string
   deps: BoardSettingsPageDeps
-  spaceKey: string
+  onDeleted: () => Promise<void> | void
+  onSaved: () => Promise<void> | void
 }>()
-const organizationRoutes = useOrganizationRoutes()
-const { refresh, state: pageState } = await useActionData({
-  action: () => props.deps.viewBoardSettingsPage({ boardId: props.boardId }),
-  fallbackMessage: 'Could not load board. Try again.',
-  messages: {
-    AccessDenied: 'You do not have access to this board.',
-    BoardNotFound: 'The board was not found or is not available to you.',
-    TemporarilyUnavailable:
-      'Could not load board. The service is temporarily unavailable.',
-  },
-  watch: [() => props.boardId],
+const state = reactive({
+  error: null as null | string,
+  submitting: false,
 })
+
+const query = await useAsyncData(
+  () => `board-settings:${props.boardId}`,
+  (_nuxtApp, { signal }) => props.deps.view({ boardId: props.boardId, signal }),
+  { watch: [() => props.boardId] },
+)
+const getViewFailureMessage = (failure: ViewBoardSettingsFailure): string => {
+  switch (failure.type) {
+    case 'accessDenied':
+      return 'You do not have access to this board.'
+    case 'boardNotFound':
+      return 'The board was not found or is not available to you.'
+    case 'temporarilyUnavailable':
+      return 'Could not load board. The service is temporarily unavailable.'
+    default:
+      return assertNever(failure)
+  }
+}
+const pageState = computed(() =>
+  toAsyncResultState({
+    error: query.error.value,
+    getErrorMessage: getViewFailureMessage,
+    result: query.data.value,
+    status: query.status.value,
+  }),
+)
+const page = computed(() =>
+  pageState.value.type === 'ready' ? pageState.value.data : null,
+)
+
 useHead({
   title: computed(() =>
-    pageState.value.type === 'ready'
-      ? `${pageState.value.data.BoardSettingsPage.name} settings`
-      : 'Board settings',
+    page.value ? `${page.value.name} settings` : 'Board settings',
   ),
 })
-const submitting = ref(false)
-const error = ref<null | string>(null)
-type BoardColumn = { color: string; id: string; name: string }
-type BoardColumnDraft = { color: string; id: null | string; name: string }
-function getBoardColumnChanges(
-  originalColumns: BoardColumn[],
-  columns: BoardColumnDraft[],
-) {
-  const currentIds = new Set(
-    columns.flatMap((column) => (column.id === null ? [] : [column.id])),
-  )
-  return {
-    created: columns.filter((column) => column.id === null),
-    deleted: originalColumns.filter((column) => !currentIds.has(column.id)),
-    updated: columns.filter((column): column is BoardColumn => {
-      if (column.id === null) {
-        return false
-      }
-      const original = originalColumns.find((item) => item.id === column.id)
-      return original?.name !== column.name || original.color !== column.color
-    }),
+
+const getChangeFailureMessage = (
+  failure: ChangeBoardFailure,
+  operation: 'delete' | 'save',
+): string => {
+  switch (failure.type) {
+    case 'accessDenied':
+      return `You do not have permission to ${operation} this board.`
+    case 'boardNotFound':
+      return operation === 'delete'
+        ? 'This board no longer exists.'
+        : 'The board was not found.'
+    case 'temporarilyUnavailable':
+      return `Could not ${operation} board. Try again.`
+    default:
+      return assertNever(failure)
   }
 }
-async function update(input: {
-  color: string
-  columns: Array<{ color: string; id: null | string; name: string }>
-  name: string
-}) {
-  submitting.value = true
-  error.value = null
-  const result = await props.deps.updateBoard({
-    boardId: props.boardId,
-    ...input,
-  })
-  await matchActionResult({
-    err: async (actionError) => {
-      error.value = getErrorMessage({
-        error: actionError,
-        messages: {
-          AccessDenied: 'You do not have permission to update this board.',
-          BoardNotFound: 'The board was not found.',
-          TemporarilyUnavailable: 'Could not save board. Try again.',
-        },
-      })
-    },
-    ok: async () => {
-      const originalColumns =
-        pageState.value.type === 'ready'
-          ? pageState.value.data.BoardSettingsPage.columns
-          : []
-      const changes = getBoardColumnChanges(originalColumns, input.columns)
-      const createdColumnResults = await Promise.all(
-        changes.created.map((column) =>
-          props.deps.createBoardColumn({
-            boardId: props.boardId,
-            color: column.color,
-            name: column.name.trim(),
-          }),
-        ),
-      )
-      const updatedColumnResults = await Promise.all(
-        changes.updated.map((column) =>
-          props.deps.updateBoardColumn({
-            boardColumnId: column.id,
-            color: column.color,
-            name: column.name.trim(),
-          }),
-        ),
-      )
-      const createdColumnIds: string[] = []
-      let columnError: null | string = null
-      for (const columnResult of createdColumnResults) {
-        matchActionResult({
-          err: (actionError) => {
-            columnError ??= getErrorMessage({
-              error: actionError,
-              messages: {
-                AccessDenied:
-                  'You do not have permission to update this board.',
-                BoardNotFound: 'The board was not found.',
-                TemporarilyUnavailable: 'Could not save board. Try again.',
-              },
-            })
-          },
-          ok: ({ boardColumnId }) => createdColumnIds.push(boardColumnId),
-          result: columnResult,
-        })
-      }
-      for (const columnResult of updatedColumnResults) {
-        matchActionResult({
-          err: (actionError) => {
-            columnError ??= getErrorMessage({
-              error: actionError,
-              messages: {
-                AccessDenied:
-                  'You do not have permission to update this board.',
-                BoardColumnNotFound: 'The board column was not found.',
-                TemporarilyUnavailable: 'Could not save board. Try again.',
-              },
-            })
-          },
-          ok: () => {},
-          result: columnResult,
-        })
-      }
-      if (columnError === null) {
-        const deletedColumnResults = await Promise.all(
-          changes.deleted.map((column) =>
-            props.deps.deleteBoardColumn({ boardColumnId: column.id }),
-          ),
-        )
-        for (const columnResult of deletedColumnResults) {
-          matchActionResult({
-            err: (actionError) => {
-              columnError ??= getErrorMessage({
-                error: actionError,
-                messages: {
-                  AccessDenied:
-                    'You do not have permission to update this board.',
-                  BoardColumnNotFound: 'The board column was not found.',
-                  TemporarilyUnavailable: 'Could not save board. Try again.',
-                },
-              })
-            },
-            ok: () => {},
-            result: columnResult,
-          })
-        }
-      }
-      if (columnError !== null) {
-        await refresh()
-        error.value = columnError
-        return
-      }
-      let createdColumnIndex = 0
-      const boardColumnIds = input.columns.flatMap((column) => {
-        if (column.id !== null) {
-          return [column.id]
-        }
-        const boardColumnId = createdColumnIds[createdColumnIndex]
-        createdColumnIndex += 1
-        return boardColumnId === undefined ? [] : [boardColumnId]
-      })
-      if (boardColumnIds.length > 0) {
-        const reorderResult = await props.deps.reorderBoardColumns({
-          boardColumnIds,
-          boardId: props.boardId,
-        })
-        let reorderFailed = false
-        matchActionResult({
-          err: (actionError) => {
-            reorderFailed = true
-            error.value = getErrorMessage({
-              error: actionError,
-              messages: {
-                AccessDenied:
-                  'You do not have permission to reorder these columns.',
-                BoardNotFound: 'The board was not found.',
-                TemporarilyUnavailable:
-                  'Could not save column order. Try again.',
-              },
-            })
-          },
-          ok: () => {},
-          result: reorderResult,
-        })
-        if (reorderFailed) {
-          await refresh()
-          return
-        }
-      }
-      await navigateTo(organizationRoutes.board(props.spaceKey, props.boardId))
-    },
-    result,
-  })
-  submitting.value = false
+
+const getSaveFailureMessage = (failure: SaveBoardFailure): string => {
+  switch (failure.type) {
+    case 'invalidInput':
+      return failure.message
+    case 'boardColumnNotFound':
+      return 'A board column was not found.'
+    case 'accessDenied':
+    case 'boardNotFound':
+    case 'temporarilyUnavailable':
+      return getChangeFailureMessage(failure, 'save')
+    default:
+      return assertNever(failure)
+  }
 }
-async function remove() {
-  if (!confirm('Delete this board?')) {
+
+async function save(
+  current: BoardSettingsPageData,
+  input: { color: string; columns: BoardSettingsColumnDraft[]; name: string },
+): Promise<void> {
+  if (state.submitting) {
     return
   }
-  submitting.value = true
-  const result = await props.deps.deleteBoard({ boardId: props.boardId })
-  submitting.value = false
-  await matchActionResult({
-    err: async (actionError) => {
-      error.value = getErrorMessage({
-        error: actionError,
-        messages: {
-          AccessDenied: 'You do not have permission to delete this board.',
-          BoardNotFound: 'This board no longer exists.',
-          TemporarilyUnavailable: 'Could not delete board. Try again.',
-        },
-      })
-    },
-    ok: async () => {
-      await navigateTo(organizationRoutes.space(props.spaceKey))
-    },
-    result,
-  })
+  state.error = null
+  state.submitting = true
+  try {
+    const result = await props.deps.save({
+      boardId: props.boardId,
+      originalColumns: current.columns,
+      ...input,
+    })
+    await matchResult(result, {
+      err: async (failure) => {
+        await query.refresh()
+        state.error = getSaveFailureMessage(failure)
+      },
+      ok: props.onSaved,
+    })
+  } finally {
+    state.submitting = false
+  }
+}
+
+async function remove(): Promise<void> {
+  if (state.submitting || !confirm('Delete this board?')) {
+    return
+  }
+  state.error = null
+  state.submitting = true
+  try {
+    const result = await props.deps.remove({ boardId: props.boardId })
+    await matchResult(result, {
+      err: (failure) => {
+        state.error = getChangeFailureMessage(failure, 'delete')
+      },
+      ok: props.onDeleted,
+    })
+  } finally {
+    state.submitting = false
+  }
 }
 </script>

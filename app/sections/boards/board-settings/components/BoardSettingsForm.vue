@@ -1,27 +1,13 @@
 <template>
-  <section class="form-page">
-    <div class="title-row">
-      <div class="page-heading">
-        <AppBackLink
-          label="Back to board"
-          :to="organizationRoutes.board(spaceKey, viewModel.id)" />
-        <BoardIcon
-          class="page-heading-icon"
-          :style="{ color }" />
-        <div class="page-heading-text">
-          <h1>Edit board</h1>
-        </div>
-      </div>
-    </div>
-    <form @submit.prevent="submit">
+  <form @submit.prevent="submit">
       <label>Name</label>
       <input
-        v-model="name"
+        v-model="state.name"
         :disabled="!viewModel.canUpdate"
         required />
       <label>Color</label>
       <AppColorPicker
-        v-model="color"
+        v-model="state.color"
         :disabled="!viewModel.canUpdate" />
       <label>Columns</label>
       <DragDropProvider
@@ -30,7 +16,7 @@
         @drag-end="handleDragEnd">
         <div class="column-settings">
           <BoardColumnSetting
-            v-for="(column, index) in columns"
+            v-for="(column, index) in state.columns"
             :id="column.key"
             :key="column.key"
             :can-update="viewModel.canUpdate"
@@ -74,33 +60,9 @@
           Delete board
         </button>
       </div>
-    </form>
-  </section>
+  </form>
 </template>
 
-<script lang="ts">
-export type BoardSettingsPageViewModel = {
-  canDelete: boolean
-  canUpdate: boolean
-  color: string
-  columns: Array<{ color: string; id: string; name: string }>
-  id: string
-  name: string
-}
-
-type BoardSettingsPageProps = {
-  error: null | string
-  onDelete: () => void
-  onUpdate: (input: {
-    color: string
-    columns: Array<{ color: string; id: null | string; name: string }>
-    name: string
-  }) => void
-  spaceKey: string
-  submitting: boolean
-  viewModel: BoardSettingsPageViewModel
-}
-</script>
 <script setup lang="ts">
 import { defaultPreset, PointerActivationConstraints } from '@dnd-kit/dom'
 import { arrayMove } from '@dnd-kit/helpers'
@@ -110,21 +72,35 @@ import { isSortable } from '@dnd-kit/vue/sortable'
 import { Plus } from 'lucide-vue-next'
 
 import { DEFAULT_COLOR } from '~/constants/colors'
-import { BoardIcon } from '~/constants/icons'
+import type {
+  BoardSettingsColumnDraft,
+  BoardSettingsPageData,
+} from '~/sections/boards/board-settings/BoardSettingsPage.deps'
 import BoardColumnSetting from '~/sections/boards/board-settings/components/BoardColumnSetting/BoardColumnSetting.vue'
 
-const props = defineProps<BoardSettingsPageProps>()
-const organizationRoutes = useOrganizationRoutes()
-const name = ref(props.viewModel.name)
-const color = ref(props.viewModel.color)
-type BoardColumnDraft = {
+const props = defineProps<{
+  error: null | string
+  onDelete: () => void
+  onUpdate: (input: {
+    color: string
+    columns: BoardSettingsColumnDraft[]
+    name: string
+  }) => void
+  submitting: boolean
+  viewModel: BoardSettingsPageData
+}>()
+type BoardColumnDraft = BoardSettingsColumnDraft & { key: string }
+const state = reactive<{
   color: string
-  id: null | string
-  key: string
+  columns: BoardColumnDraft[]
   name: string
-}
-let newColumnId = 0
-const columns = ref<BoardColumnDraft[]>(toDraftColumns(props.viewModel.columns))
+  newColumnId: number
+}>({
+  color: props.viewModel.color,
+  columns: toDraftColumns(props.viewModel.columns),
+  name: props.viewModel.name,
+  newColumnId: 0,
+})
 const sensors = [
   PointerSensor.configure({
     activationConstraints: (event) =>
@@ -136,7 +112,7 @@ const sensors = [
   KeyboardSensor,
 ]
 
-function toDraftColumns(columns: BoardSettingsPageViewModel['columns']) {
+function toDraftColumns(columns: BoardSettingsPageData['columns']) {
   return columns.map((column) => ({
     ...column,
     key: `column-${column.id}`,
@@ -144,40 +120,40 @@ function toDraftColumns(columns: BoardSettingsPageViewModel['columns']) {
 }
 
 function addColumn() {
-  newColumnId += 1
-  columns.value.push({
+  state.newColumnId += 1
+  state.columns.push({
     color: DEFAULT_COLOR,
     id: null,
-    key: `new-column-${newColumnId}`,
+    key: `new-column-${state.newColumnId}`,
     name: 'New column',
   })
 }
 
 function removeColumn(key: string) {
-  columns.value = columns.value.filter((column) => column.key !== key)
+  state.columns = state.columns.filter((column) => column.key !== key)
 }
 
 function handleDragEnd(event: DragEndEvent) {
   const source = event.operation.source
   if (!event.canceled && isSortable(source)) {
-    columns.value = arrayMove(columns.value, source.initialIndex, source.index)
+    state.columns = arrayMove(state.columns, source.initialIndex, source.index)
   }
 }
 
 function submit() {
   props.onUpdate({
-    color: color.value,
-    columns: columns.value.map(({ color, id, name }) => ({ color, id, name })),
-    name: name.value.trim(),
+    color: state.color,
+    columns: state.columns.map(({ color, id, name }) => ({ color, id, name })),
+    name: state.name.trim(),
   })
 }
 
 watch(
   () => props.viewModel,
   (value) => {
-    name.value = value.name
-    color.value = value.color
-    columns.value = toDraftColumns(value.columns)
+    state.name = value.name
+    state.color = value.color
+    state.columns = toDraftColumns(value.columns)
   },
 )
 </script>

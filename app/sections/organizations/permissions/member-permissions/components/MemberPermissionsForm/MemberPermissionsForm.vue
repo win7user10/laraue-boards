@@ -1,20 +1,7 @@
 <template>
-  <section class="member-permissions-page">
-    <div class="title-row">
-      <div class="page-heading">
-        <AppBackLink
-          label="Back to members"
-          :to="organizationRoutes.permissions()" />
-        <ShieldCheck class="page-heading-icon" />
-        <div class="page-heading-text">
-          <h1>{{ viewModel.member.name }}</h1>
-        </div>
-      </div>
-    </div>
-
-    <form
-      class="permissions-editor"
-      @submit.prevent="submit">
+  <form
+    class="permissions-editor"
+    @submit.prevent="submit">
       <p
         v-if="viewModel.member.isOwner"
         class="muted">
@@ -205,8 +192,7 @@
           {{ submitting ? 'Saving…' : 'Save permissions' }}
         </button>
       </div>
-    </form>
-  </section>
+  </form>
 </template>
 
 <script lang="ts">
@@ -228,11 +214,10 @@ type MemberPermissionsFormProps = {
 </script>
 
 <script setup lang="ts">
-import { ChevronRight, ShieldCheck } from 'lucide-vue-next'
+import { ChevronRight } from 'lucide-vue-next'
 
 import { SpaceIcon } from '~/constants/icons'
 const props = defineProps<MemberPermissionsFormProps>()
-const organizationRoutes = useOrganizationRoutes()
 const state = reactive({
   draft: structuredClone(toRaw(props.viewModel.permissions)),
 })
@@ -345,10 +330,6 @@ async function submit() {
 </script>
 
 <style scoped>
-.member-permissions-page {
-  overflow: visible;
-}
-
 .permissions-editor {
   display: grid;
   gap: var(--space-5);

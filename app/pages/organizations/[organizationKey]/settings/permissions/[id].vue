@@ -1,5 +1,6 @@
 <template>
   <MemberPermissionsPage
+    :back-to="organizationRoutes.permissions()"
     :deps="deps"
     :member-id="memberId"
     :on-saved="onSaved" />
