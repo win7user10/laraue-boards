@@ -1,5 +1,5 @@
-import type { IssueDetailsDeps } from '~/components/issues/issue-details/deps'
-import type { IssueDetailsViewModel } from '~/components/issues/issue-details/IssueDetails.types'
+import type { IssueDetailsDeps } from '~/components/issue-details/deps'
+import type { IssueDetailsViewModel } from '~/components/issue-details/IssueDetails.types'
 import type { Result } from '~/utils/actionResult'
 
 export type IssueDialogViewModel = IssueDetailsViewModel

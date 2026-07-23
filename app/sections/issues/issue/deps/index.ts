@@ -1,4 +1,4 @@
-import type { IssueDetailsDeps } from '~/components/issues/issue-details/deps'
+import type { IssueDetailsDeps } from '~/components/issue-details/deps'
 
 import type { DeleteIssue } from './deleteIssue'
 import type { ViewIssue } from './viewIssue'

@@ -22,6 +22,7 @@
           </div>
         </div>
         <IssueDetails
+          class="issue-page-form"
           :deps="deps.issueDetails"
           :form-id="formId"
           :on-can-save-change="setCanSave"
@@ -61,8 +62,8 @@
 <script setup lang="ts">
 import { ArrowLeft, Trash2 } from 'lucide-vue-next'
 
-import type { IssueDetailsSavedIssue } from '~/components/issues/issue-details/deps'
-import IssueDetails from '~/components/issues/issue-details/IssueDetails.vue'
+import type { IssueDetailsSavedIssue } from '~/components/issue-details/deps'
+import IssueDetails from '~/components/issue-details/IssueDetails.vue'
 import type { IssuePageDeps, ViewIssueFailure } from '~/sections/issues/issue/deps'
 import { assertNever } from '~/utils/assertNever'
 import { toAsyncResultState } from '~/utils/asyncResultState'
@@ -169,3 +170,9 @@ const leave = async () => {
   await props.onBack()
 }
 </script>
+
+<style scoped>
+.issue-page-form {
+  margin-top: var(--space-5);
+}
+</style>

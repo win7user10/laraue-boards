@@ -101,8 +101,8 @@
 import { Check, Link, X } from 'lucide-vue-next'
 import { onBeforeRouteUpdate } from 'vue-router'
 
-import type { IssueDetailsSavedIssue } from '~/components/issues/issue-details/deps'
-import IssueDetails from '~/components/issues/issue-details/IssueDetails.vue'
+import type { IssueDetailsSavedIssue } from '~/components/issue-details/deps'
+import IssueDetails from '~/components/issue-details/IssueDetails.vue'
 import IssueDialogError from '~/sections/boards/board/components/IssueDialog/components/IssueDialogError.vue'
 import IssueDialogSkeleton from '~/sections/boards/board/components/IssueDialog/components/IssueDialogSkeleton.vue'
 import { assertNever } from '~/utils/assertNever'

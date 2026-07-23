@@ -64,8 +64,8 @@ import { debounce } from 'es-toolkit'
 import { ClipboardList, Plus } from 'lucide-vue-next'
 import type { LocationQuery, LocationQueryRaw } from 'vue-router'
 
-import IssueList from '~/components/issues/issue-list/IssueList.vue'
-import IssueFilters from '~/components/issues/IssueFilters.vue'
+import IssueList from '~/components/issue-list/IssueList.vue'
+import IssueFilters from '~/components/IssueFilters.vue'
 import type {
   IssuesPageDeps,
   LoadMoveBoardsFailure,

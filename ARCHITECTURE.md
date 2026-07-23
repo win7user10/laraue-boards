@@ -21,6 +21,7 @@ Core principles:
 - `useAsyncData` is used directly, without a custom async composable;
 - repeated state conversion is extracted into the pure `toAsyncResultState` helper;
 - feature components own their structure; slots are not used to hide ordinary prop flow;
+- reusable components are organized by component ownership, not by thematic grouping directories;
 - state and deps live in the lowest component that can fully handle an asynchronous scenario and its
   local failure;
 - shared abstractions are introduced only after repetition has been confirmed.
@@ -126,59 +127,31 @@ They:
 - do not coordinate page-level scenarios;
 - do not know about the router.
 
+### Component Placement
+
+`app/components` does not use thematic grouping directories.
+
+- A component consisting of one `.vue` file lives directly in `app/components`.
+- A component with related types, deps, tests, or private children owns a kebab-case directory
+  directly in `app/components`.
+- Files inside that directory follow the usual component structure: `Xxx.vue`, optional
+  `Xxx.types.ts`, `deps/`, and `deps/impl/`.
+- A private child component lives in its parent’s `components/` directory. If it becomes reusable
+  outside that parent, it moves to the top-level component structure.
+
 ### Nested Feature Containers
 
 A child component receives its own `deps` when it is the lowest component that can completely own an
 independent asynchronous user scenario and display its local failures. A component does not receive
 `deps` merely because it contains buttons or fields.
 
-The child container owns and declares its dependency contract:
+The child owns and declares its dependency contract. The parent dependency contract composes that
+contract as one property, and the parent production factory composes the child factory rather than
+reimplementing its operations.
 
-```ts
-// deps/index.ts
-export type IssueDetailsDeps = {
-  loadAssignees: LoadAssignees
-  loadMoveBoards: LoadMoveBoards
-  loadMoveSpaces: LoadMoveSpaces
-  loadStatuses: LoadStatuses
-  saveIssue: SaveIssue
-}
-```
-
-The parent performs the first page `view`, passes the initial view model to the child, and retains
-only page-level actions such as deletion, navigation, and refresh:
-
-```ts
-export type IssuePageDeps = {
-  deleteIssue: DeleteIssue
-  issueDetails: IssueDetailsDeps
-  view: ViewIssue
-}
-```
-
-The production factory composes the child factory rather than reimplementing its operations:
-
-```ts
-export const createIssuePageDeps = (client: ApiClient): IssuePageDeps => ({
-  deleteIssue: createDeleteIssue(client),
-  issueDetails: createIssueDetailsDeps(client),
-  view: createViewIssue(client),
-})
-```
-
-The child receives initial data and owns its form, lookup, pending, action-error, and saving state:
-
-```vue
-<IssueDetails
-  :deps="deps.issueDetails"
-  :view-model="data"
-  :on-dirty-change="setDirty"
-  :on-saved="handleSaved" />
-```
-
-The child reports only outcomes that affect its environment, for example `onSaved`, `onDirtyChange`,
-or `onSavingChange`. It does not push lookup arrays, lookup pending flags, or local errors back to
-the page.
+The parent passes initial data to the child and retains only parent-level actions. The child owns
+its form, lookup, pending, action-error, and saving state and reports only outcomes that affect its
+environment. It does not push internal option arrays, pending flags, or local errors upward.
 
 This forms an explicit dependency tree matching scenario ownership. Presentational lists, buttons,
 attachment previews, and layout fragments continue to receive only data and callbacks.
@@ -1640,9 +1613,7 @@ Verify:
 
 ### Nested Async Containers
 
-Test the scenario at the component that owns it. For `IssueDetails`, verify lookup loading, local
-lookup failures, save pending state, validation, partial save, and `onSaved`/`onDirtyChange`
-notifications there rather than through every parent page.
+Test an asynchronous scenario at the component that owns it rather than through every parent.
 
 ### Inline Deps Stub
 

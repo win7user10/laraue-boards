@@ -1,7 +1,7 @@
 import type { ApiClient } from '#infrastructure/api/client'
 import type { components } from '#infrastructure/api/generated'
 import { tryRequest } from '#infrastructure/api/tryRequest'
-import { createIssueDetailsDeps } from '~/components/issues/issue-details/deps/impl'
+import { createIssueDetailsDeps } from '~/components/issue-details/deps/impl'
 import type {
   IssueDialogDeps,
   IssueDialogViewModel,

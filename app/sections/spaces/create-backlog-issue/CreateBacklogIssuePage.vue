@@ -113,8 +113,8 @@
 <script setup lang="ts">
 import { ListPlus } from 'lucide-vue-next'
 
-import IssueAttachments from '~/components/issues/IssueAttachments.vue'
-import IssueAttributeFields from '~/components/issues/IssueAttributeFields.vue'
+import IssueAttachments from '~/components/issue-attachments/IssueAttachments.vue'
+import IssueAttributeFields from '~/components/issue-attribute-fields/IssueAttributeFields.vue'
 import type {
   BacklogIssueAssignee,
   CreateBacklogIssueFailure,

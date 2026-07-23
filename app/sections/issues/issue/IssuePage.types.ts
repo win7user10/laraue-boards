@@ -1,3 +1,3 @@
-import type { IssueDetailsViewModel } from '~/components/issues/issue-details/IssueDetails.types'
+import type { IssueDetailsViewModel } from '~/components/issue-details/IssueDetails.types'
 
 export type IssuePageData = IssueDetailsViewModel

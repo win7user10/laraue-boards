@@ -169,8 +169,8 @@ import { debounce } from 'es-toolkit'
 import { Plus, Settings } from 'lucide-vue-next'
 import type { LocationQuery, LocationQueryRaw } from 'vue-router'
 
-import type { IssueDetailsSavedIssue } from '~/components/issues/issue-details/deps'
-import IssueFilters from '~/components/issues/IssueFilters.vue'
+import type { IssueDetailsSavedIssue } from '~/components/issue-details/deps'
+import IssueFilters from '~/components/IssueFilters.vue'
 import { BoardIcon } from '~/constants/icons'
 import type {
   BoardPageDeps,
