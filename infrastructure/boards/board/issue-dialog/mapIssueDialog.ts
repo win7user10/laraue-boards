@@ -1,5 +1,4 @@
 import type { components } from '#infrastructure/api/generated'
-import { mapIssueAttachments } from '#infrastructure/issues/shared/mapIssueAttachments'
 import type { IssueDialogViewModel } from '~/sections/boards/board/components/IssueDialog/IssueDialog.vue'
 
 type IssueDetailDto = components['schemas']['IssueDetailDto']
@@ -31,6 +30,31 @@ const mapAttribute = (
   }
 }
 
+const mapAttachments = (
+  attachments: components['schemas']['AttachmentData'][],
+  baseUrl: string,
+): IssueDialogViewModel['attachments'] =>
+  attachments.flatMap((attachment) => {
+    if (attachment.type !== 0) {
+      return []
+    }
+    const previewId =
+      attachment.previewFileId ?? attachment.originalFileId
+    if (!previewId) {
+      return []
+    }
+    const originalId = attachment.originalFileId ?? previewId
+    const fileUrl = (id: string) =>
+      new URL(`/api/files/${encodeURIComponent(id)}`, baseUrl).href
+    return [
+      {
+        id: attachment.id,
+        originalUrl: fileUrl(originalId),
+        previewUrl: fileUrl(previewId),
+      },
+    ]
+  })
+
 export const mapIssueDialog = (
   issue: IssueDetailDto,
   baseUrl: string,
@@ -39,7 +63,7 @@ export const mapIssueDialog = (
   assigneeColor: issue.assigneeColor,
   assigneeId: issue.assigneeId,
   assigneeInitial: issue.assigneeInitial,
-  attachments: mapIssueAttachments(issue.attachments, baseUrl),
+  attachments: mapAttachments(issue.attachments, baseUrl),
   attributes: issue.attributeValues.map(mapAttribute),
   boardId: String(issue.epicId),
   boardLabel: issue.epicName ?? '',

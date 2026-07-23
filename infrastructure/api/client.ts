@@ -21,12 +21,15 @@ export const createApiClient = (options: CreateApiClientOptions | string) => {
         : undefined
       : options.headers
 
-  return createFetchClient<paths>({
-    baseUrl,
-    credentials: 'include',
-    fetch,
-    headers,
-  })
+  return Object.assign(
+    createFetchClient<paths>({
+      baseUrl,
+      credentials: 'include',
+      fetch,
+      headers,
+    }),
+    { baseUrl },
+  )
 }
 
 export type ApiClient = ReturnType<typeof createApiClient>

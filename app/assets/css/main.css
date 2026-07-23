@@ -463,11 +463,6 @@ button:disabled {
   padding: 0;
   place-self: stretch;
 }
-.issue-form-side > .page-actions {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-  justify-content: start;
-}
 .form-error,
 .form-success {
   animation: feedback-enter var(--duration-base) var(--ease-standard);

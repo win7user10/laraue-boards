@@ -1,10 +1,9 @@
 <template>
   <form
-    class="issue-details"
+    :id="formId"
+    class="issue-form"
     @submit.prevent="save">
-    <slot name="header" />
-    <div class="issue-form">
-      <div class="issue-form-main">
+    <div class="issue-form-main">
         <label>Issue text</label>
         <textarea
           v-model="state.content"
@@ -18,8 +17,8 @@
           :on-change="changeFiles"
           :on-remove-attachment="removeAttachment"
           :removed-attachment-ids="state.removedAttachmentIds" />
-      </div>
-      <div class="issue-form-side">
+    </div>
+    <div class="issue-form-side">
         <label>Space</label>
         <select
           v-model="state.pickedSpaceId"
@@ -32,7 +31,7 @@
             Select space
           </option>
           <option
-            v-if="state.loadingMoveSpaces"
+          v-if="lookup.loadingMoveSpaces"
             disabled
             value="__loading">
             Loading spaces…
@@ -50,8 +49,8 @@
         <label>Board</label>
         <select
           v-model="state.boardId"
-          :aria-busy="state.loadingMoveBoards"
-          :disabled="!viewModel.canEdit || state.loadingStatuses"
+          :aria-busy="lookup.loadingMoveBoards"
+          :disabled="!viewModel.canEdit || lookup.loadingStatuses"
           @change="selectBoard"
           @focus="loadMoveBoards">
           <option
@@ -60,7 +59,7 @@
             Select board
           </option>
           <option
-            v-if="state.loadingMoveBoards"
+          v-if="lookup.loadingMoveBoards"
             disabled
             value="__loading">
             Loading boards…
@@ -80,7 +79,7 @@
         <label>Status</label>
         <select
           v-model="state.statusId"
-          :aria-busy="state.loadingStatuses"
+          :aria-busy="lookup.loadingStatuses"
           :disabled="!viewModel.canEdit || !state.boardId"
           @focus="loadStatuses">
           <option
@@ -89,20 +88,20 @@
             Select status
           </option>
           <option
-            v-if="state.loadingStatuses"
+          v-if="lookup.loadingStatuses"
             disabled
             value="__loading">
             Loading statuses…
           </option>
           <option
             v-if="
-              state.boardId === viewModel.boardId && state.statuses.length === 0
+              state.boardId === viewModel.boardId && lookup.statuses.length === 0
             "
             :value="viewModel.statusId">
             {{ viewModel.statusLabel || 'Current status' }}
           </option>
           <option
-            v-for="item in state.statuses"
+          v-for="item in lookup.statuses"
             :key="item.id"
             :value="item.id">
             {{ item.name }}
@@ -153,7 +152,7 @@
           </span>
           <select
             v-model="state.assigneeId"
-            :aria-busy="state.loadingAssignees"
+            :aria-busy="lookup.loadingAssignees"
             :disabled="!viewModel.canEdit"
             @focus="loadAssignees(state.pickedSpaceId)">
             <option
@@ -162,13 +161,13 @@
               {{ viewModel.assignee }}
             </option>
             <option
-              v-if="state.loadingAssignees"
+          v-if="lookup.loadingAssignees"
               disabled
               value="__loading">
               Loading assignees…
             </option>
             <option
-              v-for="assignee in state.assignees"
+              v-for="assignee in lookup.assignees"
               :key="assignee.value"
               :value="assignee.value">
               {{ assignee.label }}
@@ -198,19 +197,11 @@
             </time>
           </div>
         </div>
-        <slot
-          :can-save="canSave"
-          name="side-actions" />
-      </div>
     </div>
-    <slot
-      :can-save="canSave"
-      name="footer" />
   </form>
 </template>
 
 <script lang="ts">
-import type { IssueDetailsDeps } from '~/components/issues/issue-details/IssueDetailsDeps'
 import type { IssueAttachmentViewModel } from '~/components/issues/IssueAttachments.vue'
 
 const dateTimeFormatter = new Intl.DateTimeFormat('en-US', {
@@ -272,10 +263,31 @@ export type IssueDetailsSaveInput = {
 type MoveOption = { label: string; value: string }
 type AssigneeOption = MoveOption & { color: string; initials: string }
 
-export type IssueDetailsProps = {
-  deps: IssueDetailsDeps
+export type IssueDetailsLookupState = {
+  assignees: AssigneeOption[]
+  boards: MoveOption[]
   error: null | string
+  loadingAssignees: boolean
+  loadingMoveBoards: boolean
+  loadingMoveSpaces: boolean
+  loadingStatuses: boolean
+  spaces: MoveOption[]
+  statuses: Array<{ id: string; name: string }>
+}
+
+export type IssueDetailsProps = {
+  error: null | string
+  formId: string
+  lookup: IssueDetailsLookupState
+  onChangeMoveBoard: () => void
+  onChangeMoveSpace: () => void
+  onCanSaveChange: (canSave: boolean) => void
   onDirtyChange: (dirty: boolean) => void
+  onLoadAssignees: (spaceId: string) => Promise<void> | void
+  onLoadMoveBoards: (spaceId: string) => Promise<void> | void
+  onLoadMoveSpaces: () => Promise<void> | void
+  onLoadStatuses: (boardId: string) => Promise<void> | void
+  onResetLookups: () => void
   onSave: (input: IssueDetailsSaveInput) => void
   saving: boolean
   viewModel: IssueDetailsViewModel
@@ -286,15 +298,9 @@ export type IssueDetailsProps = {
 import IssueAttachments from '~/components/issues/IssueAttachments.vue'
 
 const props = defineProps<IssueDetailsProps>()
-defineSlots<{
-  footer?: (props: { canSave: boolean }) => unknown
-  header?: () => unknown
-  'side-actions'?: (props: { canSave: boolean }) => unknown
-}>()
 
 const state = reactive({
   assigneeId: props.viewModel.assigneeId,
-  assignees: [] as AssigneeOption[],
   attributeValues: Object.fromEntries(
     props.viewModel.attributes.map((attribute) => [
       attribute.id,
@@ -305,24 +311,18 @@ const state = reactive({
   boardLabel: props.viewModel.boardLabel,
   content: props.viewModel.content,
   files: [] as File[],
-  loadingAssignees: false,
-  loadingMoveBoards: false,
-  loadingMoveSpaces: false,
-  loadingStatuses: false,
-  lookupError: null as null | string,
-  moveBoards: [] as MoveOption[],
-  moveSpaces: [] as MoveOption[],
   pickedSpaceId: props.viewModel.spaceId,
   removedAttachmentIds: [] as string[],
   spaceLabel: props.viewModel.spaceLabel,
-  statuses: [] as Array<{ id: string; name: string }>,
   statusId: props.viewModel.statusId,
 })
 const spaceOptions = computed(() =>
-  state.moveSpaces.filter((space) => space.value !== props.viewModel.spaceId),
+  props.lookup.spaces.filter(
+    (space) => space.value !== props.viewModel.spaceId,
+  ),
 )
 const boardOptions = computed(() =>
-  state.moveBoards.filter(
+  props.lookup.boards.filter(
     (board) =>
       state.pickedSpaceId !== props.viewModel.spaceId ||
       board.value !== props.viewModel.boardId,
@@ -330,13 +330,15 @@ const boardOptions = computed(() =>
 )
 const selectedAssignee = computed(
   () =>
-    state.assignees.find((assignee) => assignee.value === state.assigneeId) ?? {
+    props.lookup.assignees.find(
+      (assignee) => assignee.value === state.assigneeId,
+    ) ?? {
       color: props.viewModel.assigneeColor,
       initials: props.viewModel.assigneeInitial,
     },
 )
 const hasCurrentAssignee = computed(() =>
-  state.assignees.some(
+  props.lookup.assignees.some(
     (assignee) => assignee.value === props.viewModel.assigneeId,
   ),
 )
@@ -344,10 +346,10 @@ const canSave = computed(
   () =>
     !props.saving &&
     !!state.assigneeId &&
-    !state.loadingStatuses &&
+    !props.lookup.loadingStatuses &&
     (state.boardId === props.viewModel.boardId || !!state.statusId),
 )
-const displayError = computed(() => state.lookupError ?? props.error)
+const displayError = computed(() => props.lookup.error ?? props.error)
 const dirty = computed(
   () =>
     state.assigneeId !== props.viewModel.assigneeId ||
@@ -363,6 +365,7 @@ const dirty = computed(
 )
 
 watch(dirty, (value) => props.onDirtyChange(value), { immediate: true })
+watch(canSave, (value) => props.onCanSaveChange(value), { immediate: true })
 watch(() => props.viewModel.issueKey, resetLookups)
 
 watch(
@@ -389,146 +392,66 @@ watch(
 )
 
 async function loadAssignees(spaceId: string) {
-  if (!spaceId || state.loadingAssignees || state.assignees.length) {
+  if (
+    !spaceId ||
+    props.lookup.loadingAssignees ||
+    props.lookup.assignees.length
+  ) {
     return
   }
-
-  state.lookupError = null
-  state.loadingAssignees = true
-  const result = await props.deps.loadAssignees({ spaceId })
-  state.loadingAssignees = false
-  matchActionResult({
-    err: (error) => {
-      state.lookupError = getErrorMessage({
-        error,
-        messages: {
-          AccessDenied: 'You do not have access to space members.',
-          SpaceNotFound: 'The selected space was not found.',
-          TemporarilyUnavailable: 'Could not load assignees. Try again.',
-        },
-      })
-    },
-    ok: (value) => {
-      state.assignees = value.assignees
-    },
-    result,
-  })
+  await props.onLoadAssignees(spaceId)
 }
 
 async function loadMoveSpaces() {
-  if (state.loadingMoveSpaces || state.moveSpaces.length) {
+  if (props.lookup.loadingMoveSpaces || props.lookup.spaces.length) {
     return
   }
-
-  state.lookupError = null
-  state.loadingMoveSpaces = true
-  const result = await props.deps.loadMoveSpaces()
-  state.loadingMoveSpaces = false
-  matchActionResult({
-    err: (error) => {
-      state.lookupError = getErrorMessage({
-        error,
-        messages: {
-          AccessDenied: 'You do not have access to available spaces.',
-          TemporarilyUnavailable: 'Could not load available spaces.',
-        },
-      })
-    },
-    ok: (value) => {
-      state.moveSpaces = value.spaces
-    },
-    result,
-  })
+  await props.onLoadMoveSpaces()
 }
 
 function selectMoveSpace() {
   state.spaceLabel =
-    state.moveSpaces.find((space) => space.value === state.pickedSpaceId)
+    props.lookup.spaces.find((space) => space.value === state.pickedSpaceId)
       ?.label ?? state.spaceLabel
   state.boardId = ''
   state.boardLabel = ''
   state.statusId = ''
   state.assigneeId = ''
-  state.assignees = []
-  state.loadingAssignees = false
-  state.loadingMoveBoards = false
-  state.loadingStatuses = false
-  state.lookupError = null
-  state.moveBoards = []
-  state.statuses = []
+  props.onChangeMoveSpace()
 }
 
 async function loadMoveBoards() {
   if (
     !state.pickedSpaceId ||
-    state.loadingMoveBoards ||
-    state.moveBoards.length
+    props.lookup.loadingMoveBoards ||
+    props.lookup.boards.length
   ) {
     return
   }
-
-  state.lookupError = null
-  state.loadingMoveBoards = true
-  const result = await props.deps.loadMoveBoards({
-    spaceId: state.pickedSpaceId,
-  })
-  state.loadingMoveBoards = false
-  matchActionResult({
-    err: (error) => {
-      state.lookupError = getErrorMessage({
-        error,
-        messages: {
-          AccessDenied: 'You do not have access to this space.',
-          SpaceNotFound: 'This space no longer exists.',
-          TemporarilyUnavailable: 'Could not load space boards.',
-        },
-      })
-    },
-    ok: (value) => {
-      state.moveBoards = value.boards
-    },
-    result,
-  })
+  await props.onLoadMoveBoards(state.pickedSpaceId)
 }
 
 async function loadStatuses() {
-  if (state.loadingStatuses || state.statuses.length || !state.boardId) {
+  if (
+    props.lookup.loadingStatuses ||
+    props.lookup.statuses.length ||
+    !state.boardId
+  ) {
     return
   }
-
-  state.lookupError = null
-  state.loadingStatuses = true
-  const result = await props.deps.loadStatuses({ boardId: state.boardId })
-  matchActionResult({
-    err: (error) => {
-      state.statuses = []
-      state.lookupError = getErrorMessage({
-        error,
-        messages: {
-          AccessDenied: 'You do not have access to this board.',
-          BoardNotFound: 'This board no longer exists.',
-          TemporarilyUnavailable: 'Could not load board statuses.',
-        },
-      })
-    },
-    ok: (value) => {
-      state.statuses = value.statuses
-    },
-    result,
-  })
-  state.loadingStatuses = false
+  await props.onLoadStatuses(state.boardId)
 }
 
 function selectBoard() {
   if (state.boardId === '__loading') {
     return
   }
-  const board = state.moveBoards.find((item) => item.value === state.boardId)
+  const board = props.lookup.boards.find(
+    (item) => item.value === state.boardId,
+  )
   state.boardLabel = board?.label ?? state.boardLabel
   state.statusId = ''
-  state.loadingStatuses = false
-  state.statuses = []
-  state.lookupError = null
+  props.onChangeMoveBoard()
 }
 
 function formatDate(value: string) {
@@ -539,7 +462,6 @@ function save() {
   if (!canSave.value) {
     return
   }
-  state.lookupError = null
   props.onSave({
     assigneeId: state.assigneeId,
     attributeValues: Object.fromEntries(
@@ -563,39 +485,14 @@ function removeAttachment(id: string) {
 
 function resetLookups() {
   Object.assign(state, {
-    assignees: [],
     files: [],
-    loadingAssignees: false,
-    loadingMoveBoards: false,
-    loadingMoveSpaces: false,
-    loadingStatuses: false,
-    lookupError: null,
-    moveBoards: [],
-    moveSpaces: [],
     removedAttachmentIds: [],
-    statuses: [],
   })
+  props.onResetLookups()
 }
 </script>
 
 <style scoped>
-.issue-details--dialog {
-  display: grid;
-  gap: 0;
-  grid-template-rows: auto minmax(0, 1fr) auto;
-  max-height: calc(
-    100dvh - var(--space-8) - var(--space-8) - var(--space-6) - var(--space-6)
-  );
-}
-
-.issue-details--dialog .issue-form {
-  column-gap: var(--space-6);
-  min-height: 0;
-  overflow: auto;
-  padding: var(--space-1);
-  scrollbar-gutter: stable;
-}
-
 .issue-person {
   align-items: center;
   display: flex;
@@ -644,15 +541,8 @@ function resetLookups() {
 }
 
 @media (max-width: 760px) {
-  .issue-details--dialog {
-    height: 100%;
-    max-height: none;
-  }
-
-  .issue-details--dialog .issue-form {
+  .issue-form {
     column-gap: 0;
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: max-content max-content;
   }
 }
 </style>

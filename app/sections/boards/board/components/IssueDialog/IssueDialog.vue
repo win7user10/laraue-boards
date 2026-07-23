@@ -11,80 +11,88 @@
     @cancel.self="handleCancel">
     <IssueDialogSkeleton
       v-if="!state.hydrated || status === 'idle' || status === 'pending'" />
-    <IssueDetails
+    <div
       v-else-if="viewModel"
-      class="issue-details--dialog"
-      :deps="deps.issueDetails"
-      :error="state.error"
-      :on-dirty-change="setDirty"
-      :on-save="saveIssue"
-      :saving="state.saving"
-      :view-model="viewModel">
-      <template #header>
-        <div class="issue-dialog-header">
-          <h2>
-            <NuxtLink
-              rel="noopener"
-              target="_blank"
-              :to="issueRoute">
-              {{ viewModel.issueKey }}
-            </NuxtLink>
-          </h2>
-          <button
-            aria-label="Copy issue link"
-            class="issue-copy"
-            :class="{ 'issue-copy--copied': state.copied }"
-            title="Copy issue link"
-            type="button"
-            @click="copyIssueLink">
-            <Transition
-              mode="out-in"
-              name="icon-pop">
-              <Check
-                v-if="state.copied"
-                key="check" />
-              <Link
-                v-else
-                key="link" />
-            </Transition>
-          </button>
-          <button
-            aria-label="Close dialog"
-            class="icon-btn issue-close"
-            title="Close dialog"
-            type="button"
-            @click="close()">
-            <X />
-          </button>
-        </div>
-      </template>
-      <template #footer="{ canSave }">
-        <div class="dialog-actions">
-          <button
-            v-if="viewModel.canEdit"
-            class="secondary danger"
-            :disabled="state.saving"
-            type="button"
-            @click="deleteIssue">
-            Delete
-          </button>
-          <button
-            class="secondary"
-            :disabled="state.saving"
-            type="button"
-            @click="close()">
-            Cancel
-          </button>
-          <button
-            v-if="viewModel.canEdit"
-            class="primary"
-            :disabled="!canSave"
-            type="submit">
-            {{ state.saving ? 'Saving…' : 'Save changes' }}
-          </button>
-        </div>
-      </template>
-    </IssueDetails>
+      class="issue-details--dialog">
+      <div class="issue-dialog-header">
+        <h2>
+          <NuxtLink
+            rel="noopener"
+            target="_blank"
+            :to="issueRoute">
+            {{ viewModel.issueKey }}
+          </NuxtLink>
+        </h2>
+        <button
+          aria-label="Copy issue link"
+          class="issue-copy"
+          :class="{ 'issue-copy--copied': state.copied }"
+          title="Copy issue link"
+          type="button"
+          @click="copyIssueLink">
+          <Transition
+            mode="out-in"
+            name="icon-pop">
+            <Check
+              v-if="state.copied"
+              key="check" />
+            <Link
+              v-else
+              key="link" />
+          </Transition>
+        </button>
+        <button
+          aria-label="Close dialog"
+          class="icon-btn issue-close"
+          title="Close dialog"
+          type="button"
+          @click="close()">
+          <X />
+        </button>
+      </div>
+      <IssueDetails
+        class="issue-details-form"
+        :error="state.error"
+        :form-id="formId"
+        :lookup="state.lookup"
+        :on-can-save-change="setCanSave"
+        :on-change-move-board="changeMoveBoard"
+        :on-change-move-space="changeMoveSpace"
+        :on-dirty-change="setDirty"
+        :on-load-assignees="loadAssignees"
+        :on-load-move-boards="loadMoveBoards"
+        :on-load-move-spaces="loadMoveSpaces"
+        :on-load-statuses="loadStatuses"
+        :on-reset-lookups="resetLookups"
+        :on-save="saveIssue"
+        :saving="state.saving"
+        :view-model="viewModel" />
+      <div class="dialog-actions">
+        <button
+          v-if="viewModel.canEdit"
+          class="secondary danger"
+          :disabled="state.saving"
+          type="button"
+          @click="deleteIssue">
+          Delete
+        </button>
+        <button
+          class="secondary"
+          :disabled="state.saving"
+          type="button"
+          @click="close()">
+          Cancel
+        </button>
+        <button
+          v-if="viewModel.canEdit"
+          class="primary"
+          :disabled="!state.canSave"
+          :form="formId"
+          type="submit">
+          {{ state.saving ? 'Saving…' : 'Save changes' }}
+        </button>
+      </div>
+    </div>
     <IssueDialogError
       v-else
       :error-text="loadErrorText"
@@ -134,11 +142,29 @@ const route = useRoute('organizations-organizationKey-spaces-spaceKey-boardId')
 const organizationRoutes = useOrganizationRoutes()
 const router = useRouter()
 const dialogEl = ref<HTMLDialogElement>()
+const formId = useId()
 const state = reactive({
+  canSave: false,
   copied: false,
   dirty: false,
   error: null as null | string,
   hydrated: false,
+  lookup: {
+    assignees: [] as Array<{
+      color: string
+      initials: string
+      label: string
+      value: string
+    }>,
+    boards: [] as Array<{ label: string; value: string }>,
+    error: null as null | string,
+    loadingAssignees: false,
+    loadingMoveBoards: false,
+    loadingMoveSpaces: false,
+    loadingStatuses: false,
+    spaces: [] as Array<{ label: string; value: string }>,
+    statuses: [] as Array<{ id: string; name: string }>,
+  },
   saving: false,
 })
 
@@ -220,6 +246,133 @@ function showDialog() {
 
 function setDirty(dirty: boolean) {
   state.dirty = dirty
+}
+
+function setCanSave(canSave: boolean) {
+  state.canSave = canSave
+}
+
+function changeMoveSpace() {
+  Object.assign(state.lookup, {
+    assignees: [],
+    boards: [],
+    error: null,
+    loadingAssignees: false,
+    loadingMoveBoards: false,
+    loadingStatuses: false,
+    statuses: [],
+  })
+}
+
+function changeMoveBoard() {
+  state.lookup.error = null
+  state.lookup.loadingStatuses = false
+  state.lookup.statuses = []
+}
+
+function resetLookups() {
+  Object.assign(state.lookup, {
+    assignees: [],
+    boards: [],
+    error: null,
+    loadingAssignees: false,
+    loadingMoveBoards: false,
+    loadingMoveSpaces: false,
+    loadingStatuses: false,
+    spaces: [],
+    statuses: [],
+  })
+}
+
+async function loadAssignees(spaceId: string) {
+  state.lookup.error = null
+  state.lookup.loadingAssignees = true
+  const result = await props.deps.issueDetails.loadAssignees({ spaceId })
+  state.lookup.loadingAssignees = false
+  matchActionResult({
+    err: (error) => {
+      state.lookup.error = getErrorMessage({
+        error,
+        messages: {
+          AccessDenied: 'You do not have access to space members.',
+          SpaceNotFound: 'The selected space was not found.',
+          TemporarilyUnavailable: 'Could not load assignees. Try again.',
+        },
+      })
+    },
+    ok: ({ assignees }) => {
+      state.lookup.assignees = assignees
+    },
+    result,
+  })
+}
+
+async function loadMoveSpaces() {
+  state.lookup.error = null
+  state.lookup.loadingMoveSpaces = true
+  const result = await props.deps.issueDetails.loadMoveSpaces()
+  state.lookup.loadingMoveSpaces = false
+  matchActionResult({
+    err: (error) => {
+      state.lookup.error = getErrorMessage({
+        error,
+        messages: {
+          AccessDenied: 'You do not have access to available spaces.',
+          TemporarilyUnavailable: 'Could not load available spaces.',
+        },
+      })
+    },
+    ok: ({ spaces }) => {
+      state.lookup.spaces = spaces
+    },
+    result,
+  })
+}
+
+async function loadMoveBoards(spaceId: string) {
+  state.lookup.error = null
+  state.lookup.loadingMoveBoards = true
+  const result = await props.deps.issueDetails.loadMoveBoards({ spaceId })
+  state.lookup.loadingMoveBoards = false
+  matchActionResult({
+    err: (error) => {
+      state.lookup.error = getErrorMessage({
+        error,
+        messages: {
+          AccessDenied: 'You do not have access to this space.',
+          SpaceNotFound: 'This space no longer exists.',
+          TemporarilyUnavailable: 'Could not load space boards.',
+        },
+      })
+    },
+    ok: ({ boards }) => {
+      state.lookup.boards = boards
+    },
+    result,
+  })
+}
+
+async function loadStatuses(boardId: string) {
+  state.lookup.error = null
+  state.lookup.loadingStatuses = true
+  const result = await props.deps.issueDetails.loadStatuses({ boardId })
+  state.lookup.loadingStatuses = false
+  matchActionResult({
+    err: (error) => {
+      state.lookup.error = getErrorMessage({
+        error,
+        messages: {
+          AccessDenied: 'You do not have access to this board.',
+          BoardNotFound: 'This board no longer exists.',
+          TemporarilyUnavailable: 'Could not load board statuses.',
+        },
+      })
+    },
+    ok: ({ statuses }) => {
+      state.lookup.statuses = statuses
+    },
+    result,
+  })
 }
 
 function close(skipWarning = false) {
@@ -410,6 +563,23 @@ async function copyIssueLink() {
   transition: none;
 }
 
+.issue-details--dialog {
+  display: grid;
+  gap: 0;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  max-height: calc(
+    100dvh - var(--space-8) - var(--space-8) - var(--space-6) - var(--space-6)
+  );
+}
+
+.issue-details-form {
+  column-gap: var(--space-6);
+  min-height: 0;
+  overflow: auto;
+  padding: var(--space-1);
+  scrollbar-gutter: stable;
+}
+
 .issue-dialog-header {
   align-items: center;
   display: flex;
@@ -491,6 +661,17 @@ async function copyIssueLink() {
     min-height: 0;
     padding: var(--space-4);
     width: calc(100% - var(--space-2) - var(--space-2));
+  }
+
+  .issue-details--dialog {
+    height: 100%;
+    max-height: none;
+  }
+
+  .issue-details-form {
+    column-gap: 0;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: max-content max-content;
   }
 
   .dialog-actions {
