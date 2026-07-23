@@ -742,17 +742,17 @@ async function moveItems(
       mapMoveItemsInput(input),
     )
 
-    if (!('data' in response)) {
-      const failure = mapMoveItemsFailure(response)
-
-      if (failure) {
-        return err(failure)
-      }
-
-      throw new Error('Unrecognized API error response')
+    if ('data' in response) {
+      return ok(mapMoveItemsResponse(response.data))
     }
 
-    return ok(mapMoveItemsResponse(response.data))
+    const failure = mapMoveItemsFailure(response)
+
+    if (failure) {
+      return err(failure)
+    }
+
+    throw new Error('Unrecognized API error response')
   } catch (cause) {
     const failure = mapThrownMoveItemsFailure(cause)
 
@@ -774,15 +774,15 @@ union, not through the nested native `Response`. Prefer the positive
 ```ts
 const response = await client.GET('/api/spaces')
 
-if (!('data' in response)) {
-  const failure = mapViewFailure(response.response.status)
-  if (failure) {
-    return err(failure)
-  }
-  throw new Error(`Unrecognized response: ${response.response.status}`)
+if ('data' in response) {
+  return ok(response.data)
 }
 
-return ok(response.data)
+const failure = mapViewFailure(response.response.status)
+if (failure) {
+  return err(failure)
+}
+throw new Error(`Unrecognized response: ${response.response.status}`)
 ```
 
 Do not use `response.response.ok` as the TypeScript discriminator. It is a

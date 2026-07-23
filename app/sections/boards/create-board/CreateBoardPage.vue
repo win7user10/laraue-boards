@@ -3,7 +3,7 @@
     <div class="page-heading">
       <AppBackLink
         label="Back to space"
-        :to="organizationRoutes.space(spaceKey)" />
+        :to="backTo" />
       <div class="page-heading-text">
         <h1>Create board</h1>
       </div>
@@ -32,11 +32,22 @@
 </template>
 
 <script setup lang="ts">
-import { DEFAULT_COLOR } from '~/constants/colors'
-import type { CreateBoardPageDeps } from '~/sections/boards/create-board/CreateBoardPageDeps'
+import type { RouteLocationRaw } from 'vue-router'
 
-const props = defineProps<{ deps: CreateBoardPageDeps; spaceKey: string }>()
-const organizationRoutes = useOrganizationRoutes()
+import { DEFAULT_COLOR } from '~/constants/colors'
+import type {
+  CreateBoardFailure,
+  CreateBoardPageDeps,
+} from '~/sections/boards/create-board/CreateBoardPage.deps'
+import { matchResult } from '~/utils/actionResult'
+import { assertNever } from '~/utils/assertNever'
+
+const props = defineProps<{
+  backTo: RouteLocationRaw
+  deps: CreateBoardPageDeps
+  onCreated: (boardId: string) => Promise<void> | void
+  spaceKey: string
+}>()
 const state = reactive({
   color: DEFAULT_COLOR,
   error: null as null | string,
@@ -45,30 +56,41 @@ const state = reactive({
 })
 useHead({ title: 'Create board' })
 
-async function submit() {
+const getFailureMessage = (failure: CreateBoardFailure): string => {
+  switch (failure.type) {
+    case 'accessDenied':
+      return 'You do not have permission to create boards.'
+    case 'invalidInput':
+      return failure.message
+    case 'spaceNotFound':
+      return 'The space was not found or is not available to you.'
+    case 'temporarilyUnavailable':
+      return 'Could not create board. Try again.'
+    default:
+      return assertNever(failure)
+  }
+}
+
+async function submit(): Promise<void> {
+  if (state.submitting) {
+    return
+  }
   state.submitting = true
   state.error = null
-  const result = await props.deps.createBoard({
-    color: state.color,
-    name: state.name.trim(),
-    spaceKey: props.spaceKey,
-  })
-  state.submitting = false
-  await matchActionResult({
-    err: async (error) => {
-      state.error = getErrorMessage({
-        error,
-        messages: {
-          AccessDenied: 'You do not have permission to create boards.',
-          SpaceNotFound: 'The space was not found or is not available to you.',
-          TemporarilyUnavailable: 'Could not create board. Try again.',
-        },
-      })
-    },
-    ok: async ({ boardId }) => {
-      await navigateTo(organizationRoutes.board(props.spaceKey, boardId))
-    },
-    result,
-  })
+  try {
+    const result = await props.deps.create({
+      color: state.color,
+      name: state.name.trim(),
+      spaceKey: props.spaceKey,
+    })
+    await matchResult(result, {
+      err: (failure) => {
+        state.error = getFailureMessage(failure)
+      },
+      ok: ({ boardId }) => props.onCreated(boardId),
+    })
+  } finally {
+    state.submitting = false
+  }
 }
 </script>
