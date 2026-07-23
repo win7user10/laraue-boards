@@ -40,31 +40,14 @@ export type IssueDetailsViewModel = {
   updatedAt: string
 }
 
-export type IssueDetailsSaveInput = {
-  assigneeId: string
-  attributeValues: Record<string, string>
-  boardId: string
-  content: string
-  files: File[]
-  removeAttachmentIds: string[]
-  statusId: string
-}
+export type IssueDetailsMoveOption = { label: string; value: string }
 
-type IssueDetailsMoveOption = { label: string; value: string }
-
-type IssueDetailsAssigneeOption = IssueDetailsMoveOption & {
+export type IssueDetailsAssigneeOption = IssueDetailsMoveOption & {
   color: string
   initials: string
 }
 
-export type IssueDetailsLookupState = {
-  assignees: IssueDetailsAssigneeOption[]
-  boards: IssueDetailsMoveOption[]
-  error: null | string
-  loadingAssignees: boolean
-  loadingMoveBoards: boolean
-  loadingMoveSpaces: boolean
-  loadingStatuses: boolean
-  spaces: IssueDetailsMoveOption[]
-  statuses: Array<{ id: string; name: string }>
+export type IssueDetailsStatusOption = {
+  id: string
+  name: string
 }

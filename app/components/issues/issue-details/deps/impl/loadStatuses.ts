@@ -1,8 +1,8 @@
 import type { ApiClient } from '#infrastructure/api/client'
+import { tryRequest } from '#infrastructure/api/tryRequest'
 import { failed, ok } from '~/utils/actionResult'
 
 import type { LoadStatuses } from '../loadStatuses'
-import { tryRequest } from './tryRequest'
 
 export const createLoadStatuses =
   (client: ApiClient): LoadStatuses =>

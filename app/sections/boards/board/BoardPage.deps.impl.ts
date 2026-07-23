@@ -67,7 +67,7 @@ const mapBoardPage = (
   }
 }
 
-export function createBoardPageDeps(client: ApiClient): BoardPageDeps {
+export const createBoardPageDeps = (client: ApiClient): BoardPageDeps => {
   const issueDialog = createIssueDialogDeps(client)
 
   return {
@@ -100,7 +100,27 @@ export function createBoardPageDeps(client: ApiClient): BoardPageDeps {
       }
     },
 
-    moveBoardIssue: issueDialog.moveIssue,
+    moveBoardIssue: async ({ issueKey, statusId }) => {
+      if (!statusId) {
+        return err({ type: 'invalidStatus' })
+      }
+      const response = await client.POST('/api/movement/issue/{key}/move-to-status/{statusId}', {
+        params: { path: { key: issueKey, statusId: Number(statusId) } },
+      })
+      switch (response.response.status) {
+        case 200:
+          return ok(null)
+        case 400:
+          return err({ type: 'invalidStatus' })
+        case 401:
+        case 403:
+          return err({ type: 'accessDenied' })
+        case 404:
+          return err({ type: 'resourceNotFound' })
+        default:
+          return err({ type: 'temporarilyUnavailable' })
+      }
+    },
 
     async moveIssueToBacklog({ boardId, issueKey, spaceKey }) {
       const spaces = await client.GET('/api/spaces')

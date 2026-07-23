@@ -1,8 +1,8 @@
 import type { ApiClient } from '#infrastructure/api/client'
+import { tryRequest } from '#infrastructure/api/tryRequest'
 import { failed, ok } from '~/utils/actionResult'
 
 import type { DeleteIssue } from '../deleteIssue'
-import { tryRequest } from './tryRequest'
 
 export const createDeleteIssue =
   (client: ApiClient): DeleteIssue =>

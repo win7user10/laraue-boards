@@ -51,22 +51,19 @@
       </div>
       <IssueDetails
         class="issue-details-form"
-        :error="state.error"
+        :deps="deps.issueDetails"
         :form-id="formId"
-        :lookup="state.lookup"
         :on-can-save-change="setCanSave"
-        :on-change-move-board="changeMoveBoard"
-        :on-change-move-space="changeMoveSpace"
         :on-dirty-change="setDirty"
-        :on-load-assignees="loadAssignees"
-        :on-load-move-boards="loadMoveBoards"
-        :on-load-move-spaces="loadMoveSpaces"
-        :on-load-statuses="loadStatuses"
-        :on-reset-lookups="resetLookups"
-        :on-save="saveIssue"
-        :saving="state.saving"
+        :on-saved="handleIssueSaved"
+        :on-saving-change="setSaving"
         :view-model="viewModel" />
       <div class="dialog-actions">
+        <p
+          v-if="state.actionError"
+          class="form-error dialog-action-error">
+          {{ state.actionError }}
+        </p>
         <button
           v-if="viewModel.canEdit"
           class="secondary danger"
@@ -100,74 +97,36 @@
   </dialog>
 </template>
 
-<script lang="ts">
-import type { IssueDetailsSaveInput } from '~/components/issues/issue-details/IssueDetails.types'
-import type { IssueDialogDeps } from '~/sections/boards/board/components/IssueDialog/IssueDialog.deps'
-
-export type IssueDialogSavedIssue = {
-  boardId: string
-  content: string
-  issueKey: string
-  previousBoardId: string
-  previousStatusId: string
-  statusId: string
-}
-
-type IssueDialogProps = {
-  deps: IssueDialogDeps
-  issueKey: string
-  onClose: () => void
-  onDeleted: (issueKey: string) => void
-  onSaved: (issue: IssueDialogSavedIssue) => void
-}
-</script>
-
 <script setup lang="ts">
 import { Check, Link, X } from 'lucide-vue-next'
 import { onBeforeRouteUpdate } from 'vue-router'
 
+import type { IssueDetailsSavedIssue } from '~/components/issues/issue-details/deps'
 import IssueDetails from '~/components/issues/issue-details/IssueDetails.vue'
 import IssueDialogError from '~/sections/boards/board/components/IssueDialog/components/IssueDialogError.vue'
 import IssueDialogSkeleton from '~/sections/boards/board/components/IssueDialog/components/IssueDialogSkeleton.vue'
-import type {
-  BoardLookupFailure,
-  IssueFailure,
-  MoveIssueFailure,
-  MoveSpacesFailure,
-  SpaceLookupFailure,
-  UpdateIssueFailure,
-} from '~/sections/boards/board/components/IssueDialog/IssueDialog.deps'
 import { assertNever } from '~/utils/assertNever'
-import { getIssueAttributeValueInput } from '~/utils/issueAttributeValues'
 
-const props = defineProps<IssueDialogProps>()
+import type { IssueDialogDeps, IssueFailure } from './IssueDialog.deps'
+
+const props = defineProps<{
+  deps: IssueDialogDeps
+  issueKey: string
+  onClose: () => void
+  onDeleted: (issueKey: string) => void
+  onSaved: (issue: IssueDetailsSavedIssue) => void
+}>()
 const route = useRoute('organizations-organizationKey-spaces-spaceKey-boardId')
 const organizationRoutes = useOrganizationRoutes()
 const router = useRouter()
 const dialogEl = ref<HTMLDialogElement>()
 const formId = useId()
 const state = reactive({
+  actionError: null as null | string,
   canSave: false,
   copied: false,
   dirty: false,
-  error: null as null | string,
   hydrated: false,
-  lookup: {
-    assignees: [] as Array<{
-      color: string
-      initials: string
-      label: string
-      value: string
-    }>,
-    boards: [] as Array<{ label: string; value: string }>,
-    error: null as null | string,
-    loadingAssignees: false,
-    loadingMoveBoards: false,
-    loadingMoveSpaces: false,
-    loadingStatuses: false,
-    spaces: [] as Array<{ label: string; value: string }>,
-    statuses: [] as Array<{ id: string; name: string }>,
-  },
   saving: false,
 })
 
@@ -184,99 +143,6 @@ const getLoadIssueFailureMessage = (failure: IssueFailure): string => {
   }
 }
 
-const getAssigneesFailureMessage = (failure: SpaceLookupFailure): string => {
-  switch (failure.type) {
-    case 'accessDenied':
-      return 'You do not have access to space members.'
-    case 'spaceNotFound':
-      return 'The selected space was not found.'
-    case 'temporarilyUnavailable':
-      return 'Could not load assignees. Try again.'
-    default:
-      return assertNever(failure)
-  }
-}
-
-const getMoveSpacesFailureMessage = (failure: MoveSpacesFailure): string => {
-  switch (failure.type) {
-    case 'accessDenied':
-      return 'You do not have access to available spaces.'
-    case 'temporarilyUnavailable':
-      return 'Could not load available spaces.'
-    default:
-      return assertNever(failure)
-  }
-}
-
-const getMoveBoardsFailureMessage = (failure: SpaceLookupFailure): string => {
-  switch (failure.type) {
-    case 'accessDenied':
-      return 'You do not have access to this space.'
-    case 'spaceNotFound':
-      return 'This space no longer exists.'
-    case 'temporarilyUnavailable':
-      return 'Could not load space boards.'
-    default:
-      return assertNever(failure)
-  }
-}
-
-const getStatusesFailureMessage = (failure: BoardLookupFailure): string => {
-  switch (failure.type) {
-    case 'accessDenied':
-      return 'You do not have access to this board.'
-    case 'boardNotFound':
-      return 'This board no longer exists.'
-    case 'temporarilyUnavailable':
-      return 'Could not load board statuses.'
-    default:
-      return assertNever(failure)
-  }
-}
-
-const getUpdateFailureMessage = (failure: UpdateIssueFailure): string => {
-  switch (failure.type) {
-    case 'accessDenied':
-      return 'You do not have permission to update this issue.'
-    case 'invalidInput':
-      return failure.message
-    case 'issueNotFound':
-      return 'The issue was not found.'
-    case 'temporarilyUnavailable':
-      return 'Could not save issue. Try again.'
-    default:
-      return assertNever(failure)
-  }
-}
-
-const getMoveFailureMessage = (failure: MoveIssueFailure): string => {
-  switch (failure.type) {
-    case 'accessDenied':
-      return 'You do not have permission to update this issue.'
-    case 'invalidStatus':
-      return 'Select a valid board status.'
-    case 'resourceNotFound':
-      return 'The issue or board status was not found.'
-    case 'temporarilyUnavailable':
-      return 'Could not save issue. Try again.'
-    default:
-      return assertNever(failure)
-  }
-}
-
-const getDeleteFailureMessage = (failure: IssueFailure): string => {
-  switch (failure.type) {
-    case 'accessDenied':
-      return 'You do not have permission to delete this issue.'
-    case 'issueNotFound':
-      return 'This issue no longer exists.'
-    case 'temporarilyUnavailable':
-      return 'Could not delete issue. Try again.'
-    default:
-      return assertNever(failure)
-  }
-}
-
 const {
   data: issueOutcome,
   refresh,
@@ -288,23 +154,13 @@ const {
 
 const viewModel = computed(() => {
   const result = issueOutcome.value
-  if (!result) {
-    return null
-  }
-  return matchResult(result, {
-    err: () => null,
-    ok: (value) => value.IssueDialog,
-  })
+  return result?.ok ? result.value.IssueDialog : null
 })
 const loadErrorText = computed(() => {
   const result = issueOutcome.value
-  if (!result) {
-    return 'Could not load issue. Try again.'
-  }
-  return matchResult(result, {
-    err: getLoadIssueFailureMessage,
-    ok: () => 'Could not load issue. Try again.',
-  })
+  return result && !result.ok
+    ? getLoadIssueFailureMessage(result.error)
+    : 'Could not load issue. Try again.'
 })
 const issueRoute = computed(() => organizationRoutes.issue(props.issueKey))
 const { confirmUnsavedChanges } = useUnsavedChangesWarning(toRef(state, 'dirty'))
@@ -312,6 +168,76 @@ const { confirmUnsavedChanges } = useUnsavedChangesWarning(toRef(state, 'dirty')
 useHead({
   title: computed(() => viewModel.value?.issueKey ?? 'Issue'),
 })
+
+const showDialog = () => {
+  if (dialogEl.value) {
+    dialogEl.value.close()
+    dialogEl.value.showModal()
+    dialogEl.value.focus({ preventScroll: true })
+  }
+}
+
+const setDirty = (dirty: boolean) => {
+  state.dirty = dirty
+}
+
+const setCanSave = (canSave: boolean) => {
+  state.canSave = canSave
+}
+
+const setSaving = (saving: boolean) => {
+  state.saving = saving
+}
+
+const close = (skipWarning = false) => {
+  if (!skipWarning && !confirmUnsavedChanges()) {
+    return
+  }
+  state.dirty = false
+  props.onClose()
+}
+
+const handleCancel = (event: Event) => {
+  event.preventDefault()
+  close()
+}
+
+const handleIssueSaved = async (issue: IssueDetailsSavedIssue) => {
+  props.onSaved(issue)
+  if (issue.complete) {
+    close(true)
+    return
+  }
+  await refresh()
+}
+
+const deleteIssue = async () => {
+  if (!confirm('Delete this issue?')) {
+    return
+  }
+
+  state.saving = true
+  state.actionError = null
+  const result = await props.deps.deleteIssue({ issueKey: props.issueKey })
+  state.saving = false
+  if (!result.ok) {
+    state.actionError = 'Could not delete issue. Try again.'
+    return
+  }
+  props.onDeleted(props.issueKey)
+  close(true)
+}
+
+const copyIssueLink = async () => {
+  const url = new URL(router.resolve(issueRoute.value).href, window.location.origin).href
+  try {
+    await navigator.clipboard.writeText(url)
+  } catch {
+    window.prompt('Copy issue link', url)
+  }
+  state.copied = true
+  setTimeout(() => (state.copied = false), 1200)
+}
 
 onMounted(() => {
   showDialog()
@@ -325,231 +251,10 @@ onBeforeRouteUpdate(
 watch(
   () => props.issueKey,
   () => {
+    state.actionError = null
     state.dirty = false
-    state.error = null
   },
 )
-
-function showDialog() {
-  if (dialogEl.value) {
-    dialogEl.value.close()
-    dialogEl.value.showModal()
-    dialogEl.value.focus({ preventScroll: true })
-  }
-}
-
-function setDirty(dirty: boolean) {
-  state.dirty = dirty
-}
-
-function setCanSave(canSave: boolean) {
-  state.canSave = canSave
-}
-
-function changeMoveSpace() {
-  Object.assign(state.lookup, {
-    assignees: [],
-    boards: [],
-    error: null,
-    loadingAssignees: false,
-    loadingMoveBoards: false,
-    loadingStatuses: false,
-    statuses: [],
-  })
-}
-
-function changeMoveBoard() {
-  state.lookup.error = null
-  state.lookup.loadingStatuses = false
-  state.lookup.statuses = []
-}
-
-function resetLookups() {
-  Object.assign(state.lookup, {
-    assignees: [],
-    boards: [],
-    error: null,
-    loadingAssignees: false,
-    loadingMoveBoards: false,
-    loadingMoveSpaces: false,
-    loadingStatuses: false,
-    spaces: [],
-    statuses: [],
-  })
-}
-
-async function loadAssignees(spaceId: string) {
-  state.lookup.error = null
-  state.lookup.loadingAssignees = true
-  const result = await props.deps.issueDetails.loadAssignees({ spaceId })
-  state.lookup.loadingAssignees = false
-  matchResult(result, {
-    err: (error) => {
-      state.lookup.error = getAssigneesFailureMessage(error)
-    },
-    ok: ({ assignees }) => {
-      state.lookup.assignees = assignees
-    },
-  })
-}
-
-async function loadMoveSpaces() {
-  state.lookup.error = null
-  state.lookup.loadingMoveSpaces = true
-  const result = await props.deps.issueDetails.loadMoveSpaces()
-  state.lookup.loadingMoveSpaces = false
-  matchResult(result, {
-    err: (error) => {
-      state.lookup.error = getMoveSpacesFailureMessage(error)
-    },
-    ok: ({ spaces }) => {
-      state.lookup.spaces = spaces
-    },
-  })
-}
-
-async function loadMoveBoards(spaceId: string) {
-  state.lookup.error = null
-  state.lookup.loadingMoveBoards = true
-  const result = await props.deps.issueDetails.loadMoveBoards({ spaceId })
-  state.lookup.loadingMoveBoards = false
-  matchResult(result, {
-    err: (error) => {
-      state.lookup.error = getMoveBoardsFailureMessage(error)
-    },
-    ok: ({ boards }) => {
-      state.lookup.boards = boards
-    },
-  })
-}
-
-async function loadStatuses(boardId: string) {
-  state.lookup.error = null
-  state.lookup.loadingStatuses = true
-  const result = await props.deps.issueDetails.loadStatuses({ boardId })
-  state.lookup.loadingStatuses = false
-  matchResult(result, {
-    err: (error) => {
-      state.lookup.error = getStatusesFailureMessage(error)
-    },
-    ok: ({ statuses }) => {
-      state.lookup.statuses = statuses
-    },
-  })
-}
-
-function close(skipWarning = false) {
-  if (!skipWarning && !confirmUnsavedChanges()) {
-    return
-  }
-  state.dirty = false
-  props.onClose()
-}
-
-function handleCancel(event: Event) {
-  event.preventDefault()
-  close()
-}
-
-async function saveIssue(input: IssueDetailsSaveInput) {
-  const originalIssue = viewModel.value
-  if (!originalIssue) {
-    return
-  }
-
-  state.saving = true
-  state.error = null
-  const updateResult = await props.deps.updateIssue({
-    assigneeId: input.assigneeId,
-    attributeValues: getIssueAttributeValueInput(input.attributeValues, originalIssue.attributes),
-    content: input.content,
-    files: input.files,
-    issueKey: props.issueKey,
-    removeAttachmentIds: input.removeAttachmentIds,
-  })
-
-  await matchResult(updateResult, {
-    err: async (error) => {
-      state.error = getUpdateFailureMessage(error)
-    },
-    ok: async () => {
-      if (input.statusId === originalIssue.statusId) {
-        props.onSaved({
-          boardId: input.boardId,
-          content: input.content,
-          issueKey: props.issueKey,
-          previousBoardId: originalIssue.boardId,
-          previousStatusId: originalIssue.statusId,
-          statusId: input.statusId,
-        })
-        close(true)
-        return
-      }
-
-      const moveResult = await props.deps.moveIssue({
-        issueKey: props.issueKey,
-        statusId: input.statusId,
-      })
-      await matchResult(moveResult, {
-        err: async (error) => {
-          props.onSaved({
-            boardId: originalIssue.boardId,
-            content: input.content,
-            issueKey: props.issueKey,
-            previousBoardId: originalIssue.boardId,
-            previousStatusId: originalIssue.statusId,
-            statusId: originalIssue.statusId,
-          })
-          await refresh()
-          state.error = getMoveFailureMessage(error)
-        },
-        ok: async () => {
-          props.onSaved({
-            boardId: input.boardId,
-            content: input.content,
-            issueKey: props.issueKey,
-            previousBoardId: originalIssue.boardId,
-            previousStatusId: originalIssue.statusId,
-            statusId: input.statusId,
-          })
-          close(true)
-        },
-      })
-    },
-  })
-  state.saving = false
-}
-
-async function deleteIssue() {
-  if (!confirm('Delete this issue?')) {
-    return
-  }
-
-  state.saving = true
-  state.error = null
-  const result = await props.deps.deleteIssue({ issueKey: props.issueKey })
-  state.saving = false
-  matchResult(result, {
-    err: (error) => {
-      state.error = getDeleteFailureMessage(error)
-    },
-    ok: () => {
-      props.onDeleted(props.issueKey)
-      close(true)
-    },
-  })
-}
-
-async function copyIssueLink() {
-  const url = new URL(router.resolve(issueRoute.value).href, window.location.origin).href
-  try {
-    await navigator.clipboard.writeText(url)
-  } catch {
-    window.prompt('Copy issue link', url)
-  }
-  state.copied = true
-  setTimeout(() => (state.copied = false), 1200)
-}
 </script>
 
 <style scoped>
@@ -653,8 +358,14 @@ async function copyIssueLink() {
 }
 
 .dialog-actions {
+  flex-wrap: wrap;
   margin-top: 0;
   padding-top: var(--space-4);
+}
+
+.dialog-action-error {
+  flex-basis: 100%;
+  margin-top: 0;
 }
 
 @starting-style {

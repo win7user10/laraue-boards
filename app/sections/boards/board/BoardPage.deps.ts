@@ -1,8 +1,5 @@
 import type { BoardPageViewModel } from '~/sections/boards/board/BoardPage.vue'
-import type {
-  IssueDialogDeps,
-  MoveIssue,
-} from '~/sections/boards/board/components/IssueDialog/IssueDialog.deps'
+import type { IssueDialogDeps } from '~/sections/boards/board/components/IssueDialog/IssueDialog.deps'
 import type { Result } from '~/utils/actionResult'
 
 type Failure<Type extends string> = Type extends string ? { type: Type } : never
@@ -48,6 +45,10 @@ export type MoveIssueToBacklogFailure = Failure<
   'accessDenied' | 'alreadyInBacklog' | 'resourceNotFound' | 'temporarilyUnavailable'
 >
 
+export type MoveBoardIssueFailure = Failure<
+  'accessDenied' | 'invalidStatus' | 'resourceNotFound' | 'temporarilyUnavailable'
+>
+
 export type BoardPageDeps = {
   issueDialog: IssueDialogDeps
   loadMoreBoardIssues: (input: {
@@ -57,7 +58,10 @@ export type BoardPageDeps = {
     statusId: string
     take: number
   }) => Promise<Result<LoadMoreBoardIssuesResult, LoadBoardIssuesFailure>>
-  moveBoardIssue: MoveIssue
+  moveBoardIssue: (input: {
+    issueKey: string
+    statusId: string
+  }) => Promise<Result<null, MoveBoardIssueFailure>>
   moveIssueToBacklog: (input: {
     boardId: string
     issueKey: string

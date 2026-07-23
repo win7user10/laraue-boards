@@ -1,8 +1,8 @@
 import type { ApiClient } from '#infrastructure/api/client'
+import { tryRequest } from '#infrastructure/api/tryRequest'
 import { failed, ok } from '~/utils/actionResult'
 
 import type { LoadMoveBoards } from '../loadMoveBoards'
-import { tryRequest } from './tryRequest'
 
 export const createLoadMoveBoards =
   (client: ApiClient): LoadMoveBoards =>

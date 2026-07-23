@@ -15,12 +15,14 @@ Core principles:
 - expected outcomes of external operations are returned as `Result`;
 - ordinary action failures use one opaque `ActionFailure`; specialized failures exist only when the
   UI changes behavior or needs structured data;
-- frontend failure codes and UI text are separated;
+- specialized failure payloads and UI text are separated;
 - a working layout remains available when a specific page fails;
 - global `error.vue` is used for application-level, layout-level, or genuinely fatal scenarios;
 - `useAsyncData` is used directly, without a custom async composable;
 - repeated state conversion is extracted into the pure `toAsyncResultState` helper;
 - feature components own their structure; slots are not used to hide ordinary prop flow;
+- state and deps live in the lowest component that can fully handle an asynchronous scenario and its
+  local failure;
 - shared abstractions are introduced only after repetition has been confirmed.
 
 ---
@@ -35,17 +37,27 @@ app/
 
   sections/
     spaces/
-      pages/
-        SpaceItemsPage/
-          SpaceItemsPage.vue
-          SpaceItemsPage.deps.ts
-          SpaceItemsPage.deps.impl.ts
+      space-items/
+        SpaceItemsPage.vue
+        SpaceItemsPage.types.ts
 
-          components/
-            SpaceItemsView.vue
-            SpaceItemsTable.vue
-            SpaceItemRow.vue
-            BulkActions.vue
+        deps/
+          index.ts
+          viewSpaceItems.ts
+          moveItems.ts
+          deleteItem.ts
+
+          impl/
+            index.ts
+            viewSpaceItems.ts
+            moveItems.ts
+            deleteItem.ts
+
+        components/
+          SpaceItemsView.vue
+          SpaceItemsTable.vue
+          SpaceItemRow.vue
+          BulkActions.vue
 
   components/
     PageState.vue
@@ -55,13 +67,13 @@ app/
     api/
       client.ts
       generated.ts
+      tryRequest.ts
 
   error.vue
 
-shared/
-  result/
-    result.ts
-    async-result-state.ts
+  utils/
+    actionResult.ts
+    asyncResultState.ts
 ```
 
 ### `app/pages/spaces/[id].vue`
@@ -95,8 +107,8 @@ It:
 - owns local page state and mutations;
 - calls `deps` methods;
 - handles imperative `Result` flows with ordinary guards and uses `matchResult` for transformations;
-- converts frontend failure codes into user-facing text;
-- determines local UI behavior for specific failure variants;
+- uses a contextual fallback message for opaque action failures;
+- distinguishes specialized view or business failures only when behavior changes;
 - passes data and callback functions to child components;
 - does not create the API client;
 - may build declarative link destinations through `useOrganizationRoutes()`;
@@ -109,56 +121,75 @@ They:
 - receive display data through props;
 - receive required actions through callback props;
 - may own local ephemeral UI state;
-- do not receive `deps`;
-- do not load remote data;
+- receive `deps` only when they own an independent asynchronous scenario;
+- otherwise do not load remote data;
 - do not coordinate page-level scenarios;
 - do not know about the router.
 
 ### Nested Feature Containers
 
-A child component may receive its own `deps` when it coordinates an independent asynchronous user
-scenario, for example a lazily loaded dialog that loads, updates, moves, and deletes an entity.
+A child component receives its own `deps` when it is the lowest component that can completely own an
+independent asynchronous user scenario and display its local failures. A component does not receive
+`deps` merely because it contains buttons or fields.
 
 The child container owns and declares its dependency contract:
 
 ```ts
-// IssueDialog.deps.ts
-export type IssueDialogDeps = {
-  view: (input: ViewIssueInput) => Promise<Result<IssueData, ViewIssueFailure>>
-  save: (input: SaveIssueInput) => Promise<Result<null, SaveIssueFailure>>
+// deps/index.ts
+export type IssueDetailsDeps = {
+  loadAssignees: LoadAssignees
+  loadMoveBoards: LoadMoveBoards
+  loadMoveSpaces: LoadMoveSpaces
+  loadStatuses: LoadStatuses
+  saveIssue: SaveIssue
 }
 ```
 
-When the child adapts API calls itself, it also owns a colocated production factory. The parent
-factory composes it rather than reimplementing its methods:
+The parent performs the first page `view`, passes the initial view model to the child, and retains
+only page-level actions such as deletion, navigation, and refresh:
 
 ```ts
-const issueDialog = createIssueDialogDeps(client)
-
-return {
-  issueDialog,
-  moveBoardIssue: issueDialog.moveIssue,
+export type IssuePageDeps = {
+  deleteIssue: DeleteIssue
+  issueDetails: IssueDetailsDeps
+  view: ViewIssue
 }
 ```
 
-The parent dependency contract only composes the child contract:
+The production factory composes the child factory rather than reimplementing its operations:
 
 ```ts
-export type BoardPageDeps = {
-  issueDialog: IssueDialogDeps
-  view: (input: ViewBoardInput) => Promise<Result<BoardData, ViewBoardFailure>>
-}
+export const createIssuePageDeps = (client: ApiClient): IssuePageDeps => ({
+  deleteIssue: createDeleteIssue(client),
+  issueDetails: createIssueDetailsDeps(client),
+  view: createViewIssue(client),
+})
 ```
 
-The parent passes the narrow dependency object without redefining or indexing the child operations:
+The child receives initial data and owns its form, lookup, pending, action-error, and saving state:
 
 ```vue
-<IssueDialog :deps="deps.issueDialog" />
+<IssueDetails
+  :deps="deps.issueDetails"
+  :view-model="data"
+  :on-dirty-change="setDirty"
+  :on-saved="handleSaved" />
 ```
 
-This forms an explicit dependency tree matching feature-container ownership. It does not mean that
-every component receives `deps`. Presentational forms, lists, buttons, and layout fragments continue
-to receive only data and callbacks.
+The child reports only outcomes that affect its environment, for example `onSaved`, `onDirtyChange`,
+or `onSavingChange`. It does not push lookup arrays, lookup pending flags, or local errors back to
+the page.
+
+This forms an explicit dependency tree matching scenario ownership. Presentational lists, buttons,
+attachment previews, and layout fragments continue to receive only data and callbacks.
+
+The ownership rule is:
+
+> State and deps live in the lowest component that can fully handle the scenario and its local
+> failure.
+
+This avoids both extremes: one page coordinating every request in its subtree and every leaf
+component inventing its own deps.
 
 Local UI state includes:
 
@@ -169,6 +200,9 @@ Local UI state includes:
 - animation state.
 
 ### Local Component State
+
+A component owns state for the scenarios it owns. A page must not keep a child form’s lookup arrays,
+lookup pending flags, save error, or field state solely to pass them back down.
 
 A component’s own mutable local state is declared in one `reactive` object, not as multiple separate
 `ref` values:
@@ -190,8 +224,8 @@ this object.
 
 ```vue
 <script setup lang="ts">
-import SpaceItemsPage from '~/sections/spaces/pages/SpaceItemsPage/SpaceItemsPage.vue'
-import { createSpaceItemsPageDeps } from '~/sections/spaces/pages/SpaceItemsPage/SpaceItemsPage.deps.impl'
+import SpaceItemsPage from '~/sections/spaces/space-items/SpaceItemsPage.vue'
+import { createSpaceItemsPageDeps } from '~/sections/spaces/space-items/deps/impl'
 
 const route = useRoute()
 
@@ -303,7 +337,9 @@ client.DELETE(...)
 Production deps may depend on this concrete type:
 
 ```ts
-export function createSpaceItemsPageDeps(client: ApiClient): SpaceItemsPageDeps
+export const createSpaceItemsPageDeps = (client: ApiClient): SpaceItemsPageDeps => ({
+  // ...
+})
 ```
 
 No additional abstraction over `ApiClient` is introduced until there is a second transport
@@ -315,7 +351,7 @@ implementation or another confirmed requirement.
 SpaceItemsPage.vue
   → depends on SpaceItemsPageDeps
 
-SpaceItemsPage.deps.impl.ts
+SpaceItemsPage/deps/impl
   → implements SpaceItemsPageDeps
   → depends on ApiClient
 
@@ -353,9 +389,17 @@ export type SpaceItemsPageDeps = {
 
 - One `XxxPageDeps` belongs to one `XxxPage.vue`.
 - The contract describes only the dependencies of that specific page.
-- Each operation owns its input, output, failure, and function types in `deps/<operation>.ts`.
+- Each operation owns its input, output, and function types in `deps/<operation>.ts`.
+- An operation owns a specialized failure type only when the caller uses its data or changes
+  behavior by variant.
 - `deps/index.ts` composes the operation contracts into `XxxPageDeps`.
 - UI models shared by the component and its dependencies live in `XxxPage.types.ts`.
+- Component props remain inline in `defineProps`; a `Props` type is exported only after a real
+  external consumer appears.
+- Application functions use `const` arrow declarations. Existing `function` declarations are
+  converted when their flow is refactored; a repository-wide mechanical rewrite is not mixed into an
+  unrelated change.
+- Types used by only one contract or implementation remain in that operation’s file.
 - The contracts and production implementations are colocated with the page component.
 - A global `AppDeps` containing operations for the entire application is not introduced.
 - `deps` is passed as an explicit prop.
@@ -385,7 +429,7 @@ export const createViewSpaceItems =
   async (input) => {
     // OpenAPI request
     // DTO mapping
-    // expected failure mapping
+    // Result mapping
   }
 ```
 
@@ -429,9 +473,6 @@ deps/
     deleteItem.ts
 ```
 
-A small component with one operation may keep a compact colocated `*.deps.ts` and `*.deps.impl.ts`;
-the directory form is introduced when it improves navigation.
-
 ---
 
 ## 6. API Mapping
@@ -439,24 +480,20 @@ the directory form is introduced when it improves navigation.
 Frontend models do not have to mirror generated DTOs.
 
 ```ts
-function mapMoveItemsInput(input: MoveItemsInput) {
-  return {
-    params: {
-      path: {
-        id: input.epicId,
-        newSpaceId: input.targetSpaceId,
-      },
+const mapMoveItemsInput = (input: MoveItemsInput) => ({
+  params: {
+    path: {
+      id: input.epicId,
+      newSpaceId: input.targetSpaceId,
     },
-  }
-}
+  },
+})
 
-function mapSpaceDto(dto: SpaceListDto): SpaceItem {
-  return {
-    id: String(dto.id),
-    name: dto.name,
-    color: dto.color,
-  }
-}
+const mapSpaceDto = (dto: SpaceListDto): SpaceItem => ({
+  id: String(dto.id),
+  name: dto.name,
+  color: dto.color,
+})
 ```
 
 ### Rules
@@ -516,23 +553,13 @@ export type ActionFailure = {
 }
 
 export type Result<Value, Failure = ActionFailure> =
-  | Readonly<{
-      ok: true
-      value: Value
-    }>
-  | Readonly<{
-      ok: false
-      error: Failure
-    }>
+  { ok: true; value: Value } | { error: Failure; ok: false }
 
-export const ok = <Value>(value: Value): Result<Value, never> => ({
-  ok: true,
-  value,
-})
+export const ok = <Value>(value: Value): Result<Value, never> => ({ ok: true, value })
 
 export const err = <Failure>(error: Failure): Result<never, Failure> => ({
-  ok: false,
   error,
+  ok: false,
 })
 
 export const failed = (): Result<never> => err({ type: 'failed' })
@@ -564,7 +591,7 @@ An operation declares a specialized failure only when the caller needs to distin
 
 The mere presence of a failure does not automatically imply switching to global `error.vue`.
 
-The same failure may:
+A specialized view/business failure may:
 
 - be displayed locally within a working layout;
 - be promoted to a fatal Nuxt error when the current application flow cannot continue without it.
@@ -589,15 +616,13 @@ mapping or component code is still a programming error.
 `Result` remains a simple serializable object. Methods are not added to it.
 
 ```ts
-export function matchResult<Value, Failure, OkOutput, ErrorOutput>(
+export const matchResult = <Value, Failure, OkOutput, ErrorOutput>(
   result: Result<Value, Failure>,
   handlers: {
     ok: (value: Value) => OkOutput
     err: (error: Failure) => ErrorOutput
   },
-): OkOutput | ErrorOutput {
-  return result.ok ? handlers.ok(result.value) : handlers.err(result.error)
-}
+): OkOutput | ErrorOutput => (result.ok ? handlers.ok(result.value) : handlers.err(result.error))
 ```
 
 ### Choosing a Handling Style
@@ -622,24 +647,22 @@ return matchResult(result, {
 })
 ```
 
-### Local Result Handlers
+### Specialized Result Handlers
 
-Complex branches are extracted into named functions within the same `XxxPage.vue`:
+Complex business branches are extracted into named functions within the same `XxxPage.vue`:
 
 ```ts
-async function handleMoveItemsSuccess(value: MoveItemsData): Promise<void> {
+const handleMoveItemsSuccess = async (value: MoveItemsData): Promise<void> => {
   clearSelection()
   await refresh()
   await props.onMoved(value.targetSpaceId)
 }
 
-function handleMoveItemsFailure(failure: MoveItemsFailure): void {
+const handleMoveItemsFailure = (failure: MoveItemsFailure): void => {
   switch (failure.type) {
-    case 'forbidden':
-    case 'network':
-      moveFailure.value = failure
+    case 'invalidInput':
+      formError.value = failure.message
       return
-
     case 'partial':
       movedIds.value = failure.movedIds
       moveFailure.value = failure
@@ -659,32 +682,15 @@ They are moved to a separate file only when they become:
 - reusable;
 - large enough to justify separate testing.
 
-### Inline Handlers
-
-A simple branch may remain inline:
-
-```ts
-await matchResult(result, {
-  ok: async () => {
-    await refresh()
-  },
-  err: (failure) => {
-    moveFailure.value = failure
-  },
-})
-```
-
 ---
 
-## 9. Exhaustive Failure Handling
+## 9. Specialized Failure Handling
 
-A failure is a tagged union with a `camelCase` `type` field.
+A specialized failure is a tagged union with a `camelCase` `type` field. Do not create this union
+for an ordinary action whose failures all produce the same UI behavior.
 
 ```ts
 export type MoveItemsFailure =
-  | { type: 'network' }
-  | { type: 'forbidden' }
-  | { type: 'conflict' }
   | {
       type: 'invalidInput'
       message: string
@@ -696,26 +702,17 @@ export type MoveItemsFailure =
     }
 ```
 
-Use an exhaustive `switch` for specific variants.
+Use an exhaustive `switch` only when the UI handles specific variants differently.
 
 ```ts
-export function assertNever(value: never): never {
+export const assertNever = (value: never): never => {
   throw new Error(`Unexpected value: ${JSON.stringify(value)}`)
 }
 ```
 
 ```ts
-function getMoveFailureMessage(failure: MoveItemsFailure): string {
+const getMoveFailureMessage = (failure: MoveItemsFailure): string => {
   switch (failure.type) {
-    case 'network':
-      return t('errors.network')
-
-    case 'forbidden':
-      return t('errors.forbidden')
-
-    case 'conflict':
-      return t('errors.conflict')
-
     case 'invalidInput':
     case 'partial':
       return failure.message
@@ -730,26 +727,27 @@ function getMoveFailureMessage(failure: MoveItemsFailure): string {
 
 ## 10. Failure Messages and i18n
 
-`*.deps.impl.ts` does not know about i18n.
+`deps/impl/*.ts` does not know about i18n.
 
-A standard frontend failure returns a code and structured payload:
+An ordinary action returns opaque `ActionFailure`:
 
 ```ts
 {
-  type: 'network'
-}
-{
-  type: 'forbidden'
-}
-{
-  type: 'notFound'
+  type: 'failed'
 }
 ```
 
-The UI determines user-facing text through `useI18n`.
+The UI determines one contextual fallback through `useI18n`:
 
-A failure contains `message` only when the API contract guarantees ready-to-display human-readable
-text:
+```ts
+if (!result.ok) {
+  state.error = t('issues.moveFailed')
+  return
+}
+```
+
+A specialized failure contains `message` only when the API contract guarantees ready-to-display
+human-readable text:
 
 ```ts
 {
@@ -763,13 +761,13 @@ Do not automatically display an arbitrary technical transport `error.message`.
 ### Separation of Responsibilities
 
 ```text
-*.deps.impl.ts
-  → recognizes an external failure
-  → returns a frontend failure code/payload
+deps/impl/<operation>.ts
+  → maps ordinary request/HTTP failure to failed()
+  → returns specialized payload only for a real business/view outcome
 
 XxxPage.vue
-  → selects local text through i18n
-  → selects UI behavior
+  → selects one contextual action fallback through i18n
+  → branches only on specialized outcomes
 
 app/error.vue
   → selects global fatal-error text and design
@@ -777,12 +775,36 @@ app/error.vue
 
 ---
 
-## 11. Error Handling in `*.deps.impl.ts`
+## 11. Error Handling in `deps/impl/*.ts`
+
+Shared API infrastructure provides one small request boundary:
 
 ```ts
-async function moveItems(input: MoveItemsInput): Promise<Result<MoveItemsData>> {
+export const tryRequest = async <Response>(
+  request: () => Promise<Response>,
+): Promise<Response | undefined> => {
+  try {
+    return await request()
+  } catch (cause) {
+    if (cause instanceof DOMException && cause.name === 'AbortError') {
+      throw cause
+    }
+    return undefined
+  }
+}
+```
+
+Only the API client call goes inside `tryRequest`. Input mapping and successful-response mapping
+stay outside it so mapper and invariant errors remain exceptions.
+
+`tryRequest` lives in `infrastructure/api`, not generic UI `utils`, because it defines transport
+behavior for production deps.
+
+```ts
+const moveItems = async (input: MoveItemsInput): Promise<Result<MoveItemsData>> => {
+  const request = mapMoveItemsInput(input)
   const response = await tryRequest(() =>
-    client.POST('/api/movement/epic/{id}/to-space/{newSpaceId}', mapMoveItemsInput(input)),
+    client.POST('/api/movement/epic/{id}/to-space/{newSpaceId}', request),
   )
 
   if (!response || !('data' in response)) {
@@ -837,13 +859,13 @@ mapper or invariant error
 → throw
 ```
 
-Request abort is not a user-facing `Failure` and is not shown as a page error.
+Request abort is rethrown for Nuxt cancellation and is not shown as a page error.
 
 The following mandatory global abstractions are not introduced in v1:
 
 - `TransportFailure`;
 - `normalizeTransportFailure`;
-- global universal `request(...)`; a small feature-local request boundary is allowed;
+- a universal response/failure normalizer beyond the narrow `tryRequest` boundary;
 - global `MessageMap`;
 - a single dictionary of all errors.
 
@@ -912,8 +934,8 @@ Benefits:
 - the user can open another page;
 - retry repeats only the required query.
 
-For internal feature pages, this is the default policy even for frontend failure codes `notFound`
-and `forbidden`.
+For internal feature pages, this is the default policy even for specialized failure codes `notFound`
+and `accessDenied`.
 
 ### Global `error.vue`
 
@@ -953,6 +975,7 @@ Default policy:
 
 Mutation and form errors always remain local:
 
+- request and unsuccessful HTTP action failures;
 - validation;
 - conflict;
 - partial result;
@@ -978,9 +1001,9 @@ return matchResult(result, {
           fatal: true,
         })
 
-      case 'network':
+      case 'temporarilyUnavailable':
       case 'notFound':
-      case 'forbidden':
+      case 'accessDenied':
         return err(failure)
 
       default:
@@ -1048,9 +1071,9 @@ export type ToAsyncResultStateOptions<Value, Failure> = {
   getErrorMessage: (failure: Failure) => string
 }
 
-export function toAsyncResultState<Value, Failure>(
+export const toAsyncResultState = <Value, Failure>(
   options: ToAsyncResultStateOptions<Value, Failure>,
-): AsyncResultState<Value, Failure> {
+): AsyncResultState<Value, Failure> => {
   const { result, status, error, getErrorMessage } = options
 
   if (status === 'idle' || status === 'pending') {
@@ -1467,16 +1490,18 @@ const props = defineProps<{
 ```ts
 const result = await props.deps.moveItems(input)
 
-await matchResult(result, {
-  ok: handleMoveItemsSuccess,
-  err: handleMoveItemsFailure,
-})
+if (!result.ok) {
+  state.error = t('items.moveFailed')
+  return
+}
+
+await handleMoveItemsSuccess(result.value)
 ```
 
 ### Forbidden
 
 ```ts
-async function moveItems(...) {
+const moveItems = async (...) => {
   await client.POST(...)
   await navigateTo(...)
 }
@@ -1536,7 +1561,8 @@ Global runtime validation of API responses is not introduced.
 
 The project trusts the generated API client types.
 
-If a specific endpoint requires additional validation, it is added locally in its `*.deps.impl.ts`.
+If a specific endpoint requires additional validation, it is added locally in its
+`deps/impl/<operation>.ts`.
 
 A violation of required response structure:
 
@@ -1598,7 +1624,7 @@ Integration tests are acceptable for critical scenarios:
 
 ### `XxxPage.vue`
 
-The primary testable unit.
+The primary testable unit for page loading and page-level actions.
 
 Verify:
 
@@ -1606,11 +1632,17 @@ Verify:
 - pending/error/ready rendering;
 - retry;
 - mutation calls;
-- `matchResult` branches;
-- exhaustive failure behavior;
+- contextual fallback for opaque action failure;
+- specialized failure behavior where it exists;
 - navigation callback after success;
 - no callback on failure;
 - prevention of repeated mutation execution.
+
+### Nested Async Containers
+
+Test the scenario at the component that owns it. For `IssueDetails`, verify lookup loading, local
+lookup failures, save pending state, validation, partial save, and `onSaved`/`onDirtyChange`
+notifications there rather than through every parent page.
 
 ### Inline Deps Stub
 
@@ -1632,15 +1664,16 @@ createSpaceItemsPageDepsStub(overrides)
 Unexpected calls to stub methods should throw an exception rather than add a production failure code
 such as `unexpectedCall`.
 
-### `*.deps.impl.ts`
+### `deps/impl/*.ts`
 
 Verify:
 
 - OpenAPI request mapping;
 - response mapping;
-- expected error mapping;
-- rethrowing unknown errors;
-- abort is not converted into a UI failure.
+- request throw and unsuccessful HTTP response become `failed()` for ordinary actions;
+- specialized view/business outcomes keep their payload;
+- mapper and invariant errors remain exceptions;
+- abort is rethrown for cancellation.
 
 ### Presentational Components
 
@@ -1667,9 +1700,8 @@ Test separately:
 - global `AppDeps`;
 - service locator through `provide/inject`;
 - a generic client abstraction over `ApiClient` without a real need;
-- one file per deps method;
 - mandatory mock file for every deps object;
-- universal `request(...)`;
+- a universal response/failure normalizer beyond `tryRequest`;
 - global `TransportFailure`;
 - complex `MessageMap`;
 - i18n inside deps implementation;
@@ -1686,33 +1718,41 @@ Test separately:
 ## 30. New Page Checklist
 
 1. Create a Nuxt route wrapper in `app/pages`.
-2. Create `app/sections/<area>/pages/XxxPage/`.
+2. Create `app/sections/<area>/<feature>/`.
 3. Create `XxxPage.vue`.
-4. Create `XxxPage.deps.ts` with one page deps type.
-5. Use default `ActionFailure` unless the UI distinguishes outcomes or needs structured data.
-6. Create `XxxPage.deps.impl.ts` and the `createXxxPageDeps(client)` factory.
-7. Type the client as the concrete `ApiClient`.
-8. Keep a mapper private inside the implementation while it is small.
-9. Create `ApiClient` in the route wrapper and pass it to the deps factory.
-10. Pass `deps` to `XxxPage.vue` as one prop.
-11. Load page data through `useAsyncData` with an explicit key.
-12. Pass `AbortSignal` to `deps.view` when the transport supports abort.
-13. Convert query refs through `toAsyncResultState`.
-14. Translate specialized view failures through a local exhaustive function and i18n.
-15. Render pending/error/ready through `PageState`.
-16. Keep `notFound`/`forbidden` local when the layout can continue working.
-17. Use `createError` only for contextual fatal scenarios.
-18. Handle mutation `Result` with a guard; use `matchResult` when transforming both branches.
-19. Extract complex ok/err branches into local named page functions.
-20. Pass only data and required `onXxx` callbacks downward.
-21. A feature component must own its fixed structure.
-22. Use slots only for UI primitives or narrow extension points.
-23. Pass imperative navigation as a callback from the route wrapper; build declarative links through
+4. Create `XxxPage.types.ts` for UI models shared by the page and its deps.
+5. Create one contract per operation in `deps/<operation>.ts`.
+6. Compose the operation types into `XxxPageDeps` in `deps/index.ts`.
+7. Use default `ActionFailure` unless the UI distinguishes outcomes or needs structured data.
+8. Create one implementation per operation in `deps/impl/<operation>.ts`.
+9. Compose `createXxxPageDeps(client)` in `deps/impl/index.ts`.
+10. Use the shared `infrastructure/api/tryRequest.ts` request boundary.
+11. Type the client as the concrete `ApiClient`.
+12. Keep a mapper private inside its operation implementation while it is small.
+13. Create `ApiClient` in the route wrapper and pass it to the deps factory.
+14. Pass `deps` to `XxxPage.vue` as one prop.
+15. Load page data through `useAsyncData` with an explicit key.
+16. Pass `AbortSignal` to `deps.view` when the transport supports abort.
+17. Convert query refs through `toAsyncResultState`.
+18. Translate specialized view failures through a local exhaustive function and i18n.
+19. Render pending/error/ready through `PageState`.
+20. Keep `notFound`/`accessDenied` local when the layout can continue working.
+21. Use `createError` only for contextual fatal scenarios.
+22. Handle mutation `Result` with a guard; use `matchResult` when transforming both branches.
+23. Pass only data and required `onXxx` callbacks downward.
+24. Put state and deps in the lowest component that can fully handle the async scenario and its
+    local failure.
+25. Keep the initial page `view`, page-level actions, navigation, and refresh in `XxxPage`.
+26. Pass an initial view model to a nested async container; do not hoist its lookup/form/error state
+    solely to pass it back down.
+27. A feature component must own its fixed structure.
+28. Use slots only for UI primitives or narrow extension points.
+29. Pass imperative navigation as a callback from the route wrapper; build declarative links through
     `useOrganizationRoutes()` in the page.
-24. Add a pending guard for each mutation.
-25. After success, update local data or call `refresh()`.
-26. Write an `XxxPage.vue` test with mock deps.
-27. Write a production deps test with a typed/fake OpenAPI client.
+30. Add a pending guard for each mutation.
+31. After success, update local data or call `refresh()`.
+32. Write an `XxxPage.vue` test with mock deps.
+33. Write a production deps test with a typed/fake OpenAPI client.
 
 ---
 
@@ -1728,10 +1768,11 @@ app/pages/<route>.vue
            ▼
 XxxPage.vue
   ├─ useAsyncData
-  ├─ deps.view / mutations
-  ├─ matchResult
-  ├─ local exhaustive handlers
-  ├─ failure code → i18n message
+  ├─ deps.view / page-level mutations
+  ├─ guard clauses for imperative Result flows
+  ├─ contextual fallback for ActionFailure
+  ├─ exhaustive handlers only for specialized failures
+  ├─ matchResult only for value transformations
   ├─ local page error or contextual fatal decision
   ├─ toAsyncResultState
   └─ required callbacks
@@ -1744,12 +1785,12 @@ PageState.vue
            │
            ▼
 feature components
-  ├─ explicit data props
-  ├─ onXxx callbacks
-  ├─ emits for optional notifications
-  ├─ v-model for editable values
-  ├─ fixed owned structure
-  └─ narrow slots only when justified
+  ├─ presentational component → explicit data props + callbacks
+  └─ independent async container
+       ├─ initial view model prop
+       ├─ narrow deps
+       ├─ local form/lookup/error/pending state
+       └─ onSaved/onDirtyChange outcome callbacks
 ```
 
 Global error flow:

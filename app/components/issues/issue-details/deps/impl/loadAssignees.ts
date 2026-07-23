@@ -1,9 +1,9 @@
 import type { ApiClient } from '#infrastructure/api/client'
 import type { components } from '#infrastructure/api/generated'
+import { tryRequest } from '#infrastructure/api/tryRequest'
 import { failed, ok } from '~/utils/actionResult'
 
 import type { LoadAssignees } from '../loadAssignees'
-import { tryRequest } from './tryRequest'
 
 type SpaceMember = components['schemas']['SpaceMember']
 

@@ -1,10 +1,10 @@
 import type { ApiClient } from '#infrastructure/api/client'
 import type { components } from '#infrastructure/api/generated'
+import { tryRequest } from '#infrastructure/api/tryRequest'
 import type { IssuePageData } from '~/sections/issues/issue/IssuePage.types'
 import { err, ok } from '~/utils/actionResult'
 
 import type { ViewIssue } from '../viewIssue'
-import { tryRequest } from './tryRequest'
 
 type Schemas = components['schemas']
 

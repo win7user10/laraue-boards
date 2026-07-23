@@ -169,18 +169,18 @@ import { debounce } from 'es-toolkit'
 import { Plus, Settings } from 'lucide-vue-next'
 import type { LocationQuery, LocationQueryRaw } from 'vue-router'
 
+import type { IssueDetailsSavedIssue } from '~/components/issues/issue-details/deps'
 import IssueFilters from '~/components/issues/IssueFilters.vue'
 import { BoardIcon } from '~/constants/icons'
 import type {
   BoardPageDeps,
   LoadBoardIssuesFailure,
+  MoveBoardIssueFailure,
   MoveIssueToBacklogFailure,
   ViewBoardPageFailure,
 } from '~/sections/boards/board/BoardPage.deps'
 import BoardColumn from '~/sections/boards/board/components/BoardColumn/BoardColumn.vue'
 import BoardScrollMap from '~/sections/boards/board/components/BoardScrollMap/BoardScrollMap.vue'
-import type { MoveIssueFailure } from '~/sections/boards/board/components/IssueDialog/IssueDialog.deps'
-import type { IssueDialogSavedIssue } from '~/sections/boards/board/components/IssueDialog/IssueDialog.vue'
 import { assertNever } from '~/utils/assertNever'
 import { toAsyncResultState } from '~/utils/asyncResultState'
 import {
@@ -273,7 +273,7 @@ const getIssuesFailureMessage = (
   }
 }
 
-const getMoveFailureMessage = (failure: MoveIssueFailure): string => {
+const getMoveFailureMessage = (failure: MoveBoardIssueFailure): string => {
   switch (failure.type) {
     case 'accessDenied':
       return 'You do not have permission to move this issue.'
@@ -393,7 +393,7 @@ function closeIssueDialog() {
   void props.onReplaceQuery(target.query)
 }
 
-function handleIssueSaved(issue: IssueDialogSavedIssue) {
+function handleIssueSaved(issue: IssueDetailsSavedIssue) {
   scheduleSearch.cancel()
   runSearch.cancel()
   state.filtering = false
@@ -748,7 +748,7 @@ function moveIssueInBoard(
 
 function updateIssueInBoard(
   boardData: BoardPageViewModel,
-  update: IssueDialogSavedIssue,
+  update: IssueDetailsSavedIssue,
 ): BoardPageViewModel {
   const hasIssue = boardData.columns.some((column) =>
     column.issues.some((issue) => issue.issueKey === update.issueKey),
