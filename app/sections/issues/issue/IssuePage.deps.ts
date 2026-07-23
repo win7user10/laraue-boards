@@ -32,9 +32,7 @@ export type IssuePageDeps = {
   deleteIssue: (input: {
     issueKey: string
   }) => Promise<Result<void, IssueResourceFailure>>
-  loadAssignees: (input: {
-    spaceId: string
-  }) => Promise<
+  loadAssignees: (input: { spaceId: string }) => Promise<
     Result<
       {
         assignees: Array<{
@@ -64,10 +62,7 @@ export type IssuePageDeps = {
   loadStatuses: (input: {
     boardId: string
   }) => Promise<
-    Result<
-      { statuses: Array<{ id: string; name: string }> },
-      LoadBoardFailure
-    >
+    Result<{ statuses: Array<{ id: string; name: string }> }, LoadBoardFailure>
   >
   moveIssue: (input: {
     issueKey: string

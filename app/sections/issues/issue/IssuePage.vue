@@ -25,9 +25,9 @@
           :error="state.error"
           :form-id="formId"
           :lookup="state.lookup"
+          :on-can-save-change="setCanSave"
           :on-change-move-board="changeMoveBoard"
           :on-change-move-space="changeMoveSpace"
-          :on-can-save-change="setCanSave"
           :on-dirty-change="setDirty"
           :on-load-assignees="loadAssignees"
           :on-load-move-boards="loadMoveBoards"
@@ -74,8 +74,8 @@ import type {
   MoveIssueFailure,
   UpdateIssueFailure,
 } from '~/sections/issues/issue/IssuePage.deps'
-import { assertNever } from '~/utils/assertNever'
 import { matchResult } from '~/utils/actionResult'
+import { assertNever } from '~/utils/assertNever'
 import { toAsyncResultState } from '~/utils/asyncResultState'
 import { getIssueAttributeValueInput } from '~/utils/issueAttributeValues'
 

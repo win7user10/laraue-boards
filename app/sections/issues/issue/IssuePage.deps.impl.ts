@@ -1,6 +1,6 @@
 import type { ApiClient } from '#infrastructure/api/client'
-import { getInvalidInputError } from '#infrastructure/api/getInvalidInputError'
 import type { components } from '#infrastructure/api/generated'
+import { getInvalidInputError } from '#infrastructure/api/getInvalidInputError'
 import { mapIssueAttributeValues } from '#infrastructure/issues/shared/issueAttributes'
 import { updateIssueFormData } from '#infrastructure/issues/shared/issueFormData'
 import { mapOrganizationAssignees } from '#infrastructure/issues/shared/mapOrganizationAssignees'
@@ -18,7 +18,7 @@ type Schemas = components['schemas']
 
 const mapResourceFailure = (
   status: number,
-): undefined | IssueResourceFailure => {
+): IssueResourceFailure | undefined => {
   if (status === 401 || status === 403) {
     return { type: 'accessDenied' }
   }
@@ -30,7 +30,7 @@ const mapResourceFailure = (
   }
 }
 
-const mapSpaceFailure = (status: number): undefined | LoadSpaceFailure => {
+const mapSpaceFailure = (status: number): LoadSpaceFailure | undefined => {
   if (status === 401 || status === 403) {
     return { type: 'accessDenied' }
   }
@@ -42,7 +42,7 @@ const mapSpaceFailure = (status: number): undefined | LoadSpaceFailure => {
   }
 }
 
-const mapBoardFailure = (status: number): undefined | LoadBoardFailure => {
+const mapBoardFailure = (status: number): LoadBoardFailure | undefined => {
   if (status === 401 || status === 403) {
     return { type: 'accessDenied' }
   }
@@ -54,7 +54,7 @@ const mapBoardFailure = (status: number): undefined | LoadBoardFailure => {
   }
 }
 
-const mapMoveFailure = (status: number): undefined | MoveIssueFailure => {
+const mapMoveFailure = (status: number): MoveIssueFailure | undefined => {
   if (status === 400) {
     return { type: 'invalidStatus' }
   }
@@ -103,8 +103,7 @@ const mapAttachments = (
     if (attachment.type !== 0) {
       return []
     }
-    const previewId =
-      attachment.previewFileId ?? attachment.originalFileId
+    const previewId = attachment.previewFileId ?? attachment.originalFileId
     if (!previewId) {
       return []
     }

@@ -106,7 +106,7 @@ import type {
   IssueDetailsSaveInput,
   IssueDetailsViewModel,
 } from '~/components/issues/issue-details/IssueDetails.vue'
-import type { IssueDialogDeps } from '~/sections/boards/board/components/IssueDialog/IssueDialogDeps'
+import type { BoardPageDeps } from '~/sections/boards/board/BoardPage.deps'
 
 export type IssueDialogViewModel = IssueDetailsViewModel
 
@@ -120,11 +120,18 @@ export type IssueDialogSavedIssue = {
 }
 
 type IssueDialogProps = {
-  deps: IssueDialogDeps
+  deleteIssue: BoardPageDeps['issueDialog']['deleteIssue']
   issueKey: string
+  loadAssignees: BoardPageDeps['issueDialog']['issueDetails']['loadAssignees']
+  loadIssue: BoardPageDeps['issueDialog']['loadIssue']
+  loadMoveBoards: BoardPageDeps['issueDialog']['issueDetails']['loadMoveBoards']
+  loadMoveSpaces: BoardPageDeps['issueDialog']['issueDetails']['loadMoveSpaces']
+  loadStatuses: BoardPageDeps['issueDialog']['issueDetails']['loadStatuses']
+  moveIssue: BoardPageDeps['issueDialog']['moveIssue']
   onClose: () => void
   onDeleted: (issueKey: string) => void
   onSaved: (issue: IssueDialogSavedIssue) => void
+  updateIssue: BoardPageDeps['issueDialog']['updateIssue']
 }
 </script>
 
@@ -173,7 +180,7 @@ const {
   refresh,
   status,
 } = await useLazyAsyncData(
-  () => props.deps.loadIssue({ issueKey: props.issueKey }),
+  () => props.loadIssue({ issueKey: props.issueKey }),
   { server: false, watch: [() => props.issueKey] },
 )
 
@@ -287,7 +294,7 @@ function resetLookups() {
 async function loadAssignees(spaceId: string) {
   state.lookup.error = null
   state.lookup.loadingAssignees = true
-  const result = await props.deps.issueDetails.loadAssignees({ spaceId })
+  const result = await props.loadAssignees({ spaceId })
   state.lookup.loadingAssignees = false
   matchActionResult({
     err: (error) => {
@@ -310,7 +317,7 @@ async function loadAssignees(spaceId: string) {
 async function loadMoveSpaces() {
   state.lookup.error = null
   state.lookup.loadingMoveSpaces = true
-  const result = await props.deps.issueDetails.loadMoveSpaces()
+  const result = await props.loadMoveSpaces()
   state.lookup.loadingMoveSpaces = false
   matchActionResult({
     err: (error) => {
@@ -332,7 +339,7 @@ async function loadMoveSpaces() {
 async function loadMoveBoards(spaceId: string) {
   state.lookup.error = null
   state.lookup.loadingMoveBoards = true
-  const result = await props.deps.issueDetails.loadMoveBoards({ spaceId })
+  const result = await props.loadMoveBoards({ spaceId })
   state.lookup.loadingMoveBoards = false
   matchActionResult({
     err: (error) => {
@@ -355,7 +362,7 @@ async function loadMoveBoards(spaceId: string) {
 async function loadStatuses(boardId: string) {
   state.lookup.error = null
   state.lookup.loadingStatuses = true
-  const result = await props.deps.issueDetails.loadStatuses({ boardId })
+  const result = await props.loadStatuses({ boardId })
   state.lookup.loadingStatuses = false
   matchActionResult({
     err: (error) => {
@@ -396,7 +403,7 @@ async function saveIssue(input: IssueDetailsSaveInput) {
 
   state.saving = true
   state.error = null
-  const updateResult = await props.deps.updateIssue({
+  const updateResult = await props.updateIssue({
     assigneeId: input.assigneeId,
     attributeValues: getIssueAttributeValueInput(
       input.attributeValues,
@@ -433,7 +440,7 @@ async function saveIssue(input: IssueDetailsSaveInput) {
         return
       }
 
-      const moveResult = await props.deps.moveIssue({
+      const moveResult = await props.moveIssue({
         issueKey: props.issueKey,
         statusId: input.statusId,
       })
@@ -484,7 +491,7 @@ async function deleteIssue() {
 
   state.saving = true
   state.error = null
-  const result = await props.deps.deleteIssue({ issueKey: props.issueKey })
+  const result = await props.deleteIssue({ issueKey: props.issueKey })
   state.saving = false
   matchActionResult({
     err: (error) => {

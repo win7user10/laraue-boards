@@ -48,6 +48,7 @@
     ]
   },
   "categories": {
-    "correctness": "error"
+    "correctness": "error",
+    "suspicious": "warn"
   }
 }

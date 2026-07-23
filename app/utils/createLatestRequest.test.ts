@@ -4,7 +4,7 @@ import { createLatestRequest } from '~/utils/createLatestRequest'
 
 test('ignores a stale request result', async () => {
   const runLatest = createLatestRequest()
-  let finishFirst: (value: string) => void = () => undefined
+  let finishFirst: ((value: string) => void) | undefined
   const first = runLatest({
     request: () =>
       new Promise<string>((resolve) => {
@@ -13,7 +13,7 @@ test('ignores a stale request result', async () => {
   })
   const second = runLatest({ request: async () => 'second' })
 
-  finishFirst('first')
+  finishFirst?.('first')
 
   assert.equal(await first, null)
   assert.equal(await second, 'second')
@@ -31,7 +31,7 @@ test('ignores a canceled request result', async () => {
 test('handles only the latest request result', async () => {
   const runLatest = createLatestRequest()
   const handled: string[] = []
-  let finishFirst: (value: string) => void = () => undefined
+  let finishFirst: ((value: string) => void) | undefined
   const first = runLatest({
     onLatest: (result) => handled.push(result),
     request: () =>
@@ -44,7 +44,7 @@ test('handles only the latest request result', async () => {
     request: async () => 'second',
   })
 
-  finishFirst('first')
+  finishFirst?.('first')
   await Promise.all([first, second])
 
   assert.deepEqual(handled, ['second'])

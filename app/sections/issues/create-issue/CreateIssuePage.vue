@@ -231,7 +231,7 @@ const page = computed(() =>
   pageState.value.type === 'ready' ? pageState.value.data : null,
 )
 const assignee = computed(() =>
-  state.assignees.find((assignee) => assignee.value === state.assigneeId),
+  state.assignees.find((item) => item.value === state.assigneeId),
 )
 
 watch(

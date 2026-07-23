@@ -1,122 +1,123 @@
 <template>
-  <section
-    v-if="pageState.type === 'ready'"
-    class="board-content">
-    <div class="title-row">
-      <div class="page-heading">
-        <AppBackLink
-          label="Back to space"
-          :to="organizationRoutes.space(spaceKey)" />
-        <BoardIcon
-          class="page-heading-icon"
-          :style="{ color: pageState.data.BoardPage.color || undefined }" />
-        <div class="page-heading-text">
-          <h1>{{ pageState.data.BoardPage.title }}</h1>
-        </div>
-      </div>
-      <div class="title-actions">
-        <NuxtLink
-          v-if="
-            pageState.data.BoardPage.canUpdate ||
-            pageState.data.BoardPage.canDelete
-          "
-          aria-label="Board settings"
-          class="secondary"
-          :to="
-            organizationRoutes.boardSettings(
-              spaceKey,
-              pageState.data.BoardPage.id,
-            )
-          ">
-          <Settings />
-          <span class="btn-label">Settings</span>
-        </NuxtLink>
-        <NuxtLink
-          v-if="pageState.data.BoardPage.canCreateIssues"
-          class="primary"
-          :to="
-            organizationRoutes.newBoardIssue(
-              spaceKey,
-              pageState.data.BoardPage.id,
-            )
-          ">
-          <Plus />
-          <span class="btn-label">Add issue</span>
-        </NuxtLink>
-      </div>
-    </div>
-
-    <div class="toolbar">
-      <input
-        aria-label="Search issues"
-        placeholder="Search issues"
-        type="search"
-        :value="search"
-        @input="updateSearch(($event.target as HTMLInputElement).value)" />
-      <IssueFilters
-        :attributes="pageState.data.BoardPage.attributes"
-        :loading="filtering"
-        :model-value="filterValue"
-        @update:model-value="updateFilters" />
-    </div>
-
-    <p
-      v-if="moveError"
-      class="form-error"
-      role="alert">
-      {{ moveError }}
-    </p>
-
-    <DragDropProvider
-      :plugins="defaultPreset.plugins"
-      :sensors="sensors"
-      @drag-end="handleDragEnd"
-      @drag-start="dragging = true">
-      <div
-        id="board-scroll-area"
-        ref="board"
-        :aria-busy="filtering || movingIssueKeys.size > 0"
-        class="board"
-        :class="{
-          'board--dragging': dragging,
-          'results-stale': filtering,
-        }">
-        <BoardColumn
-          v-for="column in pageState.data.BoardPage.columns"
-          :key="column.id"
-          :can-move-issues="pageState.data.BoardPage.canMoveIssues"
-          :load-more-error="loadMoreErrors.get(column.id) ?? null"
-          :loading-more="loadingColumnIds.has(column.id)"
-          :moving-issue-keys="movingIssueKeys"
-          :on-load-more="loadMoreIssues"
-          :on-move-to-backlog="moveToBacklog"
-          :on-open-issue="openIssue"
-          :view-model="column" />
-      </div>
-      <BoardScrollMap
-        :column-count="pageState.data.BoardPage.columns.length"
-        :target="board" />
-    </DragDropProvider>
-    <IssueDialog
-      v-if="issueKey && !closingIssueDialog"
-      :deps="deps.issueDialog"
-      :issue-key="issueKey"
-      :on-close="closeIssueDialog"
-      :on-deleted="handleIssueDeleted"
-      :on-saved="handleIssueSaved" />
-  </section>
-  <PageLoadState
-    v-else
-    :error-text="pageState.type === 'error' ? pageState.message : ''"
-    :loading="pageState.type === 'pending'"
+  <PageState
+    error-title="Could not load board"
     loading-text="Loading board…"
-    :on-retry="refresh" />
+    :on-retry="query.refresh"
+    :state="pageState">
+    <template #default="{ data }">
+      <section class="board-content">
+        <div class="title-row">
+          <div class="page-heading">
+            <AppBackLink
+              label="Back to space"
+              :to="organizationRoutes.space(spaceKey)" />
+            <BoardIcon
+              class="page-heading-icon"
+              :style="{ color: data.BoardPage.color || undefined }" />
+            <div class="page-heading-text">
+              <h1>{{ data.BoardPage.title }}</h1>
+            </div>
+          </div>
+          <div class="title-actions">
+            <NuxtLink
+              v-if="data.BoardPage.canUpdate || data.BoardPage.canDelete"
+              aria-label="Board settings"
+              class="secondary"
+              :to="
+                organizationRoutes.boardSettings(spaceKey, data.BoardPage.id)
+              ">
+              <Settings />
+              <span class="btn-label">Settings</span>
+            </NuxtLink>
+            <NuxtLink
+              v-if="data.BoardPage.canCreateIssues"
+              class="primary"
+              :to="
+                organizationRoutes.newBoardIssue(spaceKey, data.BoardPage.id)
+              ">
+              <Plus />
+              <span class="btn-label">Add issue</span>
+            </NuxtLink>
+          </div>
+        </div>
+
+        <div class="toolbar">
+          <input
+            aria-label="Search issues"
+            placeholder="Search issues"
+            type="search"
+            :value="search"
+            @input="updateSearch(($event.target as HTMLInputElement).value)" />
+          <IssueFilters
+            :attributes="data.BoardPage.attributes"
+            :loading="state.filtering"
+            :model-value="filterValue"
+            @update:model-value="updateFilters" />
+        </div>
+
+        <p
+          v-if="state.moveError"
+          class="form-error"
+          role="alert">
+          {{ state.moveError }}
+        </p>
+
+        <DragDropProvider
+          :plugins="defaultPreset.plugins"
+          :sensors="sensors"
+          @drag-end="handleDragEnd"
+          @drag-start="state.dragging = true">
+          <div
+            id="board-scroll-area"
+            ref="board"
+            :aria-busy="state.filtering || state.movingIssueKeys.size > 0"
+            class="board"
+            :class="{
+              'board--dragging': state.dragging,
+              'results-stale': state.filtering,
+            }">
+            <BoardColumn
+              v-for="column in data.BoardPage.columns"
+              :key="column.id"
+              :can-move-issues="data.BoardPage.canMoveIssues"
+              :load-more-error="state.loadMoreErrors.get(column.id) ?? null"
+              :loading-more="state.loadingColumnIds.has(column.id)"
+              :moving-issue-keys="state.movingIssueKeys"
+              :on-load-more="loadMoreIssues"
+              :on-move-to-backlog="moveToBacklog"
+              :on-open-issue="openIssue"
+              :view-model="column" />
+          </div>
+          <BoardScrollMap
+            :column-count="data.BoardPage.columns.length"
+            :target="board" />
+        </DragDropProvider>
+        <IssueDialog
+          v-if="issueKey && !state.closingIssueDialog"
+          :delete-issue="deps.issueDialog.deleteIssue"
+          :issue-key="issueKey"
+          :load-assignees="deps.issueDialog.issueDetails.loadAssignees"
+          :load-issue="deps.issueDialog.loadIssue"
+          :load-move-boards="deps.issueDialog.issueDetails.loadMoveBoards"
+          :load-move-spaces="deps.issueDialog.issueDetails.loadMoveSpaces"
+          :load-statuses="deps.issueDialog.issueDetails.loadStatuses"
+          :move-issue="deps.issueDialog.moveIssue"
+          :on-close="closeIssueDialog"
+          :on-deleted="handleIssueDeleted"
+          :on-saved="handleIssueSaved"
+          :update-issue="deps.issueDialog.updateIssue" />
+      </section>
+    </template>
+  </PageState>
 </template>
 
 <script lang="ts">
+import type {
+  LoadMoreBoardIssuesResult,
+  SearchBoardIssuesResult,
+  ViewBoardPageFailure,
+} from '~/sections/boards/board/BoardPage.deps'
 import type { BoardColumnViewModel } from '~/sections/boards/board/components/BoardColumn/BoardColumn.vue'
-import type { LoadMoreBoardIssuesResult } from '~/sections/boards/board/deps/loadMoreBoardIssues'
-import type { SearchBoardIssuesResult } from '~/sections/boards/board/deps/searchBoardIssues'
 
 export type BoardPageAttributeViewModel =
   | { color: string; id: string; name: string; type: 'text' }
@@ -180,13 +181,15 @@ import { DragDropProvider, KeyboardSensor, PointerSensor } from '@dnd-kit/vue'
 import type { DragEndEvent } from '@dnd-kit/vue'
 import { debounce } from 'es-toolkit'
 import { Plus, Settings } from 'lucide-vue-next'
+import type { LocationQuery, LocationQueryRaw } from 'vue-router'
 
 import IssueFilters from '~/components/issues/IssueFilters.vue'
 import { BoardIcon } from '~/constants/icons'
-import type { BoardPageDeps } from '~/sections/boards/board/BoardPageDeps'
+import type { BoardPageDeps } from '~/sections/boards/board/BoardPage.deps'
 import BoardColumn from '~/sections/boards/board/components/BoardColumn/BoardColumn.vue'
 import BoardScrollMap from '~/sections/boards/board/components/BoardScrollMap/BoardScrollMap.vue'
 import type { IssueDialogSavedIssue } from '~/sections/boards/board/components/IssueDialog/IssueDialog.vue'
+import { toAsyncResultState } from '~/utils/asyncResultState'
 import {
   getIssueAttributeFilterInput,
   normalizeIssueAttributeFilters,
@@ -198,6 +201,11 @@ const props = defineProps<{
   boardId: string
   deps: BoardPageDeps
   issueKey: null | string
+  onBack: () => void
+  onPushQuery: (query: LocationQueryRaw) => Promise<void> | void
+  onReplaceQuery: (query: LocationQueryRaw) => Promise<void> | void
+  routePath: string
+  routeQuery: LocationQuery
   spaceKey: string
 }>()
 
@@ -207,7 +215,6 @@ const IssueDialog = defineAsyncComponent(
 )
 const organizationRoutes = useOrganizationRoutes()
 const board = ref<HTMLElement | null>(null)
-const dragging = ref(false)
 const sensors = [
   PointerSensor.configure({
     activationConstraints: (event) =>
@@ -221,38 +228,49 @@ const sensors = [
 
 const LOAD_MORE_TAKE = 25
 
-const route = useRoute('organizations-organizationKey-spaces-spaceKey-boardId')
 const search = computed(() =>
-  typeof route.query.search === 'string' ? route.query.search : '',
+  typeof props.routeQuery.search === 'string' ? props.routeQuery.search : '',
 )
-const attributeQuery = computed(() => readIssueAttributeQuery(route.query))
-const moveError = ref<null | string>(null)
-const movingIssueKeys = ref<Set<string>>(new Set())
-const loadingColumnIds = ref<Set<string>>(new Set())
-const loadMoreErrors = ref<Map<string, string>>(new Map())
-const router = useRouter()
+const attributeQuery = computed(() => readIssueAttributeQuery(props.routeQuery))
+const state = reactive({
+  closingIssueDialog: false,
+  dragging: false,
+  filtering: false,
+  loadingColumnIds: new Set<string>(),
+  loadMoreErrors: new Map<string, string>(),
+  moveError: null as null | string,
+  movingIssueKeys: new Set<string>(),
+})
 
-const {
-  actionResult: outcome,
-  refresh,
-  state: pageState,
-} = await useActionData({
-  action: () =>
-    props.deps.viewBoardPage({
+const query = await useAsyncData(
+  () => `board:${props.boardId}`,
+  (_nuxtApp, { signal }) =>
+    props.deps.view({
       attributeQuery: attributeQuery.value,
       boardId: props.boardId,
       search: search.value,
+      signal,
     }),
-  fallbackMessage: 'Could not load the board.',
-  messages: {
-    AccessDenied: 'You do not have access to this board.',
-    BoardNotFound: 'The board was not found or is not available to you.',
-    TemporarilyUnavailable:
-      'Could not load the board. The service is temporarily unavailable.',
-  },
-  watch: [() => props.boardId],
-})
-
+  { watch: [() => props.boardId] },
+)
+const pageState = computed(() =>
+  toAsyncResultState({
+    error: query.error.value,
+    getErrorMessage: (failure: ViewBoardPageFailure) =>
+      getErrorMessage({
+        error: failure,
+        messages: {
+          AccessDenied: 'You do not have access to this board.',
+          BoardNotFound: 'The board was not found or is not available to you.',
+          TemporarilyUnavailable:
+            'Could not load the board. The service is temporarily unavailable.',
+        },
+      }),
+    result: query.data.value,
+    status: query.status.value,
+  }),
+)
+const outcome = query.data
 const viewModel = computed(() => {
   return pageState.value.type === 'ready' ? pageState.value.data : undefined
 })
@@ -271,39 +289,37 @@ const filterInput = computed(() =>
 const filterKey = computed(() => JSON.stringify(filterInput.value))
 
 function updateFilters(value: BoardPageFilterValue) {
-  void router.replace({
-    query: withIssueAttributeFilters(
-      route.query,
+  void props.onReplaceQuery(
+    withIssueAttributeFilters(
+      props.routeQuery,
       value.attributes,
       issueAttributes.value,
     ),
-  })
+  )
 }
 
 function updateSearch(value: string) {
-  const query = { ...route.query }
+  const routeQuery = { ...props.routeQuery }
   if (value) {
-    query.search = value
+    routeQuery.search = value
   } else {
-    delete query.search
+    delete routeQuery.search
   }
-  void router.replace({ query })
+  void props.onReplaceQuery(routeQuery)
 }
 
 function openIssue(issueKey: string) {
-  void router.push({ query: { ...route.query, issue: issueKey } })
+  void props.onPushQuery({ ...props.routeQuery, issue: issueKey })
 }
 
 useHead({
   title: computed(() => viewModel.value?.BoardPage.title ?? 'Board'),
 })
-const closingIssueDialog = ref(false)
 const runSearch = createLatestRequest()
-const filtering = ref(false)
 const scheduleSearch = debounce(searchIssues, 300)
 
 watch([search, filterKey], () => {
-  filtering.value = true
+  state.filtering = true
   scheduleSearch()
 })
 onScopeDispose(scheduleSearch.cancel)
@@ -311,7 +327,7 @@ onScopeDispose(scheduleSearch.cancel)
 watch(
   () => props.issueKey,
   () => {
-    closingIssueDialog.value = false
+    state.closingIssueDialog = false
   },
 )
 
@@ -320,33 +336,33 @@ watch(
   () => {
     scheduleSearch.cancel()
     runSearch.cancel()
-    filtering.value = false
-    loadingColumnIds.value.clear()
-    loadMoreErrors.value.clear()
+    state.filtering = false
+    state.loadingColumnIds.clear()
+    state.loadMoreErrors.clear()
   },
 )
 
 function closeIssueDialog() {
-  closingIssueDialog.value = true
+  state.closingIssueDialog = true
   const backState = window.history.state?.back
   const historyBackPath =
     typeof backState === 'string' ? (backState.split('?')[0] ?? null) : null
   const target = resolveIssueDialogCloseTarget({
-    currentPath: route.path,
-    currentQuery: route.query as Record<string, string>,
+    currentPath: props.routePath,
+    currentQuery: props.routeQuery as Record<string, string>,
     historyBackPath,
   })
   if (target.type === 'back') {
-    router.back()
+    props.onBack()
     return
   }
-  void navigateTo({ path: route.path, query: target.query }, { replace: true })
+  void props.onReplaceQuery(target.query)
 }
 
 function handleIssueSaved(issue: IssueDialogSavedIssue) {
   scheduleSearch.cancel()
   runSearch.cancel()
-  filtering.value = false
+  state.filtering = false
   const current = viewModel.value
   const affectedColumnIds = new Set<string>()
   if (current) {
@@ -369,7 +385,7 @@ function handleIssueSaved(issue: IssueDialogSavedIssue) {
 function handleIssueDeleted(issueKey: string) {
   scheduleSearch.cancel()
   runSearch.cancel()
-  filtering.value = false
+  state.filtering = false
   const current = viewModel.value
   if (current) {
     outcome.value = {
@@ -383,7 +399,7 @@ function handleIssueDeleted(issueKey: string) {
 
 async function searchIssues() {
   scheduleSearch.cancel()
-  filtering.value = true
+  state.filtering = true
   const result = await runSearch({
     request: () =>
       props.deps.searchBoardIssues({
@@ -396,7 +412,7 @@ async function searchIssues() {
   if (!result) {
     return
   }
-  filtering.value = false
+  state.filtering = false
   matchActionResult({
     err: (error) => {
       outcome.value = { error, ok: false }
@@ -478,7 +494,7 @@ async function refreshLoadedIssues(statusIds: ReadonlySet<string>) {
   for (const response of result.columns) {
     matchActionResult({
       err: (error) => {
-        loadMoreErrors.value.set(
+        state.loadMoreErrors.set(
           response.columnId,
           getErrorMessage({
             error,
@@ -490,7 +506,7 @@ async function refreshLoadedIssues(statusIds: ReadonlySet<string>) {
         )
       },
       ok: (value) => {
-        loadMoreErrors.value.delete(response.columnId)
+        state.loadMoreErrors.delete(response.columnId)
         refreshedColumns.set(response.columnId, value)
       },
       result: response.result,
@@ -529,16 +545,16 @@ async function moveIssue(input: { issueKey: string; statusId: string }) {
     !current ||
     !sourceColumn ||
     sourceColumn.id === input.statusId ||
-    movingIssueKeys.value.has(input.issueKey)
+    state.movingIssueKeys.has(input.issueKey)
   ) {
     return
   }
 
   scheduleSearch.cancel()
   runSearch.cancel()
-  filtering.value = false
-  moveError.value = null
-  movingIssueKeys.value.add(input.issueKey)
+  state.filtering = false
+  state.moveError = null
+  state.movingIssueKeys.add(input.issueKey)
   outcome.value = {
     ok: true,
     value: {
@@ -565,7 +581,7 @@ async function moveIssue(input: { issueKey: string; statusId: string }) {
           },
         }
       }
-      moveError.value = getErrorMessage({
+      state.moveError = getErrorMessage({
         error,
         messages: {
           AccessDenied: 'You do not have permission to move this issue.',
@@ -578,7 +594,7 @@ async function moveIssue(input: { issueKey: string; statusId: string }) {
     ok: () => undefined,
     result,
   })
-  movingIssueKeys.value.delete(input.issueKey)
+  state.movingIssueKeys.delete(input.issueKey)
 }
 
 async function moveToBacklog(issueKey: string) {
@@ -586,15 +602,15 @@ async function moveToBacklog(issueKey: string) {
   const sourceColumn = current?.BoardPage.columns.find((column) =>
     column.issues.some((issue) => issue.issueKey === issueKey),
   )
-  if (!current || !sourceColumn || movingIssueKeys.value.has(issueKey)) {
+  if (!current || !sourceColumn || state.movingIssueKeys.has(issueKey)) {
     return
   }
 
   scheduleSearch.cancel()
   runSearch.cancel()
-  filtering.value = false
-  moveError.value = null
-  movingIssueKeys.value.add(issueKey)
+  state.filtering = false
+  state.moveError = null
+  state.movingIssueKeys.add(issueKey)
   outcome.value = {
     ok: true,
     value: {
@@ -612,7 +628,7 @@ async function moveToBacklog(issueKey: string) {
       if (optimistic) {
         outcome.value = { ok: true, value: { BoardPage: current.BoardPage } }
       }
-      moveError.value = getErrorMessage({
+      state.moveError = getErrorMessage({
         error,
         messages: {
           AccessDenied: 'You do not have permission to move this issue.',
@@ -626,7 +642,7 @@ async function moveToBacklog(issueKey: string) {
     ok: () => undefined,
     result,
   })
-  movingIssueKeys.value.delete(issueKey)
+  state.movingIssueKeys.delete(issueKey)
 }
 
 async function loadMoreIssues(statusId: string) {
@@ -636,13 +652,13 @@ async function loadMoreIssues(statusId: string) {
     !current ||
     !column ||
     !column.hasNext ||
-    loadingColumnIds.value.has(statusId)
+    state.loadingColumnIds.has(statusId)
   ) {
     return
   }
 
-  loadingColumnIds.value.add(statusId)
-  loadMoreErrors.value.delete(statusId)
+  state.loadingColumnIds.add(statusId)
+  state.loadMoreErrors.delete(statusId)
   const requestedSearch = search.value
   const requestedFilterKey = filterKey.value
 
@@ -654,7 +670,7 @@ async function loadMoreIssues(statusId: string) {
     take: LOAD_MORE_TAKE,
   })
 
-  loadingColumnIds.value.delete(statusId)
+  state.loadingColumnIds.delete(statusId)
 
   if (
     search.value !== requestedSearch ||
@@ -664,7 +680,7 @@ async function loadMoreIssues(statusId: string) {
   }
   matchActionResult({
     err: (error) => {
-      loadMoreErrors.value.set(
+      state.loadMoreErrors.set(
         statusId,
         getErrorMessage({
           error,
@@ -704,19 +720,19 @@ async function loadMoreIssues(statusId: string) {
 }
 
 function removeIssueFromBoard(
-  board: BoardPageViewModel,
+  boardData: BoardPageViewModel,
   issueKey: string,
 ): BoardPageViewModel {
-  const source = board.columns.find((column) =>
+  const source = boardData.columns.find((column) =>
     column.issues.some((issue) => issue.issueKey === issueKey),
   )
   if (!source) {
-    return board
+    return boardData
   }
 
   return {
-    ...board,
-    columns: board.columns.map((column) =>
+    ...boardData,
+    columns: boardData.columns.map((column) =>
       column === source
         ? {
             ...column,
@@ -725,27 +741,27 @@ function removeIssueFromBoard(
           }
         : column,
     ),
-    issueCount: Math.max(0, board.issueCount - 1),
+    issueCount: Math.max(0, boardData.issueCount - 1),
   }
 }
 
 function moveIssueInBoard(
-  board: BoardPageViewModel,
+  boardData: BoardPageViewModel,
   issueKey: string,
   statusId: string,
 ): BoardPageViewModel {
-  const source = board.columns.find((column) =>
+  const source = boardData.columns.find((column) =>
     column.issues.some((issue) => issue.issueKey === issueKey),
   )
-  const target = board.columns.find((column) => column.id === statusId)
+  const target = boardData.columns.find((column) => column.id === statusId)
   const issue = source?.issues.find((item) => item.issueKey === issueKey)
   if (!source || !target || !issue || source === target) {
-    return board
+    return boardData
   }
 
   return {
-    ...board,
-    columns: board.columns.map((column) => {
+    ...boardData,
+    columns: boardData.columns.map((column) => {
       if (column === source) {
         return {
           ...column,
@@ -766,20 +782,20 @@ function moveIssueInBoard(
 }
 
 function updateIssueInBoard(
-  board: BoardPageViewModel,
+  boardData: BoardPageViewModel,
   update: IssueDialogSavedIssue,
 ): BoardPageViewModel {
-  const hasIssue = board.columns.some((column) =>
+  const hasIssue = boardData.columns.some((column) =>
     column.issues.some((issue) => issue.issueKey === update.issueKey),
   )
   if (!hasIssue) {
-    return board
+    return boardData
   }
-  if (update.boardId !== board.id) {
-    return removeIssueFromBoard(board, update.issueKey)
+  if (update.boardId !== boardData.id) {
+    return removeIssueFromBoard(boardData, update.issueKey)
   }
 
-  const updated = moveIssueInBoard(board, update.issueKey, update.statusId)
+  const updated = moveIssueInBoard(boardData, update.issueKey, update.statusId)
   return {
     ...updated,
     columns: updated.columns.map((column) => ({
@@ -794,7 +810,7 @@ function updateIssueInBoard(
 }
 
 function handleDragEnd(event: DragEndEvent) {
-  dragging.value = false
+  state.dragging = false
   if (event.canceled) {
     return
   }
@@ -822,9 +838,9 @@ function resolveIssueDialogCloseTarget(input: {
   if (input.historyBackPath === input.currentPath) {
     return { type: 'back' as const }
   }
-  const query = { ...input.currentQuery }
-  delete query.issue
-  return { query, type: 'replace' as const }
+  const routeQuery = { ...input.currentQuery }
+  delete routeQuery.issue
+  return { query: routeQuery, type: 'replace' as const }
 }
 </script>
 

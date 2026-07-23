@@ -27,14 +27,14 @@ export function matchResult<Value, Failure, OkOutput, ErrorOutput>(
   return result.ok ? handlers.ok(result.value) : handlers.err(result.error)
 }
 
-export function matchActionResult<Value, Failure, Result>({
-  err,
-  ok,
+export function matchActionResult<Value, Failure, Output>({
+  err: onError,
+  ok: onSuccess,
   result,
 }: {
-  err: (error: Failure) => Result
-  ok: (value: Value) => Result
+  err: (error: Failure) => Output
+  ok: (value: Value) => Output
   result: ActionResult<Value, Failure>
-}): Result {
-  return matchResult(result, { err, ok })
+}): Output {
+  return matchResult(result, { err: onError, ok: onSuccess })
 }

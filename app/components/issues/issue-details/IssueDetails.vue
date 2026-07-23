@@ -4,199 +4,199 @@
     class="issue-form"
     @submit.prevent="save">
     <div class="issue-form-main">
-        <label>Issue text</label>
-        <textarea
-          v-model="state.content"
-          :disabled="!viewModel.canEdit"
-          rows="10" />
-        <IssueAttachments
-          :key="viewModel.issueKey"
-          :attachments="viewModel.attachments"
-          :disabled="!viewModel.canEdit || saving"
-          :files="state.files"
-          :on-change="changeFiles"
-          :on-remove-attachment="removeAttachment"
-          :removed-attachment-ids="state.removedAttachmentIds" />
+      <label>Issue text</label>
+      <textarea
+        v-model="state.content"
+        :disabled="!viewModel.canEdit"
+        rows="10" />
+      <IssueAttachments
+        :key="viewModel.issueKey"
+        :attachments="viewModel.attachments"
+        :disabled="!viewModel.canEdit || saving"
+        :files="state.files"
+        :on-change="changeFiles"
+        :on-remove-attachment="removeAttachment"
+        :removed-attachment-ids="state.removedAttachmentIds" />
     </div>
     <div class="issue-form-side">
-        <label>Space</label>
-        <select
-          v-model="state.pickedSpaceId"
-          :disabled="!viewModel.canEdit"
-          @change="selectMoveSpace"
-          @focus="loadMoveSpaces">
-          <option
-            disabled
-            value="">
-            Select space
-          </option>
-          <option
+      <label>Space</label>
+      <select
+        v-model="state.pickedSpaceId"
+        :disabled="!viewModel.canEdit"
+        @change="selectMoveSpace"
+        @focus="loadMoveSpaces">
+        <option
+          disabled
+          value="">
+          Select space
+        </option>
+        <option
           v-if="lookup.loadingMoveSpaces"
-            disabled
-            value="__loading">
-            Loading spaces…
-          </option>
-          <option :value="viewModel.spaceId">
-            {{ state.spaceLabel || 'Current space' }}
-          </option>
-          <option
-            v-for="space in spaceOptions"
-            :key="space.value"
-            :value="space.value">
-            {{ space.label }}
-          </option>
-        </select>
-        <label>Board</label>
-        <select
-          v-model="state.boardId"
-          :aria-busy="lookup.loadingMoveBoards"
-          :disabled="!viewModel.canEdit || lookup.loadingStatuses"
-          @change="selectBoard"
-          @focus="loadMoveBoards">
-          <option
-            disabled
-            value="">
-            Select board
-          </option>
-          <option
+          disabled
+          value="__loading">
+          Loading spaces…
+        </option>
+        <option :value="viewModel.spaceId">
+          {{ state.spaceLabel || 'Current space' }}
+        </option>
+        <option
+          v-for="space in spaceOptions"
+          :key="space.value"
+          :value="space.value">
+          {{ space.label }}
+        </option>
+      </select>
+      <label>Board</label>
+      <select
+        v-model="state.boardId"
+        :aria-busy="lookup.loadingMoveBoards"
+        :disabled="!viewModel.canEdit || lookup.loadingStatuses"
+        @change="selectBoard"
+        @focus="loadMoveBoards">
+        <option
+          disabled
+          value="">
+          Select board
+        </option>
+        <option
           v-if="lookup.loadingMoveBoards"
-            disabled
-            value="__loading">
-            Loading boards…
-          </option>
-          <option
-            v-if="state.pickedSpaceId === viewModel.spaceId"
-            :value="viewModel.boardId">
-            {{ state.boardLabel || 'No board' }}
-          </option>
-          <option
-            v-for="board in boardOptions"
-            :key="board.value"
-            :value="board.value">
-            {{ board.label }}
-          </option>
-        </select>
-        <label>Status</label>
-        <select
-          v-model="state.statusId"
-          :aria-busy="lookup.loadingStatuses"
-          :disabled="!viewModel.canEdit || !state.boardId"
-          @focus="loadStatuses">
-          <option
-            disabled
-            value="">
-            Select status
-          </option>
-          <option
+          disabled
+          value="__loading">
+          Loading boards…
+        </option>
+        <option
+          v-if="state.pickedSpaceId === viewModel.spaceId"
+          :value="viewModel.boardId">
+          {{ state.boardLabel || 'No board' }}
+        </option>
+        <option
+          v-for="board in boardOptions"
+          :key="board.value"
+          :value="board.value">
+          {{ board.label }}
+        </option>
+      </select>
+      <label>Status</label>
+      <select
+        v-model="state.statusId"
+        :aria-busy="lookup.loadingStatuses"
+        :disabled="!viewModel.canEdit || !state.boardId"
+        @focus="loadStatuses">
+        <option
+          disabled
+          value="">
+          Select status
+        </option>
+        <option
           v-if="lookup.loadingStatuses"
-            disabled
-            value="__loading">
-            Loading statuses…
-          </option>
-          <option
-            v-if="
-              state.boardId === viewModel.boardId && lookup.statuses.length === 0
-            "
-            :value="viewModel.statusId">
-            {{ viewModel.statusLabel || 'Current status' }}
-          </option>
-          <option
+          disabled
+          value="__loading">
+          Loading statuses…
+        </option>
+        <option
+          v-if="
+            state.boardId === viewModel.boardId && lookup.statuses.length === 0
+          "
+          :value="viewModel.statusId">
+          {{ viewModel.statusLabel || 'Current status' }}
+        </option>
+        <option
           v-for="item in lookup.statuses"
-            :key="item.id"
-            :value="item.id">
-            {{ item.name }}
-          </option>
-        </select>
-        <div v-if="viewModel.attributes.length">
-          <template
-            v-for="attribute in viewModel.attributes"
-            :key="attribute.id">
-            <label :for="`issue-attribute-${attribute.id}`">
-              <span
-                class="attribute-dot"
-                :style="{ background: attribute.color }" />
-              {{ attribute.name }}
-            </label>
-            <input
-              v-if="attribute.type === 'text'"
-              :id="`issue-attribute-${attribute.id}`"
-              v-model="state.attributeValues[attribute.id]"
-              :disabled="!viewModel.canEdit"
-              type="text" />
-            <select
-              v-else
-              :id="`issue-attribute-${attribute.id}`"
-              v-model="state.attributeValues[attribute.id]"
-              :disabled="!viewModel.canEdit">
-              <option value="">None</option>
-              <option
-                v-for="option in attribute.options"
-                :key="option.value"
-                :value="option.value">
-                {{ option.label }}
-              </option>
-            </select>
-          </template>
-        </div>
-        <p
-          v-if="displayError"
-          class="form-error">
-          {{ displayError }}
-        </p>
-        <label>Assignee</label>
-        <div class="issue-person issue-assignee">
-          <span
-            class="avatar"
-            :style="{ background: selectedAssignee.color }">
-            {{ selectedAssignee.initials }}
-          </span>
-          <select
-            v-model="state.assigneeId"
-            :aria-busy="lookup.loadingAssignees"
+          :key="item.id"
+          :value="item.id">
+          {{ item.name }}
+        </option>
+      </select>
+      <div v-if="viewModel.attributes.length">
+        <template
+          v-for="attribute in viewModel.attributes"
+          :key="attribute.id">
+          <label :for="`issue-attribute-${attribute.id}`">
+            <span
+              class="attribute-dot"
+              :style="{ background: attribute.color }" />
+            {{ attribute.name }}
+          </label>
+          <input
+            v-if="attribute.type === 'text'"
+            :id="`issue-attribute-${attribute.id}`"
+            v-model="state.attributeValues[attribute.id]"
             :disabled="!viewModel.canEdit"
-            @focus="loadAssignees(state.pickedSpaceId)">
+            type="text" />
+          <select
+            v-else
+            :id="`issue-attribute-${attribute.id}`"
+            v-model="state.attributeValues[attribute.id]"
+            :disabled="!viewModel.canEdit">
+            <option value="">None</option>
             <option
-              v-if="!hasCurrentAssignee"
-              :value="viewModel.assigneeId">
-              {{ viewModel.assignee }}
-            </option>
-            <option
-          v-if="lookup.loadingAssignees"
-              disabled
-              value="__loading">
-              Loading assignees…
-            </option>
-            <option
-              v-for="assignee in lookup.assignees"
-              :key="assignee.value"
-              :value="assignee.value">
-              {{ assignee.label }}
+              v-for="option in attribute.options"
+              :key="option.value"
+              :value="option.value">
+              {{ option.label }}
             </option>
           </select>
+        </template>
+      </div>
+      <p
+        v-if="displayError"
+        class="form-error">
+        {{ displayError }}
+      </p>
+      <label>Assignee</label>
+      <div class="issue-person issue-assignee">
+        <span
+          class="avatar"
+          :style="{ background: selectedAssignee.color }">
+          {{ selectedAssignee.initials }}
+        </span>
+        <select
+          v-model="state.assigneeId"
+          :aria-busy="lookup.loadingAssignees"
+          :disabled="!viewModel.canEdit"
+          @focus="loadAssignees(state.pickedSpaceId)">
+          <option
+            v-if="!hasCurrentAssignee"
+            :value="viewModel.assigneeId">
+            {{ viewModel.assignee }}
+          </option>
+          <option
+            v-if="lookup.loadingAssignees"
+            disabled
+            value="__loading">
+            Loading assignees…
+          </option>
+          <option
+            v-for="assignee in lookup.assignees"
+            :key="assignee.value"
+            :value="assignee.value">
+            {{ assignee.label }}
+          </option>
+        </select>
+      </div>
+      <label>Owner</label>
+      <div class="issue-person">
+        <span
+          class="avatar"
+          :style="{ background: viewModel.ownerColor }">
+          {{ viewModel.ownerInitial }}
+        </span>
+        <strong>{{ viewModel.owner }}</strong>
+      </div>
+      <div class="issue-dates">
+        <div>
+          <span>Created</span>
+          <time :datetime="viewModel.createdAt">
+            {{ formatDate(viewModel.createdAt) }}
+          </time>
         </div>
-        <label>Owner</label>
-        <div class="issue-person">
-          <span
-            class="avatar"
-            :style="{ background: viewModel.ownerColor }">
-            {{ viewModel.ownerInitial }}
-          </span>
-          <strong>{{ viewModel.owner }}</strong>
+        <div>
+          <span>Updated</span>
+          <time :datetime="viewModel.updatedAt">
+            {{ formatDate(viewModel.updatedAt) }}
+          </time>
         </div>
-        <div class="issue-dates">
-          <div>
-            <span>Created</span>
-            <time :datetime="viewModel.createdAt">
-              {{ formatDate(viewModel.createdAt) }}
-            </time>
-          </div>
-          <div>
-            <span>Updated</span>
-            <time :datetime="viewModel.updatedAt">
-              {{ formatDate(viewModel.updatedAt) }}
-            </time>
-          </div>
-        </div>
+      </div>
     </div>
   </form>
 </template>
@@ -279,9 +279,9 @@ export type IssueDetailsProps = {
   error: null | string
   formId: string
   lookup: IssueDetailsLookupState
+  onCanSaveChange: (canSave: boolean) => void
   onChangeMoveBoard: () => void
   onChangeMoveSpace: () => void
-  onCanSaveChange: (canSave: boolean) => void
   onDirtyChange: (dirty: boolean) => void
   onLoadAssignees: (spaceId: string) => Promise<void> | void
   onLoadMoveBoards: (spaceId: string) => Promise<void> | void
@@ -446,9 +446,7 @@ function selectBoard() {
   if (state.boardId === '__loading') {
     return
   }
-  const board = props.lookup.boards.find(
-    (item) => item.value === state.boardId,
-  )
+  const board = props.lookup.boards.find((item) => item.value === state.boardId)
   state.boardLabel = board?.label ?? state.boardLabel
   state.statusId = ''
   props.onChangeMoveBoard()
