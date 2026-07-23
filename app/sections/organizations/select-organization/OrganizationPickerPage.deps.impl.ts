@@ -1,5 +1,4 @@
 import type { ApiClient } from '#infrastructure/api/client'
-import { getOrganizationKey } from '#infrastructure/common/app-layout/organizationSelection'
 import { DEFAULT_COLOR } from '~/constants/colors'
 import type {
   OrganizationPickerPageDeps,
@@ -7,6 +6,7 @@ import type {
   ViewOrganizationPickerFailure,
 } from '~/sections/organizations/select-organization/OrganizationPickerPage.deps'
 import { err, ok } from '~/utils/actionResult'
+import { getOrganizationKey } from '~/utils/organizationKey'
 
 const mapViewFailure = (
   status: number,

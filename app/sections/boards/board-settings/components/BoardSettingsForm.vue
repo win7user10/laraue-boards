@@ -1,65 +1,65 @@
 <template>
   <form @submit.prevent="submit">
-      <label>Name</label>
-      <input
-        v-model="state.name"
-        :disabled="!viewModel.canUpdate"
-        required />
-      <label>Color</label>
-      <AppColorPicker
-        v-model="state.color"
-        :disabled="!viewModel.canUpdate" />
-      <label>Columns</label>
-      <DragDropProvider
-        :plugins="defaultPreset.plugins"
-        :sensors="sensors"
-        @drag-end="handleDragEnd">
-        <div class="column-settings">
-          <BoardColumnSetting
-            v-for="(column, index) in state.columns"
-            :id="column.key"
-            :key="column.key"
-            :can-update="viewModel.canUpdate"
-            :color="column.color"
-            :disabled="submitting"
-            :index="index"
-            :name="column.name"
-            :on-delete="() => removeColumn(column.key)"
-            :on-update-color="(value) => (column.color = value)"
-            :on-update-name="(value) => (column.name = value)" />
-        </div>
-      </DragDropProvider>
+    <label>Name</label>
+    <input
+      v-model="state.name"
+      :disabled="!viewModel.canUpdate"
+      required />
+    <label>Color</label>
+    <AppColorPicker
+      v-model="state.color"
+      :disabled="!viewModel.canUpdate" />
+    <label>Columns</label>
+    <DragDropProvider
+      :plugins="defaultPreset.plugins"
+      :sensors="sensors"
+      @drag-end="handleDragEnd">
+      <div class="column-settings">
+        <BoardColumnSetting
+          v-for="(column, index) in state.columns"
+          :id="column.key"
+          :key="column.key"
+          :can-update="viewModel.canUpdate"
+          :color="column.color"
+          :disabled="submitting"
+          :index="index"
+          :name="column.name"
+          :on-delete="() => removeColumn(column.key)"
+          :on-update-color="(value) => (column.color = value)"
+          :on-update-name="(value) => (column.name = value)" />
+      </div>
+    </DragDropProvider>
+    <button
+      v-if="viewModel.canUpdate"
+      class="secondary add-column"
+      :disabled="submitting"
+      type="button"
+      @click="addColumn">
+      <Plus />
+      Add column
+    </button>
+    <p
+      v-if="error"
+      class="form-error">
+      {{ error }}
+    </p>
+    <div class="form-actions">
       <button
         v-if="viewModel.canUpdate"
-        class="secondary add-column"
+        class="primary"
+        :disabled="submitting"
+        type="submit">
+        {{ submitting ? 'Saving…' : 'Save changes' }}
+      </button>
+      <button
+        v-if="viewModel.canDelete"
+        class="secondary danger"
         :disabled="submitting"
         type="button"
-        @click="addColumn">
-        <Plus />
-        Add column
+        @click="props.onDelete">
+        Delete board
       </button>
-      <p
-        v-if="error"
-        class="form-error">
-        {{ error }}
-      </p>
-      <div class="form-actions">
-        <button
-          v-if="viewModel.canUpdate"
-          class="primary"
-          :disabled="submitting"
-          type="submit">
-          {{ submitting ? 'Saving…' : 'Save changes' }}
-        </button>
-        <button
-          v-if="viewModel.canDelete"
-          class="secondary danger"
-          :disabled="submitting"
-          type="button"
-          @click="props.onDelete">
-          Delete board
-        </button>
-      </div>
+    </div>
   </form>
 </template>
 

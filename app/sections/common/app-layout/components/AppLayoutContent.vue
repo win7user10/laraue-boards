@@ -1,6 +1,6 @@
 <template>
   <div class="shell">
-    <aside :class="{ open: sidebarOpen }">
+    <aside :class="{ open: state.sidebarOpen }">
       <NuxtLink
         class="logo"
         :to="organizationRoutes.issues()">
@@ -12,7 +12,7 @@
       </NuxtLink>
       <div
         class="organization"
-        @click="sidebarOpen = false">
+        @click="state.sidebarOpen = false">
         <NuxtLink
           :aria-label="`Switch organization. Current organization: ${viewModel.organization.name}`"
           class="organization-select"
@@ -31,7 +31,7 @@
       </div>
       <nav
         aria-label="Main navigation"
-        @click="sidebarOpen = false">
+        @click="state.sidebarOpen = false">
         <NuxtLink
           :class="{
             active: active('organizations-organizationKey-issues'),
@@ -145,52 +145,24 @@
     </aside>
     <Transition name="fade">
       <button
-        v-if="sidebarOpen"
+        v-if="state.sidebarOpen"
         aria-label="Close menu"
         class="scrim"
-        @click="sidebarOpen = false" />
+        @click="state.sidebarOpen = false" />
     </Transition>
     <main>
       <button
-        v-if="!sidebarOpen"
+        v-if="!state.sidebarOpen"
         aria-label="Open menu"
         class="icon-btn mobile-menu-button"
         type="button"
-        @click="sidebarOpen = true">
+        @click="state.sidebarOpen = true">
         <Menu />
       </button>
       <slot />
     </main>
   </div>
 </template>
-
-<script lang="ts">
-export type AppLayoutViewModel = {
-  organization: {
-    canCreateSpaces: boolean
-    canManage: boolean
-    canManageAttributes: boolean
-    canMassMove: boolean
-    canUpdate: boolean
-    color: string
-    id: string
-    initial: string
-    name: string
-  }
-  spaces: Array<{
-    color: string
-    id: string
-    key: string
-    name: string
-  }>
-  user: { color: string; initials: string; name: string }
-}
-
-type AppLayoutProps = {
-  onLogout: () => void
-  viewModel: AppLayoutViewModel
-}
-</script>
 
 <script setup lang="ts">
 import {
@@ -208,14 +180,18 @@ import {
 } from 'lucide-vue-next'
 
 import { SpaceIcon } from '~/constants/icons'
+import type { AppLayoutData } from '~/sections/common/app-layout/AppLayout.deps'
 
-const props = defineProps<AppLayoutProps>()
+const props = defineProps<{
+  onLogout: () => void
+  viewModel: AppLayoutData
+}>()
 const route = useRoute<OrganizationRouteName>()
 const organizationRoutes = useOrganizationRoutes()
-const sidebarOpen = ref(false)
+const state = reactive({ sidebarOpen: false })
 const active = (name: OrganizationRouteName) => route.name === name
 const within = (name: OrganizationRouteName) => route.name.startsWith(name)
-const spaceActive = (space: AppLayoutViewModel['spaces'][number]) =>
+const spaceActive = (space: AppLayoutData['spaces'][number]) =>
   within('organizations-organizationKey-spaces-spaceKey') &&
   'spaceKey' in route.params &&
   route.params.spaceKey === space.key

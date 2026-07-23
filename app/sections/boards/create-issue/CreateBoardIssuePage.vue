@@ -115,6 +115,7 @@
 
 <script setup lang="ts">
 import { ListPlus } from 'lucide-vue-next'
+
 import IssueAttachments from '~/components/issues/IssueAttachments.vue'
 import IssueAttributeFields from '~/components/issues/IssueAttributeFields.vue'
 import type {

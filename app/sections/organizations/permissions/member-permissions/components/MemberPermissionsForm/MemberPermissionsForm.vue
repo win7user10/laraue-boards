@@ -2,196 +2,196 @@
   <form
     class="permissions-editor"
     @submit.prevent="submit">
-      <p
-        v-if="viewModel.member.isOwner"
-        class="muted">
-        Owner permissions are read-only.
+    <p
+      v-if="viewModel.member.isOwner"
+      class="muted">
+      Owner permissions are read-only.
+    </p>
+    <fieldset :disabled="viewModel.member.isOwner">
+      <legend>Administration</legend>
+      <p class="muted section-description">
+        Controls organization-level management tools.
       </p>
-      <fieldset :disabled="viewModel.member.isOwner">
-        <legend>Administration</legend>
-        <p class="muted section-description">
-          Controls organization-level management tools.
-        </p>
-        <div class="permission-grid">
-          <label
-            v-for="permission in adminPermissionOptions"
-            :key="permission.key"
-            class="permission-option">
-            <input
-              v-model="state.draft.admin[permission.key]"
-              type="checkbox" />
-            <span>{{ permission.label }}</span>
-          </label>
-        </div>
-      </fieldset>
-
-      <fieldset :disabled="viewModel.member.isOwner">
-        <legend>Organization access</legend>
-        <p class="muted section-description">
-          These permissions apply to every space.
-        </p>
-        <div class="read-permission">
-          <strong>Read</strong>
-          <label class="permission-option">
-            <input
-              aria-label="Read organization"
-              :checked="state.draft.global.canRead || globalReadInherited"
-              :disabled="globalReadInherited"
-              :title="globalReadInherited ? 'Inherited' : undefined"
-              type="checkbox"
-              @change="
-                state.draft.global.canRead = !state.draft.global.canRead
-              " />
-            <span>Read organization</span>
-          </label>
-        </div>
-        <table class="permission-table">
-          <thead>
-            <tr>
-              <th scope="col">Resource</th>
-              <th
-                v-for="column in permissionColumns"
-                :key="column"
-                scope="col">
-                {{ column }}
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr
-              v-for="row in globalPermissionRows"
-              :key="row.label">
-              <th scope="row">{{ row.label }}</th>
-              <td
-                v-for="(cell, index) in row.cells"
-                :key="permissionColumns[index]">
-                <input
-                  :aria-label="`${permissionColumns[index]} ${row.label}`"
-                  :checked="cell.checked"
-                  :disabled="cell.inherited"
-                  :title="cell.inherited ? 'Inherited' : undefined"
-                  type="checkbox"
-                  @change="
-                    state.draft.global[cell.key] = !state.draft.global[cell.key]
-                  " />
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </fieldset>
-
-      <fieldset :disabled="viewModel.member.isOwner">
-        <legend>Direct space access</legend>
-        <p class="muted section-description">
-          Adds permissions for individual spaces.
-        </p>
-        <details
-          v-for="space in viewModel.spaces"
-          :key="space.id"
-          class="space-permissions">
-          <summary>
-            <ChevronRight class="disclosure-icon" />
-            <SpaceIcon :style="{ color: space.color }" />
-            <strong>{{ space.name }}</strong>
-            <span
-              v-if="space.isDefault"
-              class="muted">
-              Default
-            </span>
-          </summary>
-          <div class="direct-permissions">
-            <div class="read-permission">
-              <strong>Read</strong>
-              <label class="permission-option">
-                <input
-                  :aria-label="`Read ${space.name}`"
-                  :checked="
-                    state.draft.direct[space.id]!.canRead ||
-                    directPermissionTables[space.id]!.readInherited
-                  "
-                  :disabled="directPermissionTables[space.id]!.readInherited"
-                  :title="
-                    directPermissionTables[space.id]!.readInherited
-                      ? 'Inherited'
-                      : undefined
-                  "
-                  type="checkbox"
-                  @change="
-                    state.draft.direct[space.id]!.canRead =
-                      !state.draft.direct[space.id]!.canRead
-                  " />
-                <span>Read space</span>
-              </label>
-            </div>
-            <table class="permission-table">
-              <thead>
-                <tr>
-                  <th scope="col">Resource</th>
-                  <th
-                    v-for="column in permissionColumns"
-                    :key="column"
-                    scope="col">
-                    {{ column }}
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr
-                  v-for="row in directPermissionTables[space.id]!.rows"
-                  :key="row.label">
-                  <th scope="row">{{ row.label }}</th>
-                  <td
-                    v-for="(cell, index) in row.cells"
-                    :key="permissionColumns[index]">
-                    <span
-                      v-if="!cell"
-                      class="muted">
-                      —
-                    </span>
-                    <input
-                      v-else
-                      :aria-label="`${permissionColumns[index]} ${row.label} in ${space.name}`"
-                      :checked="cell.checked"
-                      :disabled="cell.unavailable || cell.inherited"
-                      :title="
-                        cell.unavailable
-                          ? 'Not allowed'
-                          : cell.inherited
-                            ? 'Inherited'
-                            : undefined
-                      "
-                      type="checkbox"
-                      @change="
-                        state.draft.direct[space.id]![cell.key] =
-                          !state.draft.direct[space.id]![cell.key]
-                      " />
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </details>
-      </fieldset>
-
-      <p
-        v-if="saved"
-        class="form-success">
-        Permissions saved.
-      </p>
-      <p
-        v-if="error"
-        class="form-error">
-        {{ error }}
-      </p>
-      <div
-        v-if="!viewModel.member.isOwner"
-        class="form-actions">
-        <button
-          class="primary"
-          :disabled="submitting">
-          {{ submitting ? 'Saving…' : 'Save permissions' }}
-        </button>
+      <div class="permission-grid">
+        <label
+          v-for="permission in adminPermissionOptions"
+          :key="permission.key"
+          class="permission-option">
+          <input
+            v-model="state.draft.admin[permission.key]"
+            type="checkbox" />
+          <span>{{ permission.label }}</span>
+        </label>
       </div>
+    </fieldset>
+
+    <fieldset :disabled="viewModel.member.isOwner">
+      <legend>Organization access</legend>
+      <p class="muted section-description">
+        These permissions apply to every space.
+      </p>
+      <div class="read-permission">
+        <strong>Read</strong>
+        <label class="permission-option">
+          <input
+            aria-label="Read organization"
+            :checked="state.draft.global.canRead || globalReadInherited"
+            :disabled="globalReadInherited"
+            :title="globalReadInherited ? 'Inherited' : undefined"
+            type="checkbox"
+            @change="
+              state.draft.global.canRead = !state.draft.global.canRead
+            " />
+          <span>Read organization</span>
+        </label>
+      </div>
+      <table class="permission-table">
+        <thead>
+          <tr>
+            <th scope="col">Resource</th>
+            <th
+              v-for="column in permissionColumns"
+              :key="column"
+              scope="col">
+              {{ column }}
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr
+            v-for="row in globalPermissionRows"
+            :key="row.label">
+            <th scope="row">{{ row.label }}</th>
+            <td
+              v-for="(cell, index) in row.cells"
+              :key="permissionColumns[index]">
+              <input
+                :aria-label="`${permissionColumns[index]} ${row.label}`"
+                :checked="cell.checked"
+                :disabled="cell.inherited"
+                :title="cell.inherited ? 'Inherited' : undefined"
+                type="checkbox"
+                @change="
+                  state.draft.global[cell.key] = !state.draft.global[cell.key]
+                " />
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </fieldset>
+
+    <fieldset :disabled="viewModel.member.isOwner">
+      <legend>Direct space access</legend>
+      <p class="muted section-description">
+        Adds permissions for individual spaces.
+      </p>
+      <details
+        v-for="space in viewModel.spaces"
+        :key="space.id"
+        class="space-permissions">
+        <summary>
+          <ChevronRight class="disclosure-icon" />
+          <SpaceIcon :style="{ color: space.color }" />
+          <strong>{{ space.name }}</strong>
+          <span
+            v-if="space.isDefault"
+            class="muted">
+            Default
+          </span>
+        </summary>
+        <div class="direct-permissions">
+          <div class="read-permission">
+            <strong>Read</strong>
+            <label class="permission-option">
+              <input
+                :aria-label="`Read ${space.name}`"
+                :checked="
+                  state.draft.direct[space.id]!.canRead ||
+                  directPermissionTables[space.id]!.readInherited
+                "
+                :disabled="directPermissionTables[space.id]!.readInherited"
+                :title="
+                  directPermissionTables[space.id]!.readInherited
+                    ? 'Inherited'
+                    : undefined
+                "
+                type="checkbox"
+                @change="
+                  state.draft.direct[space.id]!.canRead =
+                    !state.draft.direct[space.id]!.canRead
+                " />
+              <span>Read space</span>
+            </label>
+          </div>
+          <table class="permission-table">
+            <thead>
+              <tr>
+                <th scope="col">Resource</th>
+                <th
+                  v-for="column in permissionColumns"
+                  :key="column"
+                  scope="col">
+                  {{ column }}
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr
+                v-for="row in directPermissionTables[space.id]!.rows"
+                :key="row.label">
+                <th scope="row">{{ row.label }}</th>
+                <td
+                  v-for="(cell, index) in row.cells"
+                  :key="permissionColumns[index]">
+                  <span
+                    v-if="!cell"
+                    class="muted">
+                    —
+                  </span>
+                  <input
+                    v-else
+                    :aria-label="`${permissionColumns[index]} ${row.label} in ${space.name}`"
+                    :checked="cell.checked"
+                    :disabled="cell.unavailable || cell.inherited"
+                    :title="
+                      cell.unavailable
+                        ? 'Not allowed'
+                        : cell.inherited
+                          ? 'Inherited'
+                          : undefined
+                    "
+                    type="checkbox"
+                    @change="
+                      state.draft.direct[space.id]![cell.key] =
+                        !state.draft.direct[space.id]![cell.key]
+                    " />
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </details>
+    </fieldset>
+
+    <p
+      v-if="saved"
+      class="form-success">
+      Permissions saved.
+    </p>
+    <p
+      v-if="error"
+      class="form-error">
+      {{ error }}
+    </p>
+    <div
+      v-if="!viewModel.member.isOwner"
+      class="form-actions">
+      <button
+        class="primary"
+        :disabled="submitting">
+        {{ submitting ? 'Saving…' : 'Save permissions' }}
+      </button>
+    </div>
   </form>
 </template>
 

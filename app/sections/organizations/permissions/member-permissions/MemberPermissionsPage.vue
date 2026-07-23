@@ -12,7 +12,9 @@
               label="Back to members"
               :to="organizationRoutes.permissions()" />
             <ShieldCheck class="page-heading-icon" />
-            <div class="page-heading-text"><h1>{{ data.member.name }}</h1></div>
+            <div class="page-heading-text">
+              <h1>{{ data.member.name }}</h1>
+            </div>
           </div>
         </div>
         <MemberPermissionsForm

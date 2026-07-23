@@ -1,26 +1,21 @@
 <template>
   <AppLayout
     :deps="deps"
+    :on-logged-out="onLoggedOut"
     :organization-key="organizationKey">
     <slot />
   </AppLayout>
 </template>
 
 <script setup lang="ts">
-import { openApiLogout } from '#infrastructure/common/app-layout/openApiLogout'
-import { openApiViewAppLayout } from '#infrastructure/common/app-layout/openApiViewAppLayout'
+import { createAppLayoutDeps } from '~/sections/common/app-layout/AppLayout.deps.impl'
 import AppLayout from '~/sections/common/app-layout/AppLayout.vue'
 
-const config = useRuntimeConfig()
 const { organizationKey } = useOrganizationRoutes()
-watch(organizationKey, (value, previousValue) => {
-  if (previousValue && value !== previousValue) {
-    void refreshNuxtData()
-  }
-})
-const baseUrl = config.public.boardsApiBaseUrl
-const deps = {
-  logout: openApiLogout(baseUrl),
-  viewLayout: openApiViewAppLayout(baseUrl),
+const client = useApiClient()
+const deps = createAppLayoutDeps(client)
+const onLoggedOut = async (): Promise<void> => {
+  clearNuxtData()
+  await navigateTo('/')
 }
 </script>
