@@ -3,7 +3,7 @@
     <div class="page-heading">
       <AppBackLink
         label="Back to space"
-        :to="backTo" />
+        :to="organizationRoutes.space(spaceKey)" />
       <div class="page-heading-text">
         <h1>Create board</h1>
       </div>
@@ -32,8 +32,6 @@
 </template>
 
 <script setup lang="ts">
-import type { RouteLocationRaw } from 'vue-router'
-
 import { DEFAULT_COLOR } from '~/constants/colors'
 import type {
   CreateBoardFailure,
@@ -43,11 +41,11 @@ import { matchResult } from '~/utils/actionResult'
 import { assertNever } from '~/utils/assertNever'
 
 const props = defineProps<{
-  backTo: RouteLocationRaw
   deps: CreateBoardPageDeps
   onCreated: (boardId: string) => Promise<void> | void
   spaceKey: string
 }>()
+const organizationRoutes = useOrganizationRoutes()
 const state = reactive({
   color: DEFAULT_COLOR,
   error: null as null | string,

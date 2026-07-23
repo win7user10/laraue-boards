@@ -1,6 +1,5 @@
 <template>
   <CreateBoardPage
-    :back-to="organizationRoutes.space(spaceKey)"
     :deps="deps"
     :on-created="onCreated"
     :space-key="spaceKey" />

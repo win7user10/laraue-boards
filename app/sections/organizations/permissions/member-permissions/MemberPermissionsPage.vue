@@ -10,7 +10,7 @@
           <div class="page-heading">
             <AppBackLink
               label="Back to members"
-              :to="backTo" />
+              :to="organizationRoutes.permissions()" />
             <ShieldCheck class="page-heading-icon" />
             <div class="page-heading-text"><h1>{{ data.member.name }}</h1></div>
           </div>
@@ -28,7 +28,6 @@
 
 <script setup lang="ts">
 import { ShieldCheck } from 'lucide-vue-next'
-import type { RouteLocationRaw } from 'vue-router'
 
 import MemberPermissionsForm from '~/sections/organizations/permissions/member-permissions/components/MemberPermissionsForm/MemberPermissionsForm.vue'
 import type {
@@ -42,11 +41,11 @@ import { assertNever } from '~/utils/assertNever'
 import { toAsyncResultState } from '~/utils/asyncResultState'
 
 const props = defineProps<{
-  backTo: RouteLocationRaw
   deps: MemberPermissionsPageDeps
   memberId: string
   onSaved: () => Promise<void> | void
 }>()
+const organizationRoutes = useOrganizationRoutes()
 
 const query = await useAsyncData(
   () => `member-permissions:${props.memberId}`,

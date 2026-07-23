@@ -1,6 +1,5 @@
 <template>
   <CreateBoardIssuePage
-    :back-to="organizationRoutes.board(spaceKey, boardId)"
     :board-id="boardId"
     :deps="deps"
     :on-created="onCreated"

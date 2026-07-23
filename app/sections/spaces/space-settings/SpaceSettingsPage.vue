@@ -10,7 +10,7 @@
           <div class="page-heading">
             <AppBackLink
               label="Back to space"
-              :to="backTo" />
+              :to="organizationRoutes.space(spaceKey)" />
             <SpaceIcon
               class="page-heading-icon"
               :style="{ color: state.color }" />
@@ -61,8 +61,6 @@
 </template>
 
 <script setup lang="ts">
-import type { RouteLocationRaw } from 'vue-router'
-
 import { SpaceIcon } from '~/constants/icons'
 import type {
   ChangeSpaceFailure,
@@ -75,7 +73,6 @@ import { assertNever } from '~/utils/assertNever'
 import { toAsyncResultState } from '~/utils/asyncResultState'
 
 const props = defineProps<{
-  backTo: RouteLocationRaw
   deps: SpaceSettingsPageDeps
   onDeleted: () => Promise<void> | void
   onUpdated: (spaceKey: string) => Promise<void> | void
@@ -88,6 +85,7 @@ const state = reactive({
   name: '',
   submitting: false,
 })
+const organizationRoutes = useOrganizationRoutes()
 
 const query = await useAsyncData(
   () => `space-settings:${props.spaceKey}`,

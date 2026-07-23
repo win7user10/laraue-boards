@@ -100,7 +100,8 @@ It:
 - determines local UI behavior for specific failure variants;
 - passes data and callback functions to child components;
 - does not create the API client;
-- does not import the router and does not call `navigateTo`.
+- may build declarative link destinations through `useOrganizationRoutes()`;
+- does not call `navigateTo` or use the router imperatively.
 
 ### Other Feature Components
 
@@ -170,8 +171,9 @@ const onMoved = async (targetSpaceId: string): Promise<void> => {
 
 ### Rules
 
-- The route wrapper knows about the Nuxt router.
-- `XxxPage.vue` does not know about the Nuxt router.
+- The route wrapper owns imperative Nuxt router navigation.
+- `XxxPage.vue` may use `useOrganizationRoutes()` for declarative links.
+- `XxxPage.vue` does not call `navigateTo` or use the router imperatively.
 - Navigation is not part of data deps.
 - A mutation does not perform a redirect inside the production implementation.
 - After a successful mutation, `XxxPage` invokes the required callback passed by
@@ -1703,7 +1705,8 @@ Test separately:
 20. Pass only data and required `onXxx` callbacks downward.
 21. A feature component must own its fixed structure.
 22. Use slots only for UI primitives or narrow extension points.
-23. Pass navigation as a callback from the route wrapper.
+23. Pass imperative navigation as a callback from the route wrapper; build
+    declarative links through `useOrganizationRoutes()` in the page.
 24. Add a pending guard for each mutation.
 25. After success, update local data or call `refresh()`.
 26. Write an `XxxPage.vue` test with mock deps.

@@ -10,7 +10,7 @@
           <div class="page-heading">
             <AppBackLink
               label="Back to issues"
-              :to="backTo" />
+              :to="organizationRoutes.issues()" />
             <ListPlus class="page-heading-icon" />
             <div class="page-heading-text">
               <h1>Add issue</h1>
@@ -168,8 +168,6 @@
 
 <script setup lang="ts">
 import { ListPlus } from 'lucide-vue-next'
-import type { RouteLocationRaw } from 'vue-router'
-
 import IssueAttachments from '~/components/issues/IssueAttachments.vue'
 import IssueAttributeFields from '~/components/issues/IssueAttributeFields.vue'
 import type {
@@ -186,10 +184,10 @@ import { toAsyncResultState } from '~/utils/asyncResultState'
 import { getIssueAttributeValueInput } from '~/utils/issueAttributeValues'
 
 const props = defineProps<{
-  backTo: RouteLocationRaw
   deps: CreateIssuePageDeps
   onCreated: (issueKey: string) => Promise<void> | void
 }>()
+const organizationRoutes = useOrganizationRoutes()
 const state = reactive({
   assigneeId: '',
   assignees: [] as CreateIssueAssignee[],

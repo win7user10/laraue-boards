@@ -1,6 +1,5 @@
 <template>
   <CreateBacklogIssuePage
-    :back-to="organizationRoutes.backlog(spaceKey)"
     :deps="deps"
     :on-created="onCreated"
     :space-key="spaceKey" />

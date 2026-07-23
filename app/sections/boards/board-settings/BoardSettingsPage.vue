@@ -10,7 +10,7 @@
           <div class="page-heading">
             <AppBackLink
               label="Back to board"
-              :to="backTo" />
+              :to="organizationRoutes.board(spaceKey, boardId)" />
             <BoardIcon
               class="page-heading-icon"
               :style="{ color: data.color }" />
@@ -29,8 +29,6 @@
 </template>
 
 <script setup lang="ts">
-import type { RouteLocationRaw } from 'vue-router'
-
 import { BoardIcon } from '~/constants/icons'
 import type {
   BoardSettingsColumnDraft,
@@ -46,12 +44,13 @@ import { assertNever } from '~/utils/assertNever'
 import { toAsyncResultState } from '~/utils/asyncResultState'
 
 const props = defineProps<{
-  backTo: RouteLocationRaw
   boardId: string
   deps: BoardSettingsPageDeps
   onDeleted: () => Promise<void> | void
   onSaved: () => Promise<void> | void
+  spaceKey: string
 }>()
+const organizationRoutes = useOrganizationRoutes()
 const state = reactive({
   error: null as null | string,
   submitting: false,

@@ -1,6 +1,5 @@
 <template>
   <CreateIssuePage
-    :back-to="organizationRoutes.issues()"
     :deps="deps"
     :on-created="onCreated" />
 </template>

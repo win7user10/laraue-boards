@@ -1,6 +1,5 @@
 <template>
   <SpaceSettingsPage
-    :back-to="organizationRoutes.space(spaceKey)"
     :deps="deps"
     :on-deleted="onDeleted"
     :on-updated="onUpdated"

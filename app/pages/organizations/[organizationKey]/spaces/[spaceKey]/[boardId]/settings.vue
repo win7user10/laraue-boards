@@ -1,10 +1,10 @@
 <template>
   <BoardSettingsPage
-    :back-to="organizationRoutes.board(spaceKey, boardId)"
     :board-id="boardId"
     :deps="deps"
     :on-deleted="onDeleted"
-    :on-saved="onSaved" />
+    :on-saved="onSaved"
+    :space-key="spaceKey" />
 </template>
 
 <script setup lang="ts">
