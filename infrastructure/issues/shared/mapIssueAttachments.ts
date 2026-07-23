@@ -1,13 +1,13 @@
 import type { components } from '#infrastructure/api/generated'
 import type { IssueAttachmentViewModel } from '~/components/issues/IssueAttachments.vue'
 
-type MediaInfo = components['schemas']['MediaInfo']
+type AttachmentData = components['schemas']['AttachmentData']
 
 export const mapIssueAttachments = (
-  media: MediaInfo[],
+  attachments: AttachmentData[],
   baseUrl: string,
 ): IssueAttachmentViewModel[] =>
-  media.flatMap((item) => {
+  attachments.flatMap((item) => {
     if (item.type !== 0) {
       return []
     }
@@ -20,7 +20,7 @@ export const mapIssueAttachments = (
       new URL(`/api/files/${encodeURIComponent(id)}`, baseUrl).href
     return [
       {
-        id: originalId,
+        id: item.id,
         originalUrl: fileUrl(originalId),
         previewUrl: fileUrl(previewId),
       },

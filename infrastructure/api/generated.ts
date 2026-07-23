@@ -340,7 +340,9 @@ export interface paths {
         };
         put: {
             parameters: {
-                query?: never;
+                query?: {
+                    AttributeValues?: components["schemas"]["AttributeValue"][];
+                };
                 header?: never;
                 path: {
                     key: string;
@@ -360,7 +362,6 @@ export interface paths {
                         Content?: string;
                         /** Format: uuid */
                         AssigneeId?: string;
-                        AttributeValues?: components["schemas"]["AttributeValue"][];
                         RemoveAttachmentIds?: string[];
                         AddFiles?: components["schemas"]["IFormFile"][];
                     };
@@ -456,7 +457,9 @@ export interface paths {
         put?: never;
         post: {
             parameters: {
-                query?: never;
+                query?: {
+                    AttributeValues?: components["schemas"]["AttributeValue"][];
+                };
                 header?: never;
                 path?: never;
                 cookie?: never;
@@ -473,7 +476,6 @@ export interface paths {
                         /** Format: uuid */
                         AssigneeId?: string;
                         Content?: string;
-                        AttributeValues?: components["schemas"]["AttributeValue"][];
                         Files?: components["schemas"]["IFormFile"][];
                     };
                 };
@@ -2041,6 +2043,15 @@ export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
         AdminAccessLevel: number;
+        AttachmentData: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            previewFileId?: null | string;
+            /** Format: uuid */
+            originalFileId?: string;
+            type?: components["schemas"]["AttachmentType"];
+        };
         AttachmentType: number;
         AttributeDto: {
             /** Format: int64 */
@@ -2301,7 +2312,7 @@ export interface components {
             canEdit: boolean;
             key: string;
             attributeValues: components["schemas"]["DetailIssueAttributeDto"][];
-            media: components["schemas"]["MediaInfo"][];
+            attachments: components["schemas"]["AttachmentData"][];
         };
         IssueListAttributeDto: {
             value: string;
@@ -2345,13 +2356,6 @@ export interface components {
             userId?: string;
             /** Format: int64 */
             organizationId?: number | string;
-        };
-        MediaInfo: {
-            /** Format: uuid */
-            previewFileId?: null | string;
-            /** Format: uuid */
-            originalFileId?: string;
-            type?: components["schemas"]["AttachmentType"];
         };
         MessageStatusDto: {
             /** Format: int64 */

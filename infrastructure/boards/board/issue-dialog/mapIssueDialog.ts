@@ -39,7 +39,7 @@ export const mapIssueDialog = (
   assigneeColor: issue.assigneeColor,
   assigneeId: issue.assigneeId,
   assigneeInitial: issue.assigneeInitial,
-  attachments: mapIssueAttachments(issue.media, baseUrl),
+  attachments: mapIssueAttachments(issue.attachments, baseUrl),
   attributes: issue.attributeValues.map(mapAttribute),
   boardId: String(issue.epicId),
   boardLabel: issue.epicName ?? '',

@@ -33,13 +33,15 @@ const issue: Parameters<typeof mapIssuePage>[0] = {
   epicName: 'Board',
   id: 5,
   key: 'DEV-1',
-  media: [
+  attachments: [
     {
+      id: '44444444-4444-4444-4444-444444444444',
       originalFileId: '22222222-2222-2222-2222-222222222222',
       previewFileId: '11111111-1111-1111-1111-111111111111',
       type: 0,
     },
     {
+      id: '55555555-5555-5555-5555-555555555555',
       originalFileId: '33333333-3333-3333-3333-333333333333',
       previewFileId: null,
       type: 1,
@@ -70,7 +72,7 @@ test('maps issue dates and attributes', () => {
   assert.equal(result.ownerColor, COLORS.purple)
   assert.deepEqual(result.attachments, [
     {
-      id: '22222222-2222-2222-2222-222222222222',
+      id: '44444444-4444-4444-4444-444444444444',
       originalUrl:
         'https://api.example/api/files/22222222-2222-2222-2222-222222222222',
       previewUrl:
