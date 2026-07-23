@@ -236,7 +236,7 @@ function closeLightboxFromBackdrop(event: MouseEvent) {
 .issue-attachment-gallery {
   display: grid;
   gap: var(--space-2);
-  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  grid-template-columns: repeat(auto-fill, 80px);
 }
 
 .issue-attachment-preview {
@@ -369,10 +369,17 @@ function closeLightboxFromBackdrop(event: MouseEvent) {
   background: transparent;
 }
 
+.issue-attachment-lightbox[open] {
+  display: grid;
+  place-items: center;
+}
+
 .issue-attachment-lightbox > img {
-  height: 100%;
+  height: auto;
+  max-height: 100%;
+  max-width: 100%;
   object-fit: contain;
-  width: 100%;
+  width: auto;
 }
 
 .issue-attachment-lightbox-close {
