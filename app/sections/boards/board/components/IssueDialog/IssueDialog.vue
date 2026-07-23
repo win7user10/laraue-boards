@@ -8,7 +8,7 @@
     class="issue-dialog"
     open
     tabindex="-1"
-    @cancel="handleCancel">
+    @cancel.self="handleCancel">
     <IssueDialogSkeleton
       v-if="!state.hydrated || status === 'idle' || status === 'pending'" />
     <IssueDetails

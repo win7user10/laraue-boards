@@ -90,6 +90,12 @@
         or paste PNG/JPG with Ctrl+V
       </span>
     </div>
+    <span
+      v-if="attachmentError"
+      class="issue-attachment-error"
+      role="alert">
+      {{ attachmentError }}
+    </span>
     <Teleport to="body">
       <dialog
         ref="lightboxEl"
@@ -133,8 +139,11 @@ type IssueAttachmentsProps = {
 <script setup lang="ts">
 import { ImagePlus, LoaderCircle, X } from 'lucide-vue-next'
 
+import { MAX_IMAGE_SIZE } from '~/constants/attachments'
+
 const props = defineProps<IssueAttachmentsProps>()
 const activeAttachment = ref<null | { alt: string; url: string }>(null)
+const attachmentError = ref('')
 const inputId = useId()
 const inputEl = ref<HTMLInputElement>()
 const lightboxEl = ref<HTMLDialogElement>()
@@ -165,9 +174,12 @@ onBeforeUnmount(() => {
 })
 
 function changeFiles(event: Event) {
-  props.onChange(
-    getSupportedImages((event.target as HTMLInputElement).files ?? []),
-  )
+  const input = event.target as HTMLInputElement
+  const files = getSupportedImages(input.files ?? [])
+  input.value = ''
+  if (files.length) {
+    props.onChange(files)
+  }
 }
 
 function pasteFiles(event: ClipboardEvent) {
@@ -186,13 +198,20 @@ function pasteFiles(event: ClipboardEvent) {
 }
 
 function getSupportedImages(files: File[] | FileList) {
-  return Array.from(files).filter((file) => supportedImageTypes.has(file.type))
+  const images = Array.from(files).filter((file) =>
+    supportedImageTypes.has(file.type),
+  )
+  attachmentError.value = images.some((file) => file.size > MAX_IMAGE_SIZE)
+    ? 'Each image must be 3 MB or smaller.'
+    : ''
+  return images.filter((file) => file.size <= MAX_IMAGE_SIZE)
 }
 
 function clearFiles() {
   if (inputEl.value) {
     inputEl.value.value = ''
   }
+  attachmentError.value = ''
   props.onChange([])
 }
 
@@ -348,6 +367,11 @@ function closeLightboxFromBackdrop(event: MouseEvent) {
 
 .issue-attachment-paste-hint {
   align-self: center;
+  font-size: var(--font-size-small);
+}
+
+.issue-attachment-error {
+  color: var(--color-danger);
   font-size: var(--font-size-small);
 }
 
