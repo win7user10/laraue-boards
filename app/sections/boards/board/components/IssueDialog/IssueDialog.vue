@@ -101,7 +101,7 @@
 </template>
 
 <script lang="ts">
-import type { IssueDetailsSaveInput } from '~/components/issues/issue-details/IssueDetails.vue'
+import type { IssueDetailsSaveInput } from '~/components/issues/issue-details/IssueDetails.types'
 import type { IssueDialogDeps } from '~/sections/boards/board/components/IssueDialog/IssueDialog.deps'
 
 export type IssueDialogSavedIssue = {

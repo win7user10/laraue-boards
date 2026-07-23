@@ -1,4 +1,4 @@
-import type { IssueDetailsViewModel } from '~/components/issues/issue-details/IssueDetails.vue'
+import type { IssueDetailsViewModel } from '~/components/issues/issue-details/IssueDetails.types'
 import type { Result } from '~/utils/actionResult'
 
 type Failure<Type extends string> = Type extends string ? { type: Type } : never

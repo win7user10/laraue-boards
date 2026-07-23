@@ -199,81 +199,16 @@
   </form>
 </template>
 
-<script lang="ts">
-import type { IssueAttachmentViewModel } from '~/components/issues/IssueAttachments.vue'
+<script setup lang="ts">
+import IssueAttachments from '~/components/issues/IssueAttachments.vue'
 
-const dateTimeFormatter = new Intl.DateTimeFormat('en-US', {
-  dateStyle: 'medium',
-  timeStyle: 'short',
-  timeZone: 'UTC',
-})
+import type {
+  IssueDetailsLookupState,
+  IssueDetailsSaveInput,
+  IssueDetailsViewModel,
+} from './IssueDetails.types'
 
-type IssueDetailsAttributeViewModel =
-  | {
-      color: string
-      id: string
-      name: string
-      options: Array<{ label: string; value: string }>
-      type: 'list'
-      value: string
-    }
-  | {
-      color: string
-      id: string
-      name: string
-      type: 'text'
-      value: string
-    }
-
-export type IssueDetailsViewModel = {
-  assignee: string
-  assigneeColor: string
-  assigneeId: string
-  assigneeInitial: string
-  attachments: IssueAttachmentViewModel[]
-  attributes: IssueDetailsAttributeViewModel[]
-  boardId: string
-  boardLabel: string
-  canEdit: boolean
-  content: string
-  createdAt: string
-  issueKey: string
-  owner: string
-  ownerColor: string
-  ownerInitial: string
-  spaceId: string
-  spaceLabel: string
-  statusId: string
-  statusLabel: string
-  updatedAt: string
-}
-
-export type IssueDetailsSaveInput = {
-  assigneeId: string
-  attributeValues: Record<string, string>
-  boardId: string
-  content: string
-  files: File[]
-  removeAttachmentIds: string[]
-  statusId: string
-}
-
-type MoveOption = { label: string; value: string }
-type AssigneeOption = MoveOption & { color: string; initials: string }
-
-type IssueDetailsLookupState = {
-  assignees: AssigneeOption[]
-  boards: MoveOption[]
-  error: null | string
-  loadingAssignees: boolean
-  loadingMoveBoards: boolean
-  loadingMoveSpaces: boolean
-  loadingStatuses: boolean
-  spaces: MoveOption[]
-  statuses: Array<{ id: string; name: string }>
-}
-
-type IssueDetailsProps = {
+const props = defineProps<{
   error: null | string
   formId: string
   lookup: IssueDetailsLookupState
@@ -289,13 +224,13 @@ type IssueDetailsProps = {
   onSave: (input: IssueDetailsSaveInput) => void
   saving: boolean
   viewModel: IssueDetailsViewModel
-}
-</script>
+}>()
 
-<script setup lang="ts">
-import IssueAttachments from '~/components/issues/IssueAttachments.vue'
-
-const props = defineProps<IssueDetailsProps>()
+const dateTimeFormatter = new Intl.DateTimeFormat('en-US', {
+  dateStyle: 'medium',
+  timeStyle: 'short',
+  timeZone: 'UTC',
+})
 
 const state = reactive({
   assigneeId: props.viewModel.assigneeId,

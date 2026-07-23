@@ -6,7 +6,7 @@
 </template>
 
 <script setup lang="ts">
-import { createIssuePageDeps } from '~/sections/issues/issue/IssuePage.deps.impl'
+import { createIssuePageDeps } from '~/sections/issues/issue/deps/impl'
 import IssuePage from '~/sections/issues/issue/IssuePage.vue'
 
 const route = useRoute('organizations-organizationKey-issues-issueKey')

@@ -64,17 +64,15 @@
 <script setup lang="ts">
 import { ArrowLeft, Trash2 } from 'lucide-vue-next'
 
+import type { IssueDetailsSaveInput } from '~/components/issues/issue-details/IssueDetails.types'
 import IssueDetails from '~/components/issues/issue-details/IssueDetails.vue'
-import type { IssueDetailsSaveInput } from '~/components/issues/issue-details/IssueDetails.vue'
+import type { IssuePageDeps, ViewIssueFailure } from '~/sections/issues/issue/deps'
 import type {
-  IssuePageDeps,
-  IssueResourceFailure,
-  LoadBoardFailure,
-  LoadSpaceFailure,
-  MoveIssueFailure,
-  UpdateIssueFailure,
-} from '~/sections/issues/issue/IssuePage.deps'
-import { matchResult } from '~/utils/actionResult'
+  IssueAssigneeOption,
+  IssueMoveOption,
+  IssueStatusOption,
+} from '~/sections/issues/issue/IssuePage.types'
+import type { Result } from '~/utils/actionResult'
 import { assertNever } from '~/utils/assertNever'
 import { toAsyncResultState } from '~/utils/asyncResultState'
 import { getIssueAttributeValueInput } from '~/utils/issueAttributeValues'
@@ -90,7 +88,7 @@ const query = await useAsyncData(
   (_nuxtApp, { signal }) => props.deps.view({ issueKey: props.issueKey, signal }),
   { watch: [() => props.issueKey] },
 )
-const getViewFailureMessage = (failure: IssueResourceFailure): string => {
+const getViewFailureMessage = (failure: ViewIssueFailure): string => {
   switch (failure.type) {
     case 'accessDenied':
       return 'You do not have access to this issue.'
@@ -116,20 +114,15 @@ const state = reactive({
   error: null as null | string,
   leaving: false,
   lookup: {
-    assignees: [] as Array<{
-      color: string
-      initials: string
-      label: string
-      value: string
-    }>,
-    boards: [] as Array<{ label: string; value: string }>,
+    assignees: [] as IssueAssigneeOption[],
+    boards: [] as IssueMoveOption[],
     error: null as null | string,
     loadingAssignees: false,
     loadingMoveBoards: false,
     loadingMoveSpaces: false,
     loadingStatuses: false,
-    spaces: [] as Array<{ label: string; value: string }>,
-    statuses: [] as Array<{ id: string; name: string }>,
+    spaces: [] as IssueMoveOption[],
+    statuses: [] as IssueStatusOption[],
   },
   saving: false,
 })
@@ -188,122 +181,73 @@ function changeMoveBoard() {
   state.lookup.statuses = []
 }
 
-const getSpaceFailureMessage = (failure: LoadSpaceFailure): string => {
-  switch (failure.type) {
-    case 'accessDenied':
-      return 'You do not have access to this space.'
-    case 'spaceNotFound':
-      return 'The selected space was not found.'
-    case 'temporarilyUnavailable':
-      return 'Could not load space data. Try again.'
-    default:
-      return assertNever(failure)
-  }
-}
-
 async function loadAssignees(spaceId: string) {
-  state.lookup.error = null
-  state.lookup.loadingAssignees = true
-  const result = await props.deps.loadAssignees({ spaceId })
-  state.lookup.loadingAssignees = false
-  matchResult(result, {
-    err: (failure) => {
-      state.lookup.error = getSpaceFailureMessage(failure)
-    },
-    ok: ({ assignees }) => {
+  await loadLookup({
+    apply: (assignees) => {
       state.lookup.assignees = assignees
     },
+    errorMessage: 'Could not load assignees.',
+    loading: 'loadingAssignees',
+    request: () => props.deps.loadAssignees({ spaceId }),
   })
 }
 
 async function loadMoveSpaces() {
-  state.lookup.error = null
-  state.lookup.loadingMoveSpaces = true
-  const result = await props.deps.loadMoveSpaces()
-  state.lookup.loadingMoveSpaces = false
-  matchResult(result, {
-    err: (failure) => {
-      state.lookup.error =
-        failure.type === 'accessDenied'
-          ? 'You do not have access to available spaces.'
-          : 'Could not load available spaces.'
-    },
-    ok: ({ spaces }) => {
+  await loadLookup({
+    apply: (spaces) => {
       state.lookup.spaces = spaces
     },
+    errorMessage: 'Could not load available spaces.',
+    loading: 'loadingMoveSpaces',
+    request: props.deps.loadMoveSpaces,
   })
 }
 
 async function loadMoveBoards(spaceId: string) {
-  state.lookup.error = null
-  state.lookup.loadingMoveBoards = true
-  const result = await props.deps.loadMoveBoards({ spaceId })
-  state.lookup.loadingMoveBoards = false
-  matchResult(result, {
-    err: (failure) => {
-      state.lookup.error = getSpaceFailureMessage(failure)
-    },
-    ok: ({ boards }) => {
+  await loadLookup({
+    apply: (boards) => {
       state.lookup.boards = boards
     },
+    errorMessage: 'Could not load boards.',
+    loading: 'loadingMoveBoards',
+    request: () => props.deps.loadMoveBoards({ spaceId }),
   })
-}
-
-const getBoardFailureMessage = (failure: LoadBoardFailure): string => {
-  switch (failure.type) {
-    case 'accessDenied':
-      return 'You do not have access to this board.'
-    case 'boardNotFound':
-      return 'This board no longer exists.'
-    case 'temporarilyUnavailable':
-      return 'Could not load board statuses.'
-    default:
-      return assertNever(failure)
-  }
 }
 
 async function loadStatuses(boardId: string) {
-  state.lookup.error = null
-  state.lookup.loadingStatuses = true
-  const result = await props.deps.loadStatuses({ boardId })
-  state.lookup.loadingStatuses = false
-  matchResult(result, {
-    err: (failure) => {
-      state.lookup.error = getBoardFailureMessage(failure)
-    },
-    ok: ({ statuses }) => {
+  await loadLookup({
+    apply: (statuses) => {
       state.lookup.statuses = statuses
     },
+    errorMessage: 'Could not load board statuses.',
+    loading: 'loadingStatuses',
+    request: () => props.deps.loadStatuses({ boardId }),
   })
 }
 
-const getUpdateFailureMessage = (failure: UpdateIssueFailure): string => {
-  switch (failure.type) {
-    case 'accessDenied':
-      return 'You do not have permission to update this issue.'
-    case 'invalidInput':
-      return failure.message
-    case 'issueNotFound':
-      return 'The issue was not found.'
-    case 'temporarilyUnavailable':
-      return 'Could not save issue. Try again.'
-    default:
-      return assertNever(failure)
-  }
-}
+type LookupLoading =
+  | 'loadingAssignees'
+  | 'loadingMoveBoards'
+  | 'loadingMoveSpaces'
+  | 'loadingStatuses'
 
-const getMoveFailureMessage = (failure: MoveIssueFailure): string => {
-  switch (failure.type) {
-    case 'accessDenied':
-      return 'You do not have permission to update this issue.'
-    case 'invalidStatus':
-      return 'Select a valid board status.'
-    case 'resourceNotFound':
-      return 'The issue or board status was not found.'
-    case 'temporarilyUnavailable':
-      return 'Could not save issue. Try again.'
-    default:
-      return assertNever(failure)
+async function loadLookup<Value>(options: {
+  apply: (value: Value) => void
+  errorMessage: string
+  loading: LookupLoading
+  request: () => Promise<Result<Value>>
+}) {
+  state.lookup.error = null
+  state.lookup[options.loading] = true
+  try {
+    const result = await options.request()
+    if (!result.ok) {
+      state.lookup.error = options.errorMessage
+      return
+    }
+    options.apply(result.value)
+  } finally {
+    state.lookup[options.loading] = false
   }
 }
 
@@ -314,40 +258,39 @@ async function save(input: IssueDetailsSaveInput) {
   }
   state.saving = true
   state.error = null
-  const updateResult = await props.deps.updateIssue({
-    assigneeId: input.assigneeId,
-    attributeValues: getIssueAttributeValueInput(input.attributeValues, current.data.attributes),
-    content: input.content,
-    files: input.files,
-    issueKey: props.issueKey,
-    removeAttachmentIds: input.removeAttachmentIds,
-  })
-  await matchResult(updateResult, {
-    err: (failure) => {
-      state.error = getUpdateFailureMessage(failure)
-    },
-    ok: async () => {
-      if (input.statusId !== current.data.statusId) {
-        const moveResult = await props.deps.moveIssue({
-          issueKey: props.issueKey,
-          statusId: input.statusId,
-        })
-        const moved = matchResult(moveResult, {
-          err: (failure) => {
-            state.error = getMoveFailureMessage(failure)
-            return false
-          },
-          ok: () => true,
-        })
-        if (!moved) {
-          await query.refresh()
-          return
-        }
+  try {
+    const updateResult = await props.deps.updateIssue({
+      assigneeId: input.assigneeId,
+      attributeValues: getIssueAttributeValueInput(input.attributeValues, current.data.attributes),
+      content: input.content,
+      files: input.files,
+      issueKey: props.issueKey,
+      removeAttachmentIds: input.removeAttachmentIds,
+    })
+    if (!updateResult.ok) {
+      state.error =
+        updateResult.error.type === 'invalidInput'
+          ? updateResult.error.message
+          : 'Could not save issue. Try again.'
+      return
+    }
+
+    if (input.statusId !== current.data.statusId) {
+      const moveResult = await props.deps.moveIssue({
+        issueKey: props.issueKey,
+        statusId: input.statusId,
+      })
+      if (!moveResult.ok) {
+        state.error = 'Could not move issue. Try again.'
+        await query.refresh()
+        return
       }
-      await leaveAfterIssueChanged()
-    },
-  })
-  state.saving = false
+    }
+
+    await leaveAfterIssueChanged()
+  } finally {
+    state.saving = false
+  }
 }
 
 async function remove() {
@@ -355,17 +298,11 @@ async function remove() {
     return
   }
   const result = await props.deps.deleteIssue({ issueKey: props.issueKey })
-  await matchResult(result, {
-    err: (failure) => {
-      state.error =
-        failure.type === 'accessDenied'
-          ? 'You do not have permission to delete this issue.'
-          : failure.type === 'issueNotFound'
-            ? 'This issue no longer exists.'
-            : 'Could not delete issue. Try again.'
-    },
-    ok: leaveAfterIssueChanged,
-  })
+  if (!result.ok) {
+    state.error = 'Could not delete issue. Try again.'
+    return
+  }
+  await leaveAfterIssueChanged()
 }
 
 async function leave() {
