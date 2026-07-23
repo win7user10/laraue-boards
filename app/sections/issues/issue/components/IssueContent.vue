@@ -50,6 +50,7 @@
 <script lang="ts">
 import type { IssueDetailsSaveInput } from '~/components/issues/issue-details/IssueDetails.vue'
 import type { IssueDetailsDeps } from '~/components/issues/issue-details/IssueDetailsDeps'
+import type { IssueAttachmentViewModel } from '~/components/issues/IssueAttachments.vue'
 
 export type IssuePageAttributeViewModel =
   | {
@@ -73,6 +74,7 @@ export type IssuePageViewModel = {
   assigneeColor: string
   assigneeId: string
   assigneeInitial: string
+  attachments: IssueAttachmentViewModel[]
   attributes: IssuePageAttributeViewModel[]
   boardId: string
   boardLabel: string

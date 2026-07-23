@@ -3,11 +3,9 @@
 </template>
 
 <script setup lang="ts">
-import { openApiViewPermissionsPage } from '#infrastructure/organizations/permissions/list-members/openApiViewPermissionsPage'
+import { createPermissionsPageDeps } from '~/sections/organizations/permissions/list-members/PermissionsPage.deps.impl'
 import PermissionsPage from '~/sections/organizations/permissions/list-members/PermissionsPage.vue'
 
-const baseUrl = useRuntimeConfig().public.boardsApiBaseUrl
-const deps = {
-  viewPermissionsPage: openApiViewPermissionsPage(baseUrl),
-}
+const client = useApiClient()
+const deps = createPermissionsPageDeps(client)
 </script>

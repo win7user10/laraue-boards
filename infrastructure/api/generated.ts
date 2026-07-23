@@ -177,6 +177,41 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/files/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/issues/by-status/{statusId}": {
         parameters: {
             query?: never;
@@ -305,7 +340,9 @@ export interface paths {
         };
         put: {
             parameters: {
-                query?: never;
+                query?: {
+                    AttributeValues?: components["schemas"]["AttributeValue"][];
+                };
                 header?: never;
                 path: {
                     key: string;
@@ -314,9 +351,20 @@ export interface paths {
             };
             requestBody: {
                 content: {
-                    "application/json": components["schemas"]["UpdateIssueRequest"];
-                    "text/json": components["schemas"]["UpdateIssueRequest"];
-                    "application/*+json": components["schemas"]["UpdateIssueRequest"];
+                    "multipart/form-data": {
+                        /** Format: int64 */
+                        "AuthData.OrganizationId"?: number | string;
+                        /** Format: uuid */
+                        "AuthData.UserId"?: string;
+                        /** Format: int32 */
+                        "IssueKey.Number"?: number | string;
+                        "IssueKey.SpaceKey"?: string;
+                        Content?: string;
+                        /** Format: uuid */
+                        AssigneeId?: string;
+                        RemoveAttachmentIds?: string[];
+                        AddFiles?: components["schemas"]["IFormFile"][];
+                    };
                 };
             };
             responses: {
@@ -409,16 +457,27 @@ export interface paths {
         put?: never;
         post: {
             parameters: {
-                query?: never;
+                query?: {
+                    AttributeValues?: components["schemas"]["AttributeValue"][];
+                };
                 header?: never;
                 path?: never;
                 cookie?: never;
             };
             requestBody: {
                 content: {
-                    "application/json": components["schemas"]["CreateIssueRequest"];
-                    "text/json": components["schemas"]["CreateIssueRequest"];
-                    "application/*+json": components["schemas"]["CreateIssueRequest"];
+                    "multipart/form-data": {
+                        /** Format: int64 */
+                        "AuthData.OrganizationId"?: number | string;
+                        /** Format: uuid */
+                        "AuthData.UserId"?: string;
+                        /** Format: int64 */
+                        StatusId?: number | string;
+                        /** Format: uuid */
+                        AssigneeId?: string;
+                        Content?: string;
+                        Files?: components["schemas"]["IFormFile"][];
+                    };
                 };
             };
             responses: {
@@ -1825,41 +1884,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/telegram-files/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    id: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description OK */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-            };
-        };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/test/user": {
         parameters: {
             query?: never;
@@ -2019,6 +2043,16 @@ export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
         AdminAccessLevel: number;
+        AttachmentData: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            previewFileId?: null | string;
+            /** Format: uuid */
+            originalFileId?: string;
+            type?: components["schemas"]["AttachmentType"];
+        };
+        AttachmentType: number;
         AttributeDto: {
             /** Format: int64 */
             id?: number | string;
@@ -2095,15 +2129,6 @@ export interface components {
             spaceId?: number | string;
             name: string;
             color: string;
-        };
-        CreateIssueRequest: {
-            authData?: components["schemas"]["OrganizationAuthData"];
-            /** Format: int64 */
-            statusId?: number | string;
-            /** Format: uuid */
-            assigneeId: string;
-            content: string;
-            attributeValues?: components["schemas"]["AttributeValue"][];
         };
         CreateOrganizationRequest: {
             /** Format: uuid */
@@ -2241,6 +2266,8 @@ export interface components {
             canUpdateIssues?: boolean;
             canDeleteIssues?: boolean;
         };
+        /** Format: binary */
+        IFormFile: string;
         InitialBatchResultOfIssueListDto: {
             /** Format: int64 */
             totalCount?: number | string;
@@ -2285,11 +2312,7 @@ export interface components {
             canEdit: boolean;
             key: string;
             attributeValues: components["schemas"]["DetailIssueAttributeDto"][];
-        };
-        IssueKey: {
-            /** Format: int32 */
-            number?: number | string;
-            spaceKey?: null | string;
+            attachments: components["schemas"]["AttachmentData"][];
         };
         IssueListAttributeDto: {
             value: string;
@@ -2311,7 +2334,6 @@ export interface components {
             statusId: number | string;
             /** Format: int64 */
             spaceId: number | string;
-            media?: components["schemas"]["MediaInfo"][];
             attributes?: components["schemas"]["IssueListAttributeDto"][];
         };
         IssueProperty: number;
@@ -2335,14 +2357,6 @@ export interface components {
             /** Format: int64 */
             organizationId?: number | string;
         };
-        MediaInfo: {
-            /** Format: uuid */
-            previewFileId?: null | string;
-            /** Format: uuid */
-            originalFileId?: null | string;
-            type?: components["schemas"]["MediaType"];
-        };
-        MediaType: number;
         MessageStatusDto: {
             /** Format: int64 */
             id: number | string;
@@ -2433,7 +2447,6 @@ export interface components {
             statusId: number | string;
             /** Format: int64 */
             spaceId: number | string;
-            media?: components["schemas"]["MediaInfo"][];
             attributes?: components["schemas"]["IssueListAttributeDto"][];
         };
         SearchRequest: {
@@ -2524,14 +2537,6 @@ export interface components {
             id?: number | string;
             name: string;
             color: string;
-        };
-        UpdateIssueRequest: {
-            authData?: components["schemas"]["OrganizationAuthData"];
-            issueKey?: null | components["schemas"]["IssueKey"];
-            content: string;
-            /** Format: uuid */
-            assigneeId: string;
-            attributeValues: components["schemas"]["AttributeValue"][];
         };
         UpdateSpaceRequest: {
             authData?: components["schemas"]["OrganizationAuthData"];

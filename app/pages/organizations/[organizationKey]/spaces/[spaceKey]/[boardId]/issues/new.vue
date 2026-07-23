@@ -2,13 +2,12 @@
   <CreateBoardIssuePage
     :board-id="boardId"
     :deps="deps"
+    :on-created="onCreated"
     :space-key="spaceKey" />
 </template>
 
 <script setup lang="ts">
-import { openApiCreateBoardIssue } from '#infrastructure/boards/create-issue/openApiCreateBoardIssue'
-import { openApiLoadCreateBoardIssueAssignees } from '#infrastructure/boards/create-issue/openApiLoadCreateBoardIssueAssignees'
-import { openApiViewCreateBoardIssuePage } from '#infrastructure/boards/create-issue/openApiViewCreateBoardIssuePage'
+import { createCreateBoardIssuePageDeps } from '~/sections/boards/create-issue/CreateBoardIssuePage.deps.impl'
 import CreateBoardIssuePage from '~/sections/boards/create-issue/CreateBoardIssuePage.vue'
 
 const route = useRoute(
@@ -16,10 +15,10 @@ const route = useRoute(
 )
 const boardId = computed(() => String(route.params.boardId))
 const spaceKey = computed(() => String(route.params.spaceKey))
-const baseUrl = useRuntimeConfig().public.boardsApiBaseUrl
-const deps = {
-  createBoardIssue: openApiCreateBoardIssue(baseUrl),
-  loadCreateBoardIssueAssignees: openApiLoadCreateBoardIssueAssignees(baseUrl),
-  viewCreateBoardIssuePage: openApiViewCreateBoardIssuePage(baseUrl),
+const organizationRoutes = useOrganizationRoutes()
+const client = useApiClient()
+const deps = createCreateBoardIssuePageDeps(client)
+const onCreated = async (): Promise<void> => {
+  await navigateTo(organizationRoutes.board(spaceKey.value, boardId.value))
 }
 </script>

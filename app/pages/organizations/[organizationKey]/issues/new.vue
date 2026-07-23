@@ -1,21 +1,17 @@
 <template>
-  <CreateIssuePage :deps="deps" />
+  <CreateIssuePage
+    :deps="deps"
+    :on-created="onCreated" />
 </template>
 
 <script setup lang="ts">
-import { openApiCreateIssue } from '#infrastructure/issues/create-issue/openApiCreateIssue'
-import { openApiLoadCreateIssueAssignees } from '#infrastructure/issues/create-issue/openApiLoadCreateIssueAssignees'
-import { openApiLoadCreateIssueBoards } from '#infrastructure/issues/create-issue/openApiLoadCreateIssueBoards'
-import { openApiLoadCreateIssueStatuses } from '#infrastructure/issues/create-issue/openApiLoadCreateIssueStatuses'
-import { openApiViewCreateIssuePage } from '#infrastructure/issues/create-issue/openApiViewCreateIssuePage'
+import { createCreateIssuePageDeps } from '~/sections/issues/create-issue/CreateIssuePage.deps.impl'
 import CreateIssuePage from '~/sections/issues/create-issue/CreateIssuePage.vue'
 
-const baseUrl = useRuntimeConfig().public.boardsApiBaseUrl
-const deps = {
-  createIssue: openApiCreateIssue(baseUrl),
-  loadCreateIssueAssignees: openApiLoadCreateIssueAssignees(baseUrl),
-  loadCreateIssueBoards: openApiLoadCreateIssueBoards(baseUrl),
-  loadCreateIssueStatuses: openApiLoadCreateIssueStatuses(baseUrl),
-  viewCreateIssuePage: openApiViewCreateIssuePage(baseUrl),
+const organizationRoutes = useOrganizationRoutes()
+const client = useApiClient()
+const deps = createCreateIssuePageDeps(client)
+const onCreated = async (): Promise<void> => {
+  await navigateTo(organizationRoutes.issues(), { replace: true })
 }
 </script>

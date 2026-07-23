@@ -1,103 +1,148 @@
 <template>
-  <AttributeContent
-    v-if="pageState.type === 'ready'"
-    :error="error"
-    :on-delete="remove"
-    :on-update="update"
-    :saved="saved"
-    :submitting="submitting"
-    :view-model="pageState.data.AttributePage" />
-  <PageLoadState
-    v-else
-    :error-text="pageState.type === 'error' ? pageState.message : ''"
-    :loading="pageState.type === 'pending'"
+  <PageState
+    error-title="Could not load attribute"
     loading-text="Loading attribute…"
-    :on-retry="refresh" />
+    :on-retry="query.refresh"
+    :state="pageState">
+    <template #default="{ data }">
+      <section class="form-page">
+        <div class="title-row">
+          <div class="page-heading">
+            <AppBackLink
+              label="Back to attributes"
+              :to="organizationRoutes.attributes()" />
+            <Tags
+              class="page-heading-icon"
+              :style="{ color: data.color }" />
+            <div class="page-heading-text">
+              <h1>{{ data.name }}</h1>
+            </div>
+          </div>
+        </div>
+        <EditAttributeForm
+          :error="state.error"
+          :on-delete="remove"
+          :on-submit="update"
+          :submitting="state.submitting"
+          :view-model="data" />
+      </section>
+    </template>
+  </PageState>
 </template>
 
 <script setup lang="ts">
-import type { AttributePageDeps } from '~/sections/organizations/attributes/attribute/AttributePageDeps'
-import AttributeContent from '~/sections/organizations/attributes/attribute/components/AttributeContent.vue'
-import type { UpdateAttributeInput } from '~/sections/organizations/attributes/attribute/deps/updateAttribute'
+import { Tags } from 'lucide-vue-next'
+
+import type {
+  AttributePageDeps,
+  ChangeAttributeFailure,
+  UpdateAttributeInput,
+  ViewAttributeFailure,
+} from '~/sections/organizations/attributes/attribute/AttributePage.deps'
+import EditAttributeForm from '~/sections/organizations/attributes/attribute/components/EditAttributeForm.vue'
+import { matchResult } from '~/utils/actionResult'
+import { assertNever } from '~/utils/assertNever'
+import { toAsyncResultState } from '~/utils/asyncResultState'
 
 const props = defineProps<{
   attributeId: string
   deps: AttributePageDeps
+  onFinished: () => Promise<void> | void
 }>()
 const organizationRoutes = useOrganizationRoutes()
-const { refresh, state: pageState } = await useActionData({
-  action: () =>
-    props.deps.viewAttributePage({ attributeId: props.attributeId }),
-  fallbackMessage:
-    'Could not load the attribute. The service is temporarily unavailable.',
-  messages: {
-    AccessDenied: 'You do not have permission to open this page.',
-    AttributeNotFound: 'The requested page was not found.',
-    TemporarilyUnavailable:
-      'Could not load the attribute. The service is temporarily unavailable.',
-  },
-  watch: [() => props.attributeId],
-})
+const query = await useAsyncData(
+  () => `attribute:${props.attributeId}`,
+  (_nuxtApp, { signal }) =>
+    props.deps.view({ attributeId: props.attributeId, signal }),
+  { watch: [() => props.attributeId] },
+)
+const getViewFailureMessage = (failure: ViewAttributeFailure): string => {
+  switch (failure.type) {
+    case 'accessDenied':
+      return 'You do not have permission to open this page.'
+    case 'attributeNotFound':
+      return 'The requested page was not found.'
+    case 'temporarilyUnavailable':
+      return 'Could not load the attribute. The service is temporarily unavailable.'
+    default:
+      return assertNever(failure)
+  }
+}
+const getChangeFailureMessage = (
+  failure: ChangeAttributeFailure,
+  unavailableMessage: string,
+): string => {
+  switch (failure.type) {
+    case 'invalidInput':
+      return failure.message
+    case 'accessDenied':
+      return 'You do not have permission to manage attributes.'
+    case 'attributeNotFound':
+      return 'The requested page was not found.'
+    case 'temporarilyUnavailable':
+      return unavailableMessage
+    default:
+      return assertNever(failure)
+  }
+}
+const pageState = computed(() =>
+  toAsyncResultState({
+    error: query.error.value,
+    getErrorMessage: getViewFailureMessage,
+    result: query.data.value,
+    status: query.status.value,
+  }),
+)
+const state = reactive({ error: null as null | string, submitting: false })
 useHead({
   title: computed(() =>
     pageState.value.type === 'ready'
-      ? `${pageState.value.data.AttributePage.EditAttributeForm.name} attribute`
+      ? `${pageState.value.data.name} attribute`
       : 'Attribute',
   ),
 })
-const submitting = ref(false)
-const saved = ref(false)
-const error = ref<null | string>(null)
 
-async function returnToAttributes() {
-  await navigateTo(organizationRoutes.attributes())
+async function remove(id: string): Promise<void> {
+  if (state.submitting) {
+    return
+  }
+  state.submitting = true
+  state.error = null
+  try {
+    const result = await props.deps.delete({ id })
+    await matchResult(result, {
+      err: (failure) => {
+        state.error = getChangeFailureMessage(
+          failure,
+          'Could not delete the attribute. Try again.',
+        )
+      },
+      ok: props.onFinished,
+    })
+  } finally {
+    state.submitting = false
+  }
 }
 
-async function remove(id: string) {
-  submitting.value = true
-  saved.value = false
-  error.value = null
-  const result = await props.deps.deleteAttribute({ id })
-  submitting.value = false
-  await matchActionResult({
-    err: async (actionError) => {
-      error.value = getErrorMessage({
-        error: actionError,
-        messages: {
-          AccessDenied: 'You do not have permission to delete attributes.',
-          AttributeNotFound: 'The requested page was not found.',
-          TemporarilyUnavailable: 'Could not delete the attribute. Try again.',
-        },
-      })
-    },
-    ok: async () => {
-      await returnToAttributes()
-    },
-    result,
-  })
-}
-
-async function update(input: UpdateAttributeInput) {
-  submitting.value = true
-  saved.value = false
-  error.value = null
-  const result = await props.deps.updateAttribute(input)
-  submitting.value = false
-  await matchActionResult({
-    err: async (actionError) => {
-      error.value = getErrorMessage({
-        error: actionError,
-        messages: {
-          AccessDenied: 'You do not have permission to update attributes.',
-          AttributeNotFound: 'The requested page was not found.',
-          TemporarilyUnavailable: 'Could not save the attribute. Try again.',
-        },
-      })
-    },
-    ok: async () => {
-      await returnToAttributes()
-    },
-    result,
-  })
+async function update(input: UpdateAttributeInput): Promise<void> {
+  if (state.submitting) {
+    return
+  }
+  state.submitting = true
+  state.error = null
+  try {
+    const result = await props.deps.update(input)
+    await matchResult(result, {
+      err: (failure) => {
+        state.error = getChangeFailureMessage(
+          failure,
+          'Could not save the attribute. Try again.',
+        )
+      },
+      ok: props.onFinished,
+    })
+  } finally {
+    state.submitting = false
+  }
 }
 </script>

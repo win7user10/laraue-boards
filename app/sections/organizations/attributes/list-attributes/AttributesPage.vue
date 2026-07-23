@@ -1,84 +1,90 @@
 <template>
-  <section
-    v-if="pageState.type === 'ready'"
-    class="attributes-page">
-    <div class="title-row">
-      <div class="page-heading">
-        <Tags class="page-heading-icon" />
-        <div class="page-heading-text">
-          <h1>Attributes</h1>
-        </div>
-      </div>
-      <NuxtLink
-        class="primary"
-        :to="organizationRoutes.newAttribute()">
-        <Plus />
-        <span class="btn-label">New attribute</span>
-      </NuxtLink>
-    </div>
-    <p class="attributes-intro">
-      Custom fields you can attach to issues, like Priority or Severity.
-    </p>
-    <div
-      v-if="pageState.data.AttributesPage.attributes.length"
-      class="attribute-list">
-      <NuxtLink
-        v-for="attribute in pageState.data.AttributesPage.attributes"
-        :key="attribute.id"
-        :to="organizationRoutes.attribute(attribute.id)">
-        <span :style="{ background: attribute.color }" />
-        <span class="attribute-name">
-          <strong>{{ attribute.name }}</strong>
-          <small class="muted">
-            {{ attribute.type === 'list' ? 'List' : 'Text' }}
-          </small>
-        </span>
-        <ChevronRight />
-      </NuxtLink>
-    </div>
-    <p
-      v-else
-      class="empty">
-      No attributes yet.
-    </p>
-  </section>
-  <PageLoadState
-    v-else
-    :error-text="pageState.type === 'error' ? pageState.message : ''"
-    :loading="pageState.type === 'pending'"
+  <PageState
+    error-title="Could not load attributes"
     loading-text="Loading attributes…"
-    :on-retry="refresh" />
+    :on-retry="query.refresh"
+    :state="pageState">
+    <template #default="{ data: attributes }">
+      <section class="attributes-page">
+        <div class="title-row">
+          <div class="page-heading">
+            <Tags class="page-heading-icon" />
+            <div class="page-heading-text">
+              <h1>Attributes</h1>
+            </div>
+          </div>
+          <NuxtLink
+            class="primary"
+            :to="organizationRoutes.newAttribute()">
+            <Plus />
+            <span class="btn-label">New attribute</span>
+          </NuxtLink>
+        </div>
+        <p class="attributes-intro">
+          Custom fields you can attach to issues, like Priority or Severity.
+        </p>
+        <div
+          v-if="attributes.length"
+          class="attribute-list">
+          <NuxtLink
+            v-for="attribute in attributes"
+            :key="attribute.id"
+            :to="organizationRoutes.attribute(attribute.id)">
+            <span :style="{ background: attribute.color }" />
+            <span class="attribute-name">
+              <strong>{{ attribute.name }}</strong>
+              <small class="muted">
+                {{ attribute.type === 'list' ? 'List' : 'Text' }}
+              </small>
+            </span>
+            <ChevronRight />
+          </NuxtLink>
+        </div>
+        <p
+          v-else
+          class="empty">
+          No attributes yet.
+        </p>
+      </section>
+    </template>
+  </PageState>
 </template>
-
-<script lang="ts">
-export type AttributesPageViewModel = {
-  attributes: Array<{
-    color: string
-    id: string
-    name: string
-    type: 'list' | 'text'
-  }>
-}
-</script>
 
 <script setup lang="ts">
 import { ChevronRight, Plus, Tags } from 'lucide-vue-next'
 
-import type { AttributesPageDeps } from '~/sections/organizations/attributes/list-attributes/AttributesPageDeps'
+import type {
+  AttributesPageDeps,
+  ViewAttributesFailure,
+} from '~/sections/organizations/attributes/list-attributes/AttributesPage.deps'
+import { assertNever } from '~/utils/assertNever'
+import { toAsyncResultState } from '~/utils/asyncResultState'
 
 const props = defineProps<{ deps: AttributesPageDeps }>()
 const organizationRoutes = useOrganizationRoutes()
 useHead({ title: 'Attributes' })
-const { refresh, state: pageState } = await useActionData({
-  action: () => props.deps.viewAttributesPage(),
-  fallbackMessage:
-    'Could not load attributes. The service is temporarily unavailable.',
-  messages: {
-    AccessDenied: 'You do not have permission to manage attributes.',
-    TemporarilyUnavailable:
-      'Could not load attributes. The service is temporarily unavailable.',
-  },
-})
+const query = await useAsyncData(
+  'organization-attributes',
+  (_nuxtApp, { signal }) => props.deps.view({ signal }),
+)
+const getFailureMessage = (failure: ViewAttributesFailure): string => {
+  switch (failure.type) {
+    case 'accessDenied':
+      return 'You do not have permission to manage attributes.'
+    case 'temporarilyUnavailable':
+      return 'Could not load attributes. The service is temporarily unavailable.'
+    default:
+      return assertNever(failure)
+  }
+}
+const pageState = computed(() =>
+  toAsyncResultState({
+    error: query.error.value,
+    getErrorMessage: getFailureMessage,
+    result: query.data.value,
+    status: query.status.value,
+  }),
+)
 </script>
 
 <style scoped>

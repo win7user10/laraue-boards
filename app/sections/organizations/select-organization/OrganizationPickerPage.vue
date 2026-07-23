@@ -1,141 +1,150 @@
 <template>
-  <section
-    v-if="pageState.type === 'ready'"
-    class="org-picker">
-    <div class="picker-card">
-      <div class="logo">
-        <img
-          alt=""
-          class="logo-mark"
-          src="/favicon.svg" />
-        <span>Laraue Boards</span>
-      </div>
-      <h1>Choose an organization</h1>
-      <p class="muted">Select where you want to work today.</p>
-      <div class="org-list">
-        <button
-          v-for="organization in pageState.data.OrganizationPickerPage
-            .organizations"
-          :key="organization.id"
-          class="org-choice"
-          :disabled="state.selecting"
-          type="button"
-          @click="
-            select({
-              organizationId: organization.id,
-              organizationKey: organization.key,
-            })
-          ">
-          <span
-            class="entity-avatar"
-            :style="{ background: organization.color }">
-            {{ organization.initial }}
-          </span>
-          <span>
-            <strong>{{ organization.name }}</strong>
-            <small class="muted">{{ organization.description }}</small>
-          </span>
-          <ChevronRight />
-        </button>
-        <p
-          v-if="
-            pageState.data.OrganizationPickerPage.organizations.length === 0
-          "
-          class="empty">
-          No organizations yet.
-        </p>
-      </div>
-      <NuxtLink
-        class="secondary"
-        to="/organizations/new">
-        <Plus />
-        Create organization
-      </NuxtLink>
-      <p
-        v-if="state.error"
-        class="form-error">
-        {{ state.error }}
-      </p>
-    </div>
-  </section>
-  <PageLoadState
-    v-else
-    :error-text="pageState.type === 'error' ? pageState.message : ''"
-    :loading="pageState.type === 'pending'"
+  <PageState
+    error-title="Could not load organizations"
     loading-text="Loading organizations…"
-    :on-retry="retry"
+    :on-retry="
+      pageState.type === 'error' && pageState.error.type === 'accessDenied'
+        ? onAccessDenied
+        : query.refresh
+    "
     :retry-text="
-      pageState.type === 'error' && pageState.error === 'AccessDenied'
+      pageState.type === 'error' && pageState.error.type === 'accessDenied'
         ? 'Sign in'
         : 'Try again'
-    " />
+    "
+    :state="pageState">
+    <template #default="{ data: organizations }">
+      <section class="org-picker">
+        <div class="picker-card">
+          <div class="logo">
+            <img
+              alt=""
+              class="logo-mark"
+              src="/favicon.svg" />
+            <span>Laraue Boards</span>
+          </div>
+          <h1>Choose an organization</h1>
+          <p class="muted">Select where you want to work today.</p>
+          <div class="org-list">
+            <button
+              v-for="organization in organizations"
+              :key="organization.id"
+              class="org-choice"
+              :disabled="state.selecting"
+              type="button"
+              @click="select(organization.id, organization.key)">
+              <span
+                class="entity-avatar"
+                :style="{ background: organization.color }">
+                {{ organization.initial }}
+              </span>
+              <span>
+                <strong>{{ organization.name }}</strong>
+                <small class="muted">{{ organization.description }}</small>
+              </span>
+              <ChevronRight />
+            </button>
+            <p
+              v-if="organizations.length === 0"
+              class="empty">
+              No organizations yet.
+            </p>
+          </div>
+          <NuxtLink
+            class="secondary"
+            to="/organizations/new">
+            <Plus />
+            Create organization
+          </NuxtLink>
+          <p
+            v-if="state.error"
+            class="form-error">
+            {{ state.error }}
+          </p>
+        </div>
+      </section>
+    </template>
+  </PageState>
 </template>
-
-<script lang="ts">
-export type OrganizationPickerPageViewModel = {
-  organizations: Array<{
-    color: string
-    description: string
-    id: string
-    initial: string
-    key: string
-    name: string
-  }>
-}
-</script>
 
 <script setup lang="ts">
 import { ChevronRight, Plus } from 'lucide-vue-next'
 
-import type { SelectOrganizationPageDeps } from '~/sections/organizations/select-organization/SelectOrganizationPageDeps'
+import type {
+  OrganizationPickerPageDeps,
+  SelectOrganizationFailure,
+  ViewOrganizationPickerFailure,
+} from '~/sections/organizations/select-organization/OrganizationPickerPage.deps'
+import { matchResult } from '~/utils/actionResult'
+import { assertNever } from '~/utils/assertNever'
+import { toAsyncResultState } from '~/utils/asyncResultState'
 
-const props = defineProps<{ deps: SelectOrganizationPageDeps }>()
+const props = defineProps<{
+  deps: OrganizationPickerPageDeps
+  onAccessDenied: () => Promise<void> | void
+  onSelected: (organizationKey: string) => Promise<void> | void
+}>()
 const state = reactive({ error: null as null | string, selecting: false })
 useHead({ title: 'Organizations' })
-const { refresh, state: pageState } = await useActionData({
-  action: () => props.deps.viewOrganizationPickerPage(),
-  fallbackMessage: 'Could not load organizations. Try again.',
-  messages: {
-    AccessDenied: 'Your session is missing or has expired.',
-    TemporarilyUnavailable:
-      'Could not load organizations. The service is temporarily unavailable.',
-  },
-})
-const retry = () =>
-  pageState.value.type === 'error' && pageState.value.error === 'AccessDenied'
-    ? navigateTo('/')
-    : refresh()
+const query = await useAsyncData(
+  'organization-picker',
+  (_nuxtApp, { signal }) => props.deps.view({ signal }),
+)
+const getViewFailureMessage = (
+  failure: ViewOrganizationPickerFailure,
+): string => {
+  switch (failure.type) {
+    case 'accessDenied':
+      return 'Your session is missing or has expired.'
+    case 'temporarilyUnavailable':
+      return 'Could not load organizations. The service is temporarily unavailable.'
+    default:
+      return assertNever(failure)
+  }
+}
+const pageState = computed(() =>
+  toAsyncResultState({
+    error: query.error.value,
+    getErrorMessage: getViewFailureMessage,
+    result: query.data.value,
+    status: query.status.value,
+  }),
+)
+const getSelectFailureMessage = (
+  failure: SelectOrganizationFailure,
+): string => {
+  switch (failure.type) {
+    case 'accessDenied':
+      return 'Your session has expired. Sign in again.'
+    case 'organizationNotFound':
+      return 'This organization is no longer available to you.'
+    case 'temporarilyUnavailable':
+      return 'Could not open organization. Try again.'
+    default:
+      return assertNever(failure)
+  }
+}
 
-async function select(input: {
-  organizationId: string
-  organizationKey: string
-}) {
+async function select(
+  organizationId: string,
+  organizationKey: string,
+): Promise<void> {
+  if (state.selecting) {
+    return
+  }
   state.selecting = true
   state.error = null
-  const result = await props.deps.selectOrganization({
-    organizationId: input.organizationId,
-  })
-  state.selecting = false
-  await matchActionResult({
-    err: async (error) => {
-      state.error = getErrorMessage({
-        error,
-        messages: {
-          AccessDenied: 'Your session has expired. Sign in again.',
-          OrganizationNotFound:
-            'This organization is no longer available to you.',
-          TemporarilyUnavailable: 'Could not open organization. Try again.',
-        },
-      })
-    },
-    ok: async () => {
-      await navigateTo({
-        name: 'organizations-organizationKey-issues',
-        params: { organizationKey: input.organizationKey },
-      })
-    },
-    result,
-  })
+  try {
+    const result = await props.deps.select({ organizationId })
+    await matchResult(result, {
+      err: (failure) => {
+        state.error = getSelectFailureMessage(failure)
+      },
+      ok: () => props.onSelected(organizationKey),
+    })
+  } finally {
+    state.selecting = false
+  }
 }
 </script>
 

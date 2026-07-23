@@ -1,13 +1,17 @@
 <template>
-  <CreateAttributePage :deps="deps" />
+  <CreateAttributePage
+    :deps="deps"
+    :on-created="onCreated" />
 </template>
 
 <script setup lang="ts">
-import { openApiCreateAttribute } from '#infrastructure/organizations/attributes/create-attribute/openApiCreateAttribute'
+import { createCreateAttributePageDeps } from '~/sections/organizations/attributes/create-attribute/CreateAttributePage.deps.impl'
 import CreateAttributePage from '~/sections/organizations/attributes/create-attribute/CreateAttributePage.vue'
 
-const baseUrl = useRuntimeConfig().public.boardsApiBaseUrl
-const deps = {
-  createAttribute: openApiCreateAttribute(baseUrl),
+const client = useApiClient()
+const deps = createCreateAttributePageDeps(client)
+const organizationRoutes = useOrganizationRoutes()
+const onCreated = async (): Promise<void> => {
+  await navigateTo(organizationRoutes.attributes())
 }
 </script>

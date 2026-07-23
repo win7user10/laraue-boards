@@ -46,11 +46,6 @@
     </fieldset>
 
     <p
-      v-if="saved"
-      class="form-success">
-      Attribute saved.
-    </p>
-    <p
       v-if="error"
       class="form-error">
       {{ error }}
@@ -74,34 +69,17 @@
 </template>
 
 <script lang="ts">
-export type EditAttributeFormViewModel = {
-  color: string
-  data:
-    | { listValues: Array<{ id: string; name: string }>; type: 'list' }
-    | { type: 'text' }
-  id: string
-  name: string
-}
-
-export type EditAttributeFormInput = {
-  color: string
-  data:
-    | {
-        listValues: Array<{ id: null | string; name: string }>
-        type: 'list'
-      }
-    | { type: 'text' }
-  id: string
-  name: string
-}
+import type {
+  Attribute,
+  UpdateAttributeInput,
+} from '~/sections/organizations/attributes/attribute/AttributePage.deps'
 
 type EditAttributeFormProps = {
   error: null | string
   onDelete: (id: string) => void
-  onSubmit: (input: EditAttributeFormInput) => void
-  saved: boolean
+  onSubmit: (input: UpdateAttributeInput) => void
   submitting: boolean
-  viewModel: EditAttributeFormViewModel
+  viewModel: Attribute
 }
 </script>
 
@@ -118,9 +96,9 @@ type AttributeDraft = {
 }
 
 let nextOptionKey = 0
-const draft = ref<AttributeDraft>(toDraft(props.viewModel))
+const draft = reactive<AttributeDraft>(toDraft(props.viewModel))
 
-function toDraft(viewModel: EditAttributeFormViewModel): AttributeDraft {
+function toDraft(viewModel: Attribute): AttributeDraft {
   return viewModel.data.type === 'list'
     ? {
         color: viewModel.color,
@@ -145,8 +123,8 @@ function toDraft(viewModel: EditAttributeFormViewModel): AttributeDraft {
 }
 
 function addOption() {
-  if (draft.value.data.type === 'list') {
-    draft.value.data.listValues.push({
+  if (draft.data.type === 'list') {
+    draft.data.listValues.push({
       id: null,
       key: nextOptionKey++,
       name: '',
@@ -155,7 +133,7 @@ function addOption() {
 }
 
 function submit() {
-  const value = draft.value
+  const value = draft
   props.onSubmit(
     value.data.type === 'list'
       ? {
@@ -188,7 +166,7 @@ function remove() {
 watch(
   () => props.viewModel,
   (viewModel) => {
-    draft.value = toDraft(viewModel)
+    Object.assign(draft, toDraft(viewModel))
   },
 )
 </script>

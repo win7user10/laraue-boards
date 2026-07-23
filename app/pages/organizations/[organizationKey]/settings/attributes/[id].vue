@@ -1,21 +1,20 @@
 <template>
   <AttributePage
     :attribute-id="attributeId"
-    :deps="deps" />
+    :deps="deps"
+    :on-finished="onFinished" />
 </template>
 
 <script setup lang="ts">
-import { openApiDeleteAttribute } from '#infrastructure/organizations/attributes/attribute/openApiDeleteAttribute'
-import { openApiUpdateAttribute } from '#infrastructure/organizations/attributes/attribute/openApiUpdateAttribute'
-import { openApiViewAttributePage } from '#infrastructure/organizations/attributes/attribute/openApiViewAttributePage'
+import { createAttributePageDeps } from '~/sections/organizations/attributes/attribute/AttributePage.deps.impl'
 import AttributePage from '~/sections/organizations/attributes/attribute/AttributePage.vue'
 
 const route = useRoute('organizations-organizationKey-settings-attributes-id')
 const attributeId = computed(() => String(route.params.id))
-const baseUrl = useRuntimeConfig().public.boardsApiBaseUrl
-const deps = {
-  deleteAttribute: openApiDeleteAttribute(baseUrl),
-  updateAttribute: openApiUpdateAttribute(baseUrl),
-  viewAttributePage: openApiViewAttributePage(baseUrl),
+const client = useApiClient()
+const deps = createAttributePageDeps(client)
+const organizationRoutes = useOrganizationRoutes()
+const onFinished = async (): Promise<void> => {
+  await navigateTo(organizationRoutes.attributes())
 }
 </script>

@@ -2,17 +2,13 @@
   <BoardSettingsPage
     :board-id="boardId"
     :deps="deps"
+    :on-deleted="onDeleted"
+    :on-saved="onSaved"
     :space-key="spaceKey" />
 </template>
 
 <script setup lang="ts">
-import { openApiCreateBoardColumn } from '#infrastructure/boards/board-settings/openApiCreateBoardColumn'
-import { openApiDeleteBoard } from '#infrastructure/boards/board-settings/openApiDeleteBoard'
-import { openApiDeleteBoardColumn } from '#infrastructure/boards/board-settings/openApiDeleteBoardColumn'
-import { openApiReorderBoardColumns } from '#infrastructure/boards/board-settings/openApiReorderBoardColumns'
-import { openApiUpdateBoard } from '#infrastructure/boards/board-settings/openApiUpdateBoard'
-import { openApiUpdateBoardColumn } from '#infrastructure/boards/board-settings/openApiUpdateBoardColumn'
-import { openApiViewBoardSettingsPage } from '#infrastructure/boards/board-settings/openApiViewBoardSettingsPage'
+import { createBoardSettingsPageDeps } from '~/sections/boards/board-settings/BoardSettingsPage.deps.impl'
 import BoardSettingsPage from '~/sections/boards/board-settings/BoardSettingsPage.vue'
 
 const route = useRoute(
@@ -20,15 +16,13 @@ const route = useRoute(
 )
 const boardId = computed(() => String(route.params.boardId))
 const spaceKey = computed(() => String(route.params.spaceKey))
-const config = useRuntimeConfig()
-const baseUrl = config.public.boardsApiBaseUrl
-const deps = {
-  createBoardColumn: openApiCreateBoardColumn(baseUrl),
-  deleteBoard: openApiDeleteBoard(baseUrl),
-  deleteBoardColumn: openApiDeleteBoardColumn(baseUrl),
-  reorderBoardColumns: openApiReorderBoardColumns(baseUrl),
-  updateBoard: openApiUpdateBoard(baseUrl),
-  updateBoardColumn: openApiUpdateBoardColumn(baseUrl),
-  viewBoardSettingsPage: openApiViewBoardSettingsPage(baseUrl),
+const organizationRoutes = useOrganizationRoutes()
+const client = useApiClient()
+const deps = createBoardSettingsPageDeps(client)
+const onDeleted = async (): Promise<void> => {
+  await navigateTo(organizationRoutes.space(spaceKey.value))
+}
+const onSaved = async (): Promise<void> => {
+  await navigateTo(organizationRoutes.board(spaceKey.value, boardId.value))
 }
 </script>

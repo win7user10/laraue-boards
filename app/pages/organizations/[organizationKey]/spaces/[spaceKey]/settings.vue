@@ -1,21 +1,26 @@
 <template>
   <SpaceSettingsPage
     :deps="deps"
+    :on-deleted="onDeleted"
+    :on-updated="onUpdated"
     :space-key="spaceKey" />
 </template>
 
 <script setup lang="ts">
-import { openApiDeleteSpace } from '#infrastructure/spaces/space-settings/openApiDeleteSpace'
-import { openApiUpdateSpace } from '#infrastructure/spaces/space-settings/openApiUpdateSpace'
-import { openApiViewSpaceSettingsPage } from '#infrastructure/spaces/space-settings/openApiViewSpaceSettingsPage'
+import { createSpaceSettingsPageDeps } from '~/sections/spaces/space-settings/SpaceSettingsPage.deps.impl'
 import SpaceSettingsPage from '~/sections/spaces/space-settings/SpaceSettingsPage.vue'
+
 const route = useRoute('organizations-organizationKey-spaces-spaceKey-settings')
 const spaceKey = computed(() => String(route.params.spaceKey))
-const config = useRuntimeConfig()
-const baseUrl = config.public.boardsApiBaseUrl
-const deps = {
-  deleteSpace: openApiDeleteSpace(baseUrl),
-  updateSpace: openApiUpdateSpace(baseUrl),
-  viewSpaceSettingsPage: openApiViewSpaceSettingsPage(baseUrl),
+const organizationRoutes = useOrganizationRoutes()
+const client = useApiClient()
+const deps = createSpaceSettingsPageDeps(client)
+const onDeleted = async (): Promise<void> => {
+  await refreshAppLayoutData()
+  await navigateTo(organizationRoutes.issues())
+}
+const onUpdated = async (newSpaceKey: string): Promise<void> => {
+  await refreshAppLayoutData()
+  await navigateTo(organizationRoutes.space(newSpaceKey))
 }
 </script>

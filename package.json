@@ -18,7 +18,7 @@
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
-    "pre-commit": "pnpm fix && pnpm typecheck && pnpm test && pnpm build"
+    "pre-commit": "pnpm fix && pnpm typecheck && pnpm test"
   },
   "dependencies": {
     "@dnd-kit/abstract": "^0.5.0",

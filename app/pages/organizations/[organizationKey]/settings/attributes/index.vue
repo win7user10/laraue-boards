@@ -3,11 +3,9 @@
 </template>
 
 <script setup lang="ts">
-import { openApiViewAttributesPage } from '#infrastructure/organizations/attributes/list-attributes/openApiViewAttributesPage'
+import { createAttributesPageDeps } from '~/sections/organizations/attributes/list-attributes/AttributesPage.deps.impl'
 import AttributesPage from '~/sections/organizations/attributes/list-attributes/AttributesPage.vue'
 
-const baseUrl = useRuntimeConfig().public.boardsApiBaseUrl
-const deps = {
-  viewAttributesPage: openApiViewAttributesPage(baseUrl),
-}
+const client = useApiClient()
+const deps = createAttributesPageDeps(client)
 </script>

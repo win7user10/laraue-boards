@@ -1,6 +1,7 @@
 import { createApiClient } from '#infrastructure/api/client'
 import { getInvalidInputError } from '#infrastructure/api/getInvalidInputError'
 import { mapIssueAttributeValues } from '#infrastructure/issues/shared/issueAttributes'
+import { updateIssueFormData } from '#infrastructure/issues/shared/issueFormData'
 import type { UpdateIssue } from '~/sections/issues/issue/deps/updateIssue'
 
 export const openApiUpdateIssue =
@@ -8,12 +9,11 @@ export const openApiUpdateIssue =
   async (input) => {
     const client = createApiClient(baseUrl)
     try {
+      const attributeValues = mapIssueAttributeValues(input.attributeValues)
       const response = await client.PUT('/api/issues/{key}', {
-        body: {
-          assigneeId: input.assigneeId,
-          attributeValues: mapIssueAttributeValues(input.attributeValues),
-          content: input.content,
-        },
+        body: {},
+        bodySerializer: () =>
+          updateIssueFormData({ ...input, attributeValues }),
         params: { path: { key: input.issueKey } },
       })
       switch (response.response.status) {

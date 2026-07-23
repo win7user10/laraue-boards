@@ -10,6 +10,14 @@
           v-model="state.content"
           :disabled="!viewModel.canEdit"
           rows="10" />
+        <IssueAttachments
+          :key="viewModel.issueKey"
+          :attachments="viewModel.attachments"
+          :disabled="!viewModel.canEdit || saving"
+          :files="state.files"
+          :on-change="changeFiles"
+          :on-remove-attachment="removeAttachment"
+          :removed-attachment-ids="state.removedAttachmentIds" />
       </div>
       <div class="issue-form-side">
         <label>Space</label>
@@ -203,6 +211,7 @@
 
 <script lang="ts">
 import type { IssueDetailsDeps } from '~/components/issues/issue-details/IssueDetailsDeps'
+import type { IssueAttachmentViewModel } from '~/components/issues/IssueAttachments.vue'
 
 const dateTimeFormatter = new Intl.DateTimeFormat('en-US', {
   dateStyle: 'medium',
@@ -232,6 +241,7 @@ export type IssueDetailsViewModel = {
   assigneeColor: string
   assigneeId: string
   assigneeInitial: string
+  attachments: IssueAttachmentViewModel[]
   attributes: IssueDetailsAttributeViewModel[]
   boardId: string
   boardLabel: string
@@ -254,6 +264,8 @@ export type IssueDetailsSaveInput = {
   attributeValues: Record<string, string>
   boardId: string
   content: string
+  files: File[]
+  removeAttachmentIds: string[]
   statusId: string
 }
 
@@ -271,6 +283,8 @@ export type IssueDetailsProps = {
 </script>
 
 <script setup lang="ts">
+import IssueAttachments from '~/components/issues/IssueAttachments.vue'
+
 const props = defineProps<IssueDetailsProps>()
 defineSlots<{
   footer?: (props: { canSave: boolean }) => unknown
@@ -290,6 +304,7 @@ const state = reactive({
   boardId: props.viewModel.boardId,
   boardLabel: props.viewModel.boardLabel,
   content: props.viewModel.content,
+  files: [] as File[],
   loadingAssignees: false,
   loadingMoveBoards: false,
   loadingMoveSpaces: false,
@@ -298,6 +313,7 @@ const state = reactive({
   moveBoards: [] as MoveOption[],
   moveSpaces: [] as MoveOption[],
   pickedSpaceId: props.viewModel.spaceId,
+  removedAttachmentIds: [] as string[],
   spaceLabel: props.viewModel.spaceLabel,
   statuses: [] as Array<{ id: string; name: string }>,
   statusId: props.viewModel.statusId,
@@ -339,6 +355,8 @@ const dirty = computed(
     state.content !== props.viewModel.content ||
     state.pickedSpaceId !== props.viewModel.spaceId ||
     state.statusId !== props.viewModel.statusId ||
+    state.files.length > 0 ||
+    state.removedAttachmentIds.length > 0 ||
     props.viewModel.attributes.some(
       (attribute) => state.attributeValues[attribute.id] !== attribute.value,
     ),
@@ -361,7 +379,9 @@ watch(
       boardId: viewModel.boardId,
       boardLabel: viewModel.boardLabel,
       content: viewModel.content,
+      files: [],
       pickedSpaceId: viewModel.spaceId,
+      removedAttachmentIds: [],
       spaceLabel: viewModel.spaceLabel,
       statusId: viewModel.statusId,
     })
@@ -527,13 +547,24 @@ function save() {
     ),
     boardId: state.boardId,
     content: state.content,
+    files: state.files,
+    removeAttachmentIds: state.removedAttachmentIds,
     statusId: state.statusId,
   })
+}
+
+function changeFiles(files: File[]) {
+  state.files = files
+}
+
+function removeAttachment(id: string) {
+  state.removedAttachmentIds.push(id)
 }
 
 function resetLookups() {
   Object.assign(state, {
     assignees: [],
+    files: [],
     loadingAssignees: false,
     loadingMoveBoards: false,
     loadingMoveSpaces: false,
@@ -541,6 +572,7 @@ function resetLookups() {
     lookupError: null,
     moveBoards: [],
     moveSpaces: [],
+    removedAttachmentIds: [],
     statuses: [],
   })
 }

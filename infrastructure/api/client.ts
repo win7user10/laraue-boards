@@ -2,14 +2,31 @@ import createFetchClient from 'openapi-fetch'
 
 import type { paths } from '#infrastructure/api/generated'
 
-export const createApiClient = (baseUrl: string) =>
-  createFetchClient<paths>({
+export type CreateApiClientOptions = {
+  baseUrl: string
+  fetch?: typeof globalThis.fetch
+  headers?: HeadersInit
+}
+
+export const createApiClient = (options: CreateApiClientOptions | string) => {
+  const baseUrl = typeof options === 'string' ? options : options.baseUrl
+  const fetch =
+    typeof options === 'string'
+      ? globalThis.fetch
+      : (options.fetch ?? globalThis.fetch)
+  const headers =
+    typeof options === 'string'
+      ? import.meta.server
+        ? useRequestHeaders(['cookie'])
+        : undefined
+      : options.headers
+
+  return createFetchClient<paths>({
     baseUrl,
     credentials: 'include',
-    fetch: globalThis.fetch,
-    headers: {
-      // SSR fetch has no browser cookie jar; forward the incoming request's
-      // cookie so the backend sees the session on full page loads/reloads.
-      ...(import.meta.server ? useRequestHeaders(['cookie']) : {}),
-    },
+    fetch,
+    headers,
   })
+}
+
+export type ApiClient = ReturnType<typeof createApiClient>
