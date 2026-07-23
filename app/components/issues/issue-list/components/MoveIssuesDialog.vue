@@ -2,13 +2,13 @@
   <dialog ref="dialog">
     <form @submit.prevent="move">
       <h2>
-        Move {{ issueKeys.length }}
-        {{ issueKeys.length === 1 ? 'issue' : 'issues' }}
+        Move {{ state.issueKeys.length }}
+        {{ state.issueKeys.length === 1 ? 'issue' : 'issues' }}
       </h2>
       <label :for="`${idPrefix}-space`">Space</label>
       <select
         :id="`${idPrefix}-space`"
-        v-model="spaceId"
+        v-model="state.spaceId"
         required
         @change="changeSpace"
         @focus="loadSpaces">
@@ -33,8 +33,8 @@
       <label :for="`${idPrefix}-board`">Board</label>
       <select
         :id="`${idPrefix}-board`"
-        v-model="boardId"
-        :disabled="!spaceId"
+        v-model="state.boardId"
+        :disabled="!state.spaceId"
         required
         @change="changeBoard"
         @focus="loadBoards">
@@ -59,8 +59,8 @@
       <label :for="`${idPrefix}-status`">Column</label>
       <select
         :id="`${idPrefix}-status`"
-        v-model="statusId"
-        :disabled="!boardId"
+        v-model="state.statusId"
+        :disabled="!state.boardId"
         required
         @focus="loadStatuses">
         <option
@@ -102,7 +102,7 @@
         </button>
         <button
           class="primary"
-          :disabled="moving || loadingStatuses || !statusId">
+          :disabled="moving || loadingStatuses || !state.statusId">
           {{ moving ? 'Moving…' : 'Move' }}
         </button>
       </div>
@@ -136,27 +136,29 @@ const props = defineProps<MoveIssuesDialogProps>()
 
 const idPrefix = useId()
 const dialog = ref<HTMLDialogElement>()
-const issueKeys = ref<string[]>([])
-const spaceId = ref('')
-const boardId = ref('')
-const statusId = ref('')
+const state = reactive({
+  boardId: '',
+  issueKeys: [] as string[],
+  spaceId: '',
+  statusId: '',
+})
 
 function open(ids: string[]) {
-  issueKeys.value = ids
-  spaceId.value = ''
-  boardId.value = ''
-  statusId.value = ''
+  state.issueKeys = ids
+  state.spaceId = ''
+  state.boardId = ''
+  state.statusId = ''
   dialog.value?.showModal()
 }
 
 function changeSpace() {
-  boardId.value = ''
-  statusId.value = ''
+  state.boardId = ''
+  state.statusId = ''
   props.onChangeSpace()
 }
 
 function changeBoard() {
-  statusId.value = ''
+  state.statusId = ''
   props.onChangeBoard()
 }
 
@@ -167,19 +169,19 @@ function loadSpaces() {
 }
 
 function loadBoards() {
-  if (spaceId.value && !props.loadingBoards && props.boards.length === 0) {
-    props.onLoadBoards(spaceId.value)
+  if (state.spaceId && !props.loadingBoards && props.boards.length === 0) {
+    props.onLoadBoards(state.spaceId)
   }
 }
 
 function loadStatuses() {
-  if (boardId.value && !props.loadingStatuses && props.statuses.length === 0) {
-    props.onLoadStatuses(boardId.value)
+  if (state.boardId && !props.loadingStatuses && props.statuses.length === 0) {
+    props.onLoadStatuses(state.boardId)
   }
 }
 
 function move() {
-  props.onMove({ issueKeys: issueKeys.value, statusId: statusId.value })
+  props.onMove({ issueKeys: state.issueKeys, statusId: state.statusId })
 }
 
 watch(

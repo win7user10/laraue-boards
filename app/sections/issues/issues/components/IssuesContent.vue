@@ -37,15 +37,19 @@
         " />
     </div>
     <IssueList
-      :deps="issueListDeps"
       empty-text="No issues yet."
       :filtering="filtering"
       :has-next-page="viewModel.hasNextPage"
       :issues="viewModel.issues"
-      :on-moved="props.onIssuesMoved"
+      :move="move"
+      :on-change-move-board="props.onChangeMoveBoard"
+      :on-change-move-space="props.onChangeMoveSpace"
+      :on-load-move-boards="props.onLoadMoveBoards"
+      :on-load-move-spaces="props.onLoadMoveSpaces"
+      :on-load-move-statuses="props.onLoadMoveStatuses"
+      :on-move="props.onMove"
       :on-update-page="props.onUpdatePage"
-      :page="page"
-      :source-board-id="null" />
+      :page="page" />
   </section>
 </template>
 
@@ -88,8 +92,13 @@ export type IssuesPageViewModel = {
 type IssuesPageProps = {
   filtering: boolean
   filterValue: IssuesPageFilterValue
-  issueListDeps: IssueListDeps
-  onIssuesMoved: () => Promise<void> | void
+  move: IssueListMoveState
+  onChangeMoveBoard: () => void
+  onChangeMoveSpace: () => void
+  onLoadMoveBoards: (spaceId: string) => Promise<void> | void
+  onLoadMoveSpaces: () => Promise<void> | void
+  onLoadMoveStatuses: (boardId: string) => Promise<void> | void
+  onMove: (input: { issueKeys: string[]; statusId: string }) => Promise<boolean>
   onUpdateFilters: (value: IssuesPageFilterValue) => void
   onUpdatePage: (value: number) => void
   onUpdateSearch: (value: string) => void
@@ -103,7 +112,7 @@ type IssuesPageProps = {
 import { ClipboardList, Plus } from 'lucide-vue-next'
 
 import IssueList from '~/components/issues/issue-list/IssueList.vue'
-import type { IssueListDeps } from '~/components/issues/issue-list/IssueListDeps'
+import type { IssueListMoveState } from '~/components/issues/issue-list/IssueList.vue'
 import IssueFilters from '~/components/issues/IssueFilters.vue'
 
 const props = defineProps<IssuesPageProps>()

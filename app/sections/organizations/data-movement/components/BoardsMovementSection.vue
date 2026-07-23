@@ -4,28 +4,11 @@
       <h2>Boards</h2>
       <p class="muted">Move boards to a space in an accessible organization.</p>
     </div>
-    <Transition name="slide-fade">
-      <div
-        v-if="state.selected.size"
-        class="bulk-bar">
-        <span>{{ state.selected.size }} selected</span>
-        <div class="bulk-actions">
-          <button
-            class="secondary"
-            type="button"
-            @click="state.selected.clear()">
-            Clear
-          </button>
-          <button
-            class="primary"
-            type="button"
-            @click="openDialog([...state.selected])">
-            <ArrowRightLeft />
-            Move boards
-          </button>
-        </div>
-      </div>
-    </Transition>
+    <AppBulkBar
+      action-label="Move boards"
+      :count="state.selected.size"
+      @action="openDialog([...state.selected])"
+      @clear="state.selected.clear()" />
     <div class="board-groups">
       <section
         v-for="space in spaces"
@@ -265,21 +248,5 @@ watch(
   border-left: var(--movement-tree-line-width) solid var(--color-border);
   margin-left: calc((var(--icon-size) - var(--movement-tree-line-width)) / 2);
   padding-left: var(--space-4);
-}
-
-.bulk-bar {
-  align-items: center;
-  background: var(--color-soft);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-card);
-  display: flex;
-  gap: var(--space-3);
-  justify-content: space-between;
-  padding: var(--space-2) var(--space-4);
-}
-
-.bulk-actions {
-  display: flex;
-  gap: var(--space-2);
 }
 </style>

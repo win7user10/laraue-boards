@@ -4,28 +4,11 @@
       <h2>Spaces</h2>
       <p class="muted">Move spaces to another organization.</p>
     </div>
-    <Transition name="slide-fade">
-      <div
-        v-if="state.selected.size"
-        class="bulk-bar">
-        <span>{{ state.selected.size }} selected</span>
-        <div class="bulk-actions">
-          <button
-            class="secondary"
-            type="button"
-            @click="state.selected.clear()">
-            Clear
-          </button>
-          <button
-            class="primary"
-            type="button"
-            @click="openDialog([...state.selected])">
-            <ArrowRightLeft />
-            Move spaces
-          </button>
-        </div>
-      </div>
-    </Transition>
+    <AppBulkBar
+      action-label="Move spaces"
+      :count="state.selected.size"
+      @action="openDialog([...state.selected])"
+      @clear="state.selected.clear()" />
     <div class="entity-list">
       <div
         v-for="space in movableSpaces"
@@ -202,21 +185,5 @@ watch(
     var(--color-accent) 45%,
     var(--color-border)
   );
-}
-
-.bulk-bar {
-  align-items: center;
-  background: var(--color-soft);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-card);
-  display: flex;
-  gap: var(--space-3);
-  justify-content: space-between;
-  padding: var(--space-2) var(--space-4);
-}
-
-.bulk-actions {
-  display: flex;
-  gap: var(--space-2);
 }
 </style>

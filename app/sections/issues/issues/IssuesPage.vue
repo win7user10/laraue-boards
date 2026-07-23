@@ -2,9 +2,14 @@
   <IssuesContent
     v-if="pageState.type === 'ready'"
     :filter-value="filterValue"
-    :filtering="filtering"
-    :issue-list-deps="deps.issueList"
-    :on-issues-moved="handleIssuesMoved"
+    :filtering="state.filtering"
+    :move="state.move"
+    :on-change-move-board="changeMoveBoard"
+    :on-change-move-space="changeMoveSpace"
+    :on-load-move-boards="loadMoveBoards"
+    :on-load-move-spaces="loadMoveSpaces"
+    :on-load-move-statuses="loadMoveStatuses"
+    :on-move="moveIssues"
     :on-update-filters="updateFilters"
     :on-update-page="updatePage"
     :on-update-search="updateSearch"
@@ -111,11 +116,23 @@ function updateSearch(value: string) {
 
 // Issue search
 const runSearch = createLatestRequest()
-const filtering = ref(false)
+const state = reactive({
+  filtering: false,
+  move: {
+    boards: [] as Array<{ label: string; value: string }>,
+    error: null as null | string,
+    loadingBoards: false,
+    loadingSpaces: false,
+    loadingStatuses: false,
+    moving: false,
+    spaces: [] as Array<{ label: string; value: string }>,
+    statuses: [] as Array<{ id: string; name: string }>,
+  },
+})
 
 async function searchIssues(input: typeof request.value) {
   scheduleSearch.cancel()
-  filtering.value = true
+  state.filtering = true
   const latest = await runSearch({
     onLatest: (result) => {
       matchActionResult({
@@ -158,17 +175,128 @@ async function searchIssues(input: typeof request.value) {
       }),
   })
   if (latest) {
-    filtering.value = false
+    state.filtering = false
   }
 }
 
-async function handleIssuesMoved() {
-  await searchIssues(request.value)
+function changeMoveSpace() {
+  state.move.error = null
+  state.move.loadingBoards = false
+  state.move.loadingStatuses = false
+  state.move.boards = []
+  state.move.statuses = []
+}
+
+function changeMoveBoard() {
+  state.move.error = null
+  state.move.loadingStatuses = false
+  state.move.statuses = []
+}
+
+async function loadMoveSpaces() {
+  state.move.error = null
+  state.move.loadingSpaces = true
+  const result = await props.deps.issueList.loadMoveSpaces()
+  state.move.loadingSpaces = false
+  matchActionResult({
+    err: (error) => {
+      state.move.error = getErrorMessage({
+        error,
+        messages: {
+          AccessDenied: 'You do not have access to available spaces.',
+          TemporarilyUnavailable: 'Could not load available spaces.',
+        },
+      })
+    },
+    ok: ({ spaces }) => {
+      state.move.spaces = spaces
+    },
+    result,
+  })
+}
+
+async function loadMoveBoards(spaceId: string) {
+  state.move.error = null
+  state.move.loadingBoards = true
+  const result = await props.deps.issueList.loadMoveBoards({
+    sourceBoardId: null,
+    spaceId,
+  })
+  state.move.loadingBoards = false
+  matchActionResult({
+    err: (error) => {
+      state.move.error = getErrorMessage({
+        error,
+        messages: {
+          AccessDenied: 'You do not have access to this space.',
+          SpaceNotFound: 'This space no longer exists.',
+          TemporarilyUnavailable: 'Could not load space boards.',
+        },
+      })
+    },
+    ok: ({ boards }) => {
+      state.move.boards = boards
+    },
+    result,
+  })
+}
+
+async function loadMoveStatuses(boardId: string) {
+  state.move.error = null
+  state.move.loadingStatuses = true
+  const result = await props.deps.issueList.loadMoveStatuses({ boardId })
+  state.move.loadingStatuses = false
+  matchActionResult({
+    err: (error) => {
+      state.move.error = getErrorMessage({
+        error,
+        messages: {
+          AccessDenied: 'You do not have access to this board.',
+          BoardNotFound: 'This board no longer exists.',
+          TemporarilyUnavailable: 'Could not load board columns.',
+        },
+      })
+    },
+    ok: ({ statuses }) => {
+      state.move.statuses = statuses
+    },
+    result,
+  })
+}
+
+async function moveIssues(input: {
+  issueKeys: string[]
+  statusId: string
+}): Promise<boolean> {
+  state.move.error = null
+  state.move.moving = true
+  const result = await props.deps.issueList.moveIssues(input)
+  const moved = await matchActionResult({
+    err: async (error) => {
+      state.move.error = getErrorMessage({
+        error,
+        messages: {
+          AccessDenied: 'You do not have permission to move some issues.',
+          InvalidStatus: 'Select a valid board column.',
+          ResourceNotFound: 'An issue or board column was not found.',
+          TemporarilyUnavailable: 'Could not move some issues. Try again.',
+        },
+      })
+      return false
+    },
+    ok: async () => {
+      await searchIssues(request.value)
+      return true
+    },
+    result,
+  })
+  state.move.moving = false
+  return moved
 }
 
 const scheduleSearch = debounce(searchIssues, 300)
 watch(request, (input) => {
-  filtering.value = true
+  state.filtering = true
   scheduleSearch(input)
 })
 onScopeDispose(scheduleSearch.cancel)
