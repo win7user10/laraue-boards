@@ -153,9 +153,7 @@
             <div class="page-actions">
               <button
                 class="primary"
-                :disabled="
-                  state.submitting || !state.statusId || !state.assigneeId
-                ">
+                :disabled="state.submitting || !state.statusId || !state.assigneeId">
                 {{ state.submitting ? 'Adding…' : 'Add issue' }}
               </button>
             </div>
@@ -227,12 +225,8 @@ const pageState = computed(() =>
     status: query.status.value,
   }),
 )
-const page = computed(() =>
-  pageState.value.type === 'ready' ? pageState.value.data : null,
-)
-const assignee = computed(() =>
-  state.assignees.find((item) => item.value === state.assigneeId),
-)
+const page = computed(() => (pageState.value.type === 'ready' ? pageState.value.data : null))
+const assignee = computed(() => state.assignees.find((item) => item.value === state.assigneeId))
 
 watch(
   () => page.value?.spaceId,
@@ -408,10 +402,7 @@ async function submitForm(): Promise<void> {
   try {
     const result = await props.deps.create({
       assigneeId: state.assigneeId,
-      attributeValues: getIssueAttributeValueInput(
-        state.attributeValues,
-        current.attributes,
-      ),
+      attributeValues: getIssueAttributeValueInput(state.attributeValues, current.attributes),
       content: state.content.trim(),
       files: state.files,
       statusId: state.statusId,

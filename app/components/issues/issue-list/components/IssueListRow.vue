@@ -115,16 +115,8 @@ const props = defineProps<IssueListRowProps>()
 }
 
 .issue-list-row:has(.row-select:checked) {
-  background: color-mix(
-    in srgb,
-    var(--color-accent-soft) 55%,
-    var(--color-surface)
-  );
-  border-color: color-mix(
-    in srgb,
-    var(--color-accent) 45%,
-    var(--color-border)
-  );
+  background: color-mix(in srgb, var(--color-accent-soft) 55%, var(--color-surface));
+  border-color: color-mix(in srgb, var(--color-accent) 45%, var(--color-border));
 }
 
 .issue-list-row:active {

@@ -12,10 +12,7 @@ import LoginPage from '~/sections/auth/login/LoginPage.vue'
 definePageMeta({ layout: false })
 const config = useRuntimeConfig()
 const client = useApiClient()
-const deps = createLoginPageDeps(
-  client,
-  import.meta.dev ? config.public.testUserToken : undefined,
-)
+const deps = createLoginPageDeps(client, import.meta.dev ? config.public.testUserToken : undefined)
 const onLoggedIn = async (): Promise<void> => {
   await navigateTo('/organizations')
 }

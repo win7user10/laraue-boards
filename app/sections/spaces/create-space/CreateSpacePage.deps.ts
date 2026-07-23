@@ -13,7 +13,5 @@ export type CreateSpaceFailure =
   | { type: 'temporarilyUnavailable' }
 
 export type CreateSpacePageDeps = {
-  create: (
-    input: CreateSpaceInput,
-  ) => Promise<Result<{ spaceKey: string }, CreateSpaceFailure>>
+  create: (input: CreateSpaceInput) => Promise<Result<{ spaceKey: string }, CreateSpaceFailure>>
 }

@@ -3,10 +3,7 @@ import type { components } from '#infrastructure/api/generated'
 import type { BoardPageDeps } from '~/sections/boards/board/BoardPage.deps'
 import type { BoardPageViewModel } from '~/sections/boards/board/BoardPage.vue'
 import { createIssueDialogDeps } from '~/sections/boards/board/components/IssueDialog/IssueDialog.deps.impl'
-import {
-  mapIssueFilters,
-  mapRawIssueFilters,
-} from '~/sections/issues/shared/api/issueAttributes'
+import { mapIssueFilters, mapRawIssueFilters } from '~/sections/issues/shared/api/issueAttributes'
 import { createdAtDescending } from '~/sections/issues/shared/api/issueSorting'
 import { findSpaceByKey } from '~/sections/spaces/shared/findSpaceByKey'
 import { err, ok } from '~/utils/actionResult'
@@ -30,10 +27,7 @@ const mapBoardIssues = (columnIssues: Schemas['ColumnIssues'][]) => ({
       issueCount: Number(column.items.totalCount ?? 0),
       issues: column.items.data.map(mapIssueListItem),
     })),
-    issueCount: columnIssues.reduce(
-      (sum, column) => sum + Number(column.items.totalCount ?? 0),
-      0,
-    ),
+    issueCount: columnIssues.reduce((sum, column) => sum + Number(column.items.totalCount ?? 0), 0),
   },
 })
 
@@ -44,9 +38,7 @@ const mapBoardPage = (
   attributes: BoardPageViewModel['attributes'],
 ) => {
   const issues = mapBoardIssues(columnIssues).BoardPage
-  const issuesByStatus = new Map(
-    issues.columns.map((column) => [column.id, column]),
-  )
+  const issuesByStatus = new Map(issues.columns.map((column) => [column.id, column]))
   return {
     BoardPage: {
       attributes,
@@ -82,19 +74,16 @@ export function createBoardPageDeps(client: ApiClient): BoardPageDeps {
     issueDialog,
 
     async loadMoreBoardIssues({ filters, offset, search, statusId, take }) {
-      const response = await client.POST(
-        '/api/issues/by-status/{statusId}/search',
-        {
-          body: {
-            filters: mapIssueFilters(filters),
-            searchString: search || undefined,
-            skip: offset,
-            sorting: createdAtDescending,
-            take,
-          },
-          params: { path: { statusId: Number(statusId) } },
+      const response = await client.POST('/api/issues/by-status/{statusId}/search', {
+        body: {
+          filters: mapIssueFilters(filters),
+          searchString: search || undefined,
+          skip: offset,
+          sorting: createdAtDescending,
+          take,
         },
-      )
+        params: { path: { statusId: Number(statusId) } },
+      })
       switch (response.response.status) {
         case 200:
           return response.data
@@ -149,10 +138,7 @@ export function createBoardPageDeps(client: ApiClient): BoardPageDeps {
       const response = await client.GET('/api/epics/{id}', {
         params: { path: { id: Number(backlog.id) } },
       })
-      if (
-        response.response.status === 401 ||
-        response.response.status === 403
-      ) {
+      if (response.response.status === 401 || response.response.status === 403) {
         return err({ type: 'accessDenied' })
       }
       if (response.response.status !== 200 || !response.data) {
@@ -222,10 +208,7 @@ export function createBoardPageDeps(client: ApiClient): BoardPageDeps {
         if (attributes.data === undefined) {
           return err({ type: 'temporarilyUnavailable' })
         }
-        const attributeData = mapRawIssueFilters(
-          attributeQuery,
-          attributes.data,
-        )
+        const attributeData = mapRawIssueFilters(attributeQuery, attributes.data)
         const [board, issues] = await Promise.all([
           client.GET('/api/epics/{id}', {
             params: { path: { id: boardId } },
@@ -247,19 +230,9 @@ export function createBoardPageDeps(client: ApiClient): BoardPageDeps {
             if (board.data === undefined || issues.data === undefined) {
               return err({ type: 'temporarilyUnavailable' })
             }
-            return ok(
-              mapBoardPage(
-                boardId,
-                board.data,
-                issues.data,
-                attributeData.attributes,
-              ),
-            )
+            return ok(mapBoardPage(boardId, board.data, issues.data, attributeData.attributes))
           }
-          if (
-            issues.response.status === 401 ||
-            issues.response.status === 403
-          ) {
+          if (issues.response.status === 401 || issues.response.status === 403) {
             return err({ type: 'accessDenied' })
           }
           if (issues.response.status === 404) {
@@ -275,10 +248,7 @@ export function createBoardPageDeps(client: ApiClient): BoardPageDeps {
         }
         return err({ type: 'temporarilyUnavailable' })
       }
-      if (
-        attributes.response.status === 401 ||
-        attributes.response.status === 403
-      ) {
+      if (attributes.response.status === 401 || attributes.response.status === 403) {
         return err({ type: 'accessDenied' })
       }
       return err({ type: 'temporarilyUnavailable' })

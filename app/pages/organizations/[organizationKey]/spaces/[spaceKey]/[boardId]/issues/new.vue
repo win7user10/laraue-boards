@@ -10,9 +10,7 @@
 import { createCreateBoardIssuePageDeps } from '~/sections/boards/create-issue/CreateBoardIssuePage.deps.impl'
 import CreateBoardIssuePage from '~/sections/boards/create-issue/CreateBoardIssuePage.vue'
 
-const route = useRoute(
-  'organizations-organizationKey-spaces-spaceKey-boardId-issues-new',
-)
+const route = useRoute('organizations-organizationKey-spaces-spaceKey-boardId-issues-new')
 const boardId = computed(() => String(route.params.boardId))
 const spaceKey = computed(() => String(route.params.spaceKey))
 const organizationRoutes = useOrganizationRoutes()

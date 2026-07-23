@@ -1,27 +1,24 @@
 # Nuxt 4 Project Architecture
 
-This document records the architectural decisions agreed upon for a project with
-a large number of similar pages.
+This document records the architectural decisions agreed upon for a project with a large number of
+similar pages.
 
 Core principles:
 
-- actual application pages live in `app/sections`, while `app/pages` contains
-  only Nuxt route wrappers;
+- actual application pages live in `app/sections`, while `app/pages` contains only Nuxt route
+  wrappers;
 - each actual page is represented by a smart `XxxPage.vue` component;
 - external page operations are described by an explicit `XxxPageDeps` object;
-- the production deps implementation adapts a concrete generated OpenAPI client
-  to the page’s frontend contract;
+- the production deps implementation adapts a concrete generated OpenAPI client to the page’s
+  frontend contract;
 - expected outcomes of external operations are returned as `Result`;
 - every `Result` is handled through `matchResult`;
 - frontend failure codes and UI text are separated;
 - a working layout remains available when a specific page fails;
-- global `error.vue` is used for application-level, layout-level, or genuinely
-  fatal scenarios;
+- global `error.vue` is used for application-level, layout-level, or genuinely fatal scenarios;
 - `useAsyncData` is used directly, without a custom async composable;
-- repeated state conversion is extracted into the pure `toAsyncResultState`
-  helper;
-- feature components own their structure; slots are not used to hide ordinary
-  prop flow;
+- repeated state conversion is extracted into the pure `toAsyncResultState` helper;
+- feature components own their structure; slots are not used to hide ordinary prop flow;
 - shared abstractions are introduced only after repetition has been confirmed.
 
 ---
@@ -117,9 +114,8 @@ They:
 
 ### Nested Feature Containers
 
-A child component may receive its own `deps` when it coordinates an independent
-asynchronous user scenario, for example a lazily loaded dialog that loads,
-updates, moves, and deletes an entity.
+A child component may receive its own `deps` when it coordinates an independent asynchronous user
+scenario, for example a lazily loaded dialog that loads, updates, moves, and deletes an entity.
 
 The child container owns and declares its dependency contract:
 
@@ -131,8 +127,8 @@ export type IssueDialogDeps = {
 }
 ```
 
-When the child adapts API calls itself, it also owns a colocated production
-factory. The parent factory composes it rather than reimplementing its methods:
+When the child adapts API calls itself, it also owns a colocated production factory. The parent
+factory composes it rather than reimplementing its methods:
 
 ```ts
 const issueDialog = createIssueDialogDeps(client)
@@ -152,16 +148,15 @@ export type BoardPageDeps = {
 }
 ```
 
-The parent passes the narrow dependency object without redefining or indexing
-the child operations:
+The parent passes the narrow dependency object without redefining or indexing the child operations:
 
 ```vue
 <IssueDialog :deps="deps.issueDialog" />
 ```
 
-This forms an explicit dependency tree matching feature-container ownership. It
-does not mean that every component receives `deps`. Presentational forms, lists,
-buttons, and layout fragments continue to receive only data and callbacks.
+This forms an explicit dependency tree matching feature-container ownership. It does not mean that
+every component receives `deps`. Presentational forms, lists, buttons, and layout fragments continue
+to receive only data and callbacks.
 
 Local UI state includes:
 
@@ -173,8 +168,8 @@ Local UI state includes:
 
 ### Local Component State
 
-A component’s own mutable local state is declared in one `reactive` object, not
-as multiple separate `ref` values:
+A component’s own mutable local state is declared in one `reactive` object, not as multiple separate
+`ref` values:
 
 ```ts
 const state = reactive({
@@ -184,8 +179,8 @@ const state = reactive({
 })
 ```
 
-`computed` values, template refs, and refs returned by Nuxt or other composables
-are not copied into this object.
+`computed` values, template refs, and refs returned by Nuxt or other composables are not copied into
+this object.
 
 ---
 
@@ -224,8 +219,7 @@ const onMoved = async (targetSpaceId: string): Promise<void> => {
 - `XxxPage.vue` does not call `navigateTo` or use the router imperatively.
 - Navigation is not part of data deps.
 - A mutation does not perform a redirect inside the production implementation.
-- After a successful mutation, `XxxPage` invokes the required callback passed by
-  the route wrapper.
+- After a successful mutation, `XxxPage` invokes the required callback passed by the route wrapper.
 
 ---
 
@@ -233,8 +227,8 @@ const onMoved = async (targetSpaceId: string): Promise<void> => {
 
 The client is created with `openapi-fetch` and generated `paths`.
 
-Nuxt-specific request data is passed into the factory from outside, so
-`client.ts` remains a regular TypeScript module and is easy to test:
+Nuxt-specific request data is passed into the factory from outside, so `client.ts` remains a regular
+TypeScript module and is easy to test:
 
 ```ts
 import createFetchClient from 'openapi-fetch'
@@ -262,8 +256,7 @@ export const createApiClient = ({
 export type ApiClient = ReturnType<typeof createApiClient>
 ```
 
-Nuxt-specific configuration and SSR cookie forwarding are kept in a small
-composable:
+Nuxt-specific configuration and SSR cookie forwarding are kept in a small composable:
 
 ```ts
 // app/composables/useApiClient.ts
@@ -283,8 +276,7 @@ Route wrappers use it directly:
 const client = useApiClient()
 ```
 
-The infrastructure factory remains independent of Nuxt and accepts explicit
-options:
+The infrastructure factory remains independent of Nuxt and accepts explicit options:
 
 ```ts
 const client = createApiClient({
@@ -297,8 +289,7 @@ const client = createApiClient({
 
 `ApiClient` is not an arbitrary generic client.
 
-It is a concrete typed `openapi-fetch` client whose API is defined by generated
-`paths`:
+It is a concrete typed `openapi-fetch` client whose API is defined by generated `paths`:
 
 ```ts
 client.GET(...)
@@ -313,8 +304,8 @@ Production deps may depend on this concrete type:
 export function createSpaceItemsPageDeps(client: ApiClient): SpaceItemsPageDeps
 ```
 
-No additional abstraction over `ApiClient` is introduced until there is a second
-transport implementation or another confirmed requirement.
+No additional abstraction over `ApiClient` is introduced until there is a second transport
+implementation or another confirmed requirement.
 
 ### Dependency Boundary
 
@@ -346,13 +337,9 @@ export type SpaceItemsPageDeps = {
     input: ViewSpaceItemsPageInput,
   ) => Promise<Result<SpaceItemsPageData, ViewSpaceItemsPageFailure>>
 
-  moveItems: (
-    input: MoveItemsInput,
-  ) => Promise<Result<MoveItemsData, MoveItemsFailure>>
+  moveItems: (input: MoveItemsInput) => Promise<Result<MoveItemsData, MoveItemsFailure>>
 
-  deleteItem: (
-    input: DeleteItemInput,
-  ) => Promise<Result<void, DeleteItemFailure>>
+  deleteItem: (input: DeleteItemInput) => Promise<Result<void, DeleteItemFailure>>
 }
 ```
 
@@ -362,19 +349,16 @@ export type SpaceItemsPageDeps = {
 - The contract describes only the dependencies of that specific page.
 - The contract is colocated with the page component.
 - The production implementation is colocated with the contract.
-- A global `AppDeps` containing operations for the entire application is not
-  introduced.
+- A global `AppDeps` containing operations for the entire application is not introduced.
 - `deps` is passed as an explicit prop.
 - `provide/inject` is not used as a service locator.
 - `deps` is not passed to child presentational components.
-- A nested feature container with its own asynchronous scenario may declare and
-  receive its own colocated `XxxDeps`.
-- A nested container that adapts API operations owns `XxxDeps.impl.ts`; a parent
-  factory composes `createXxxDeps(client)` instead of reimplementing the child
-  methods.
-- A parent deps contract composes a child container contract as
-  `{ childName: ChildDeps }`; the child never types its dependencies through
-  `ParentDeps['childName']`.
+- A nested feature container with its own asynchronous scenario may declare and receive its own
+  colocated `XxxDeps`.
+- A nested container that adapts API operations owns `XxxDeps.impl.ts`; a parent factory composes
+  `createXxxDeps(client)` instead of reimplementing the child methods.
+- A parent deps contract composes a child container contract as `{ childName: ChildDeps }`; the
+  child never types its dependencies through `ParentDeps['childName']`.
 - Pages intentionally do not reuse each other’s complete page-level deps.
 - A mock file is optional.
 - Tests may use an inline mock or a test factory.
@@ -388,9 +372,7 @@ export type SpaceItemsPageDeps = {
 
 import type { ApiClient } from '#infrastructure/api/client'
 
-export function createSpaceItemsPageDeps(
-  client: ApiClient,
-): SpaceItemsPageDeps {
+export function createSpaceItemsPageDeps(client: ApiClient): SpaceItemsPageDeps {
   return {
     async view(input) {
       // OpenAPI request
@@ -474,8 +456,8 @@ function mapSpaceDto(dto: SpaceListDto): SpaceItem {
 
 ### Testing Production Deps
 
-For production deps, prefer a real OpenAPI client with fake `fetch` over an
-invented method such as `client.moveItems`.
+For production deps, prefer a real OpenAPI client with fake `fetch` over an invented method such as
+`client.moveItems`.
 
 ```ts
 const fetchMock = vi.fn<typeof globalThis.fetch>().mockResolvedValue(
@@ -506,8 +488,7 @@ expect(fetchMock).toHaveBeenCalledWith(
 expect(result).toEqual(ok(undefined))
 ```
 
-This test uses the real typed OpenAPI client while replacing only the transport
-with fake `fetch`.
+This test uses the real typed OpenAPI client while replacing only the transport with fake `fetch`.
 
 ---
 
@@ -549,8 +530,8 @@ moveItems(): Promise<
 
 ### What Is a `Failure`
 
-A `Failure` is an expected outcome of a known external operation that the
-calling layer must classify according to context.
+A `Failure` is an expected outcome of a known external operation that the calling layer must
+classify according to context.
 
 Examples:
 
@@ -562,14 +543,12 @@ Examples:
 - network failure;
 - partial result.
 
-The mere presence of a failure does not automatically imply switching to global
-`error.vue`.
+The mere presence of a failure does not automatically imply switching to global `error.vue`.
 
 The same failure may:
 
 - be displayed locally within a working layout;
-- be promoted to a fatal Nuxt error when the current application flow cannot
-  continue without it.
+- be promoted to a fatal Nuxt error when the current application flow cannot continue without it.
 
 ### What Is Not a `Failure`
 
@@ -604,8 +583,7 @@ export function matchResult<Value, Failure, OkOutput, ErrorOutput>(
 
 ### Mandatory Rule
 
-Whenever a `Result` is interpreted or consumed, it is handled through
-`matchResult`.
+Whenever a `Result` is interpreted or consumed, it is handled through `matchResult`.
 
 A guard clause based on `result.ok` is not the application-code style:
 
@@ -628,13 +606,12 @@ await matchResult(result, {
 })
 ```
 
-This makes the success and failure branches equally visible and prevents either
-branch from being accidentally ignored.
+This makes the success and failure branches equally visible and prevents either branch from being
+accidentally ignored.
 
 ### Local Result Handlers
 
-Complex branches are extracted into named functions within the same
-`XxxPage.vue`:
+Complex branches are extracted into named functions within the same `XxxPage.vue`:
 
 ```ts
 async function handleMoveItemsSuccess(value: MoveItemsData): Promise<void> {
@@ -661,8 +638,7 @@ function handleMoveItemsFailure(failure: MoveItemsFailure): void {
 }
 ```
 
-These functions remain near the component because they define page-specific UI
-side effects.
+These functions remain near the component because they define page-specific UI side effects.
 
 They are moved to a separate file only when they become:
 
@@ -759,8 +735,8 @@ A standard frontend failure returns a code and structured payload:
 
 The UI determines user-facing text through `useI18n`.
 
-A failure contains `message` only when the API contract guarantees
-ready-to-display human-readable text:
+A failure contains `message` only when the API contract guarantees ready-to-display human-readable
+text:
 
 ```ts
 {
@@ -791,9 +767,7 @@ app/error.vue
 ## 11. Error Handling in `*.deps.impl.ts`
 
 ```ts
-async function moveItems(
-  input: MoveItemsInput,
-): Promise<Result<MoveItemsData, MoveItemsFailure>> {
+async function moveItems(input: MoveItemsInput): Promise<Result<MoveItemsData, MoveItemsFailure>> {
   try {
     const response = await client.POST(
       '/api/movement/epic/{id}/to-space/{newSpaceId}',
@@ -825,9 +799,8 @@ async function moveItems(
 
 ### Narrowing `openapi-fetch` Responses
 
-An `openapi-fetch` result is narrowed through the top-level `data`/`error`
-union, not through the nested native `Response`. Prefer the positive
-`'data' in response` success discriminator:
+An `openapi-fetch` result is narrowed through the top-level `data`/`error` union, not through the
+nested native `Response`. Prefer the positive `'data' in response` success discriminator:
 
 ```ts
 const response = await client.GET('/api/spaces')
@@ -843,23 +816,21 @@ if (failure) {
 throw new Error(`Unrecognized response: ${response.response.status}`)
 ```
 
-Do not use `response.response.ok` as the TypeScript discriminator. It is a
-runtime property of the nested Fetch `Response`, so TypeScript does not connect
-it to the outer `data`/`error` union.
+Do not use `response.response.ok` as the TypeScript discriminator. It is a runtime property of the
+nested Fetch `Response`, so TypeScript does not connect it to the outer `data`/`error` union.
 
-Checking only `'error' in response` is insufficient for success responses with
-an intentionally empty body. `openapi-fetch` represents them as
-`{ data: undefined, response }`, so the presence of the top-level `data` key is
-the reliable success discriminator.
+Checking only `'error' in response` is insufficient for success responses with an intentionally
+empty body. `openapi-fetch` represents them as `{ data: undefined, response }`, so the presence of
+the top-level `data` key is the reliable success discriminator.
 
-After the error branch terminates, trust the generated OpenAPI success type. If
-the declared successful response has a required body, do not add a redundant
-`if (!response.data)` check. A successful endpoint that intentionally has no
-body is represented as such by its generated response type.
+After the error branch terminates, trust the generated OpenAPI success type. If the declared
+successful response has a required body, do not add a redundant `if (!response.data)` check. A
+successful endpoint that intentionally has no body is represented as such by its generated response
+type.
 
-For several responses loaded through `Promise.all`, narrow each original
-response variable explicitly before reading its `data`. Checking the responses
-only through a shared loop does not preserve narrowing for those variables.
+For several responses loaded through `Promise.all`, narrow each original response variable
+explicitly before reading its `data`. Checking the responses only through a shared loop does not
+preserve narrowing for those variables.
 
 ### Key Rule
 
@@ -905,20 +876,18 @@ const query = await useAsyncData(
 - Use an explicit stable key.
 - The key reflects the identity of the page data.
 - The handler returns `Result`, not `undefined`.
-- `AbortSignal` is passed to `deps.view` and then to the API client when
-  supported by the transport.
-- The signal allows Nuxt to abort the underlying request when `clear()` is
-  called, a newer request replaces it with `dedupe: 'cancel'`, a timeout is
-  reached, or a caller supplies an aborted signal to `refresh()`/`execute()`.
+- `AbortSignal` is passed to `deps.view` and then to the API client when supported by the transport.
+- The signal allows Nuxt to abort the underlying request when `clear()` is called, a newer request
+  replaces it with `dedupe: 'cancel'`, a timeout is reached, or a caller supplies an aborted signal
+  to `refresh()`/`execute()`.
 - `watch` is used for reactive server-side parameters.
 - Free-form search text is debounced.
-- Default options are not repeated. `lazy`, `server`, `deep`, and `dedupe` are
-  specified only when page UX requires behavior different from Nuxt defaults.
+- Default options are not repeated. `lazy`, `server`, `deep`, and `dedupe` are specified only when
+  page UX requires behavior different from Nuxt defaults.
 - No wrapper is created that hides the Nuxt API.
 
-Passing `Result` out of the handler is not considered handling it.
-Interpretation happens later through `toAsyncResultState`, which uses
-`matchResult`.
+Passing `Result` out of the handler is not considered handling it. Interpretation happens later
+through `toAsyncResultState`, which uses `matchResult`.
 
 ---
 
@@ -928,13 +897,12 @@ HTTP status alone does not determine whether `error.vue` should be opened.
 
 The key question is:
 
-> Can the application and current layout continue to work without the loaded
-> resource?
+> Can the application and current layout continue to work without the loaded resource?
 
 ### Local Page Error
 
-When the layout works, an error for a specific resource is displayed inside the
-content area through `PageState`.
+When the layout works, an error for a specific resource is displayed inside the content area through
+`PageState`.
 
 Examples:
 
@@ -951,8 +919,8 @@ Benefits:
 - the user can open another page;
 - retry repeats only the required query.
 
-For internal feature pages, this is the default policy even for frontend failure
-codes `notFound` and `forbidden`.
+For internal feature pages, this is the default policy even for frontend failure codes `notFound`
+and `forbidden`.
 
 ### Global `error.vue`
 
@@ -1074,8 +1042,7 @@ The specific ready component decides how to display the absence of items.
 
 ## 15. `toAsyncResultState`
 
-When many pages follow the same pattern, repeated conversion is extracted into a
-pure helper.
+When many pages follow the same pattern, repeated conversion is extracted into a pure helper.
 
 ```ts
 export type ToAsyncResultStateOptions<Value, Failure> = {
@@ -1153,8 +1120,8 @@ useAsyncData handler → thrown exception
 
 ## 16. `PageState.vue`
 
-The current `PageLoadState.vue` should be renamed to `PageState.vue` because it
-handles more than loading.
+The current `PageLoadState.vue` should be renamed to `PageState.vue` because it handles more than
+loading.
 
 `PageState` is used inside an already working layout and displays:
 
@@ -1205,8 +1172,7 @@ defineSlots<{
 - `#error-actions` is used only for special local actions;
 - the component does not show the application logo;
 - the component does not show an HTTP status code;
-- the component does not use full-screen `min-height: 100dvh` inside a normal
-  page.
+- the component does not use full-screen `min-height: 100dvh` inside a normal page.
 
 Example:
 
@@ -1223,15 +1189,15 @@ Example:
 </PageState>
 ```
 
-`PageState` renders local error UI itself. It does not delegate an ordinary
-page-level error to `AppErrorState`.
+`PageState` renders local error UI itself. It does not delegate an ordinary page-level error to
+`AppErrorState`.
 
 ---
 
 ## 17. `AppErrorState.vue`
 
-`AppErrorState` remains a full-screen presentational component for
-application-level or layout-bootstrap errors.
+`AppErrorState` remains a full-screen presentational component for application-level or
+layout-bootstrap errors.
 
 It is used:
 
@@ -1273,8 +1239,8 @@ app/error.vue
 → uses AppErrorState
 ```
 
-`PageState` and `AppErrorState` display errors of different scope and must not
-be used interchangeably.
+`PageState` and `AppErrorState` display errors of different scope and must not be used
+interchangeably.
 
 ---
 
@@ -1296,10 +1262,9 @@ layout cannot be built
 → AppErrorState
 ```
 
-`AppLayout` may use its own small orchestration layer. Its failure cannot
-automatically be treated like an error on an ordinary internal page because
-without the layout it is impossible to preserve the sidebar and application
-shell.
+`AppLayout` may use its own small orchestration layer. Its failure cannot automatically be treated
+like an error on an ordinary internal page because without the layout it is impossible to preserve
+the sidebar and application shell.
 
 ---
 
@@ -1322,13 +1287,10 @@ It handles:
 
 Pages do not duplicate global fatal-error text.
 
-Nuxt 4 uses the `status` field; `statusCode` remains a legacy-compatible field
-on the error object.
+Nuxt 4 uses the `status` field; `statusCode` remains a legacy-compatible field on the error object.
 
 ```ts
-const status = computed(
-  () => Number(props.error.status ?? props.error.statusCode) || 500,
-)
+const status = computed(() => Number(props.error.status ?? props.error.statusCode) || 500)
 ```
 
 ---
@@ -1378,8 +1340,8 @@ onOpen
 onDelete
 ```
 
-They are grouped into an object only when they form a stable logical contract
-and are always passed together.
+They are grouped into an object only when they form a stable logical contract and are always passed
+together.
 
 ---
 
@@ -1387,8 +1349,8 @@ and are always passed together.
 
 Slots are not used as a general mechanism to eliminate prop drilling.
 
-The primary approach for feature components is explicit passing of required data
-and callbacks through the tree.
+The primary approach for feature components is explicit passing of required data and callbacks
+through the tree.
 
 ```vue
 <ItemsView
@@ -1420,8 +1382,7 @@ and callbacks through the tree.
 
 ### Prop Forwarding
 
-Explicitly passing props and callbacks through two or three feature levels is
-considered normal.
+Explicitly passing props and callbacks through two or three feature levels is considered normal.
 
 It shows:
 
@@ -1429,8 +1390,7 @@ It shows:
 - who can perform an action;
 - which components the dependency passes through.
 
-There is no requirement to eliminate all forwarding merely to reduce the number
-of props.
+There is no requirement to eliminate all forwarding merely to reduce the number of props.
 
 ### When Slots Are Appropriate
 
@@ -1466,8 +1426,7 @@ Narrow extension point:
 
 ### When Slots Are Unnecessary
 
-Required feature parts are not passed through slots when their structure is
-known in advance.
+Required feature parts are not passed through slots when their structure is known in advance.
 
 Not recommended:
 
@@ -1487,14 +1446,12 @@ Not recommended:
 </ItemsView>
 ```
 
-Such a component has weak control over its structure and becomes a collection of
-arbitrary regions.
+Such a component has weak control over its structure and becomes a collection of arbitrary regions.
 
 ### Rule
 
-> Feature components own their structure and expose an explicit props/callback
-> contract. Slots are used for generic composition or limited extension points,
-> not to hide ordinary data flow.
+> Feature components own their structure and expose an explicit props/callback contract. Slots are
+> used for generic composition or limited extension points, not to hide ordinary data flow.
 
 ---
 
@@ -1557,8 +1514,7 @@ if (savePending.value) {
 }
 ```
 
-Mutations for different entities may run in parallel with pending state tracked
-by identifier:
+Mutations for different entities may run in parallel with pending state tracked by identifier:
 
 ```ts
 const deletingIds = ref(new Set<string>())
@@ -1573,12 +1529,11 @@ UI concurrency state is not added to domain `Failure`.
 Default policy:
 
 1. The backend returned an up-to-date entity/data → update local state.
-2. The backend returned `void` or insufficient data → call `refresh()` on the
-   primary query.
+2. The backend returned `void` or insufficient data → call `refresh()` on the primary query.
 3. Optimistic update → only as a separate UX decision.
 
-Optimistic updates are useful for fast actions such as toggle, drag-and-drop, or
-like, but a shared optimistic framework is not introduced in advance.
+Optimistic updates are useful for fast actions such as toggle, drag-and-drop, or like, but a shared
+optimistic framework is not introduced in advance.
 
 ---
 
@@ -1588,8 +1543,7 @@ Global runtime validation of API responses is not introduced.
 
 The project trusts the generated API client types.
 
-If a specific endpoint requires additional validation, it is added locally in
-its `*.deps.impl.ts`.
+If a specific endpoint requires additional validation, it is added locally in its `*.deps.impl.ts`.
 
 A violation of required response structure:
 
@@ -1597,8 +1551,8 @@ A violation of required response structure:
 - is not converted into an expected `Failure`;
 - is treated as an unexpected error.
 
-A fallback is allowed only for fields that are genuinely optional/nullable
-according to the contract.
+A fallback is allowed only for fields that are genuinely optional/nullable according to the
+contract.
 
 ---
 
@@ -1610,8 +1564,7 @@ The architectural boundary is fixed; the concrete library is deferred.
 - Expected failures are not reported as exceptions by default.
 - Business events and analytics are not mixed with exception logging.
 - Unexpected exceptions must reach global monitoring.
-- `app:error`, Vue error hooks, and a monitoring SDK are connected through a
-  separate decision.
+- `app:error`, Vue error hooks, and a monitoring SDK are connected through a separate decision.
 - The same error must not be logged repeatedly at multiple layers.
 
 ---
@@ -1683,8 +1636,8 @@ When there are many tests, a factory is acceptable:
 createSpaceItemsPageDepsStub(overrides)
 ```
 
-Unexpected calls to stub methods should throw an exception rather than add a
-production failure code such as `unexpectedCall`.
+Unexpected calls to stub methods should throw an exception rather than add a production failure code
+such as `unexpectedCall`.
 
 ### `*.deps.impl.ts`
 
@@ -1761,8 +1714,8 @@ Test separately:
 20. Pass only data and required `onXxx` callbacks downward.
 21. A feature component must own its fixed structure.
 22. Use slots only for UI primitives or narrow extension points.
-23. Pass imperative navigation as a callback from the route wrapper; build
-    declarative links through `useOrganizationRoutes()` in the page.
+23. Pass imperative navigation as a callback from the route wrapper; build declarative links through
+    `useOrganizationRoutes()` in the page.
 24. Add a pending guard for each mutation.
 25. After success, update local data or call `refresh()`.
 26. Write an `XxxPage.vue` test with mock deps.
@@ -1834,8 +1787,7 @@ AppLayout loading
 
 ## 32. Criterion for Future Abstractions
 
-A new shared abstraction is introduced only when at least one of the following
-conditions is met:
+A new shared abstraction is introduced only when at least one of the following conditions is met:
 
 - identical code already repeats across multiple pages;
 - the abstraction has a clear independent responsibility;
@@ -1844,5 +1796,5 @@ conditions is met:
 - it does not hide important Nuxt behavior;
 - its contract is simpler than the repeated code.
 
-Moving code into a composable or helper solely to reduce the size of a `.vue`
-file is not considered an architectural improvement.
+Moving code into a composable or helper solely to reduce the size of a `.vue` file is not considered
+an architectural improvement.

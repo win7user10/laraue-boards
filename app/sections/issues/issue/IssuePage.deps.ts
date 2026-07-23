@@ -24,14 +24,10 @@ export type MoveIssueFailure =
   | { type: 'resourceNotFound' }
   | { type: 'temporarilyUnavailable' }
 
-export type UpdateIssueFailure =
-  | IssueResourceFailure
-  | { message: string; type: 'invalidInput' }
+export type UpdateIssueFailure = IssueResourceFailure | { message: string; type: 'invalidInput' }
 
 export type IssuePageDeps = {
-  deleteIssue: (input: {
-    issueKey: string
-  }) => Promise<Result<void, IssueResourceFailure>>
+  deleteIssue: (input: { issueKey: string }) => Promise<Result<void, IssueResourceFailure>>
   loadAssignees: (input: { spaceId: string }) => Promise<
     Result<
       {
@@ -47,12 +43,7 @@ export type IssuePageDeps = {
   >
   loadMoveBoards: (input: {
     spaceId: string
-  }) => Promise<
-    Result<
-      { boards: Array<{ label: string; value: string }> },
-      LoadSpaceFailure
-    >
-  >
+  }) => Promise<Result<{ boards: Array<{ label: string; value: string }> }, LoadSpaceFailure>>
   loadMoveSpaces: () => Promise<
     Result<
       { spaces: Array<{ label: string; value: string }> },
@@ -61,9 +52,7 @@ export type IssuePageDeps = {
   >
   loadStatuses: (input: {
     boardId: string
-  }) => Promise<
-    Result<{ statuses: Array<{ id: string; name: string }> }, LoadBoardFailure>
-  >
+  }) => Promise<Result<{ statuses: Array<{ id: string; name: string }> }, LoadBoardFailure>>
   moveIssue: (input: {
     issueKey: string
     statusId: string

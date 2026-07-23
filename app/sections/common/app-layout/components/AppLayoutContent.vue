@@ -80,9 +80,7 @@
         <NuxtLink
           v-if="viewModel.organization.canManage"
           :class="{
-            active: within(
-              'organizations-organizationKey-settings-permissions',
-            ),
+            active: within('organizations-organizationKey-settings-permissions'),
           }"
           :to="organizationRoutes.permissions()">
           <ShieldCheck />
@@ -100,9 +98,7 @@
         <NuxtLink
           v-if="viewModel.organization.canMassMove"
           :class="{
-            active: active(
-              'organizations-organizationKey-settings-data-movement',
-            ),
+            active: active('organizations-organizationKey-settings-data-movement'),
           }"
           :to="organizationRoutes.dataMovement()">
           <ArrowRightLeft />

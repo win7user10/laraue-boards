@@ -31,13 +31,10 @@ test('maps issue filters between URL and action input', () => {
     { attributeId: '1', searchString: 'ABC', type: 'text' },
     { attributeId: '2', type: 'list', valueIds: ['3', '4'] },
   ])
-  assert.deepEqual(
-    withIssueAttributeFilters({ page: '3', search: 'x' }, values, attributes),
-    {
-      'attribute.1': 'ABC',
-      'attribute.2': ['3', '4'],
-      search: 'x',
-    },
-  )
+  assert.deepEqual(withIssueAttributeFilters({ page: '3', search: 'x' }, values, attributes), {
+    'attribute.1': 'ABC',
+    'attribute.2': ['3', '4'],
+    search: 'x',
+  })
   assert.deepEqual(readIssueSpaceQuery(['10', '20', null, '10']), ['10', '20'])
 })

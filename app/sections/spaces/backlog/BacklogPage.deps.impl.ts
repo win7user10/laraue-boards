@@ -1,10 +1,7 @@
 import type { ApiClient } from '#infrastructure/api/client'
 import type { components } from '#infrastructure/api/generated'
 import { COLORS } from '~/constants/colors'
-import {
-  mapIssueFilters,
-  mapRawIssueFilters,
-} from '~/sections/issues/shared/api/issueAttributes'
+import { mapIssueFilters, mapRawIssueFilters } from '~/sections/issues/shared/api/issueAttributes'
 import { createdAtDescending } from '~/sections/issues/shared/api/issueSorting'
 import type {
   BacklogIssue,
@@ -32,10 +29,7 @@ const mapIssue = (issue: Schemas['SearchIssueDto']): BacklogIssue => ({
   statusColor: issue.status?.color ?? COLORS.gray,
 })
 
-const mapViewFailure = (
-  status: number,
-  notFound = false,
-): undefined | ViewBacklogFailure => {
+const mapViewFailure = (status: number, notFound = false): undefined | ViewBacklogFailure => {
   if (status === 401 || status === 403) {
     return { type: 'accessDenied' }
   }
@@ -47,9 +41,7 @@ const mapViewFailure = (
   }
 }
 
-const mapBoardsFailure = (
-  status: number,
-): LoadMoveBoardsFailure | undefined => {
+const mapBoardsFailure = (status: number): LoadMoveBoardsFailure | undefined => {
   if (status === 401 || status === 403) {
     return { type: 'accessDenied' }
   }
@@ -61,9 +53,7 @@ const mapBoardsFailure = (
   }
 }
 
-const mapStatusesFailure = (
-  status: number,
-): LoadMoveStatusesFailure | undefined => {
+const mapStatusesFailure = (status: number): LoadMoveStatusesFailure | undefined => {
   if (status === 401 || status === 403) {
     return { type: 'accessDenied' }
   }
@@ -113,9 +103,7 @@ export function createBacklogPageDeps(client: ApiClient): BacklogPageDeps {
       if (failure) {
         return err(failure)
       }
-      throw new Error(
-        `Unrecognized move boards response: ${response.response.status}`,
-      )
+      throw new Error(`Unrecognized move boards response: ${response.response.status}`)
     },
 
     async loadMoveSpaces() {
@@ -138,9 +126,7 @@ export function createBacklogPageDeps(client: ApiClient): BacklogPageDeps {
       if (failure?.type === 'temporarilyUnavailable') {
         return err(failure)
       }
-      throw new Error(
-        `Unrecognized move spaces response: ${response.response.status}`,
-      )
+      throw new Error(`Unrecognized move spaces response: ${response.response.status}`)
     },
 
     async loadMoveStatuses({ boardId }) {
@@ -161,9 +147,7 @@ export function createBacklogPageDeps(client: ApiClient): BacklogPageDeps {
       if (failure) {
         return err(failure)
       }
-      throw new Error(
-        `Unrecognized move statuses response: ${response.response.status}`,
-      )
+      throw new Error(`Unrecognized move statuses response: ${response.response.status}`)
     },
 
     async moveIssues({ issueKeys, statusId }) {
@@ -187,9 +171,7 @@ export function createBacklogPageDeps(client: ApiClient): BacklogPageDeps {
         if (failure) {
           return err(failure)
         }
-        throw new Error(
-          `Unrecognized move issue response: ${response.response.status}`,
-        )
+        throw new Error(`Unrecognized move issue response: ${response.response.status}`)
       }
       return ok(undefined)
     },
@@ -218,9 +200,7 @@ export function createBacklogPageDeps(client: ApiClient): BacklogPageDeps {
       if (failure) {
         return err(failure)
       }
-      throw new Error(
-        `Unrecognized backlog search response: ${response.response.status}`,
-      )
+      throw new Error(`Unrecognized backlog search response: ${response.response.status}`)
     },
 
     async view({ attributeQuery, page, search, signal, spaceKey }) {
@@ -233,18 +213,14 @@ export function createBacklogPageDeps(client: ApiClient): BacklogPageDeps {
         if (failure) {
           return err(failure)
         }
-        throw new Error(
-          `Unrecognized spaces response: ${spaces.response.status}`,
-        )
+        throw new Error(`Unrecognized spaces response: ${spaces.response.status}`)
       }
       if ('error' in attributes) {
         const failure = mapViewFailure(attributes.response.status)
         if (failure) {
           return err(failure)
         }
-        throw new Error(
-          `Unrecognized attributes response: ${attributes.response.status}`,
-        )
+        throw new Error(`Unrecognized attributes response: ${attributes.response.status}`)
       }
       const space = findSpaceByKey(spaces.data, spaceKey)
       if (!space) {
@@ -260,9 +236,7 @@ export function createBacklogPageDeps(client: ApiClient): BacklogPageDeps {
         if (failure) {
           return err(failure)
         }
-        throw new Error(
-          `Unrecognized backlog boards response: ${boards.response.status}`,
-        )
+        throw new Error(`Unrecognized backlog boards response: ${boards.response.status}`)
       }
       const backlog = boards.data.find((board) => board.isDefault)
       if (!backlog) {
@@ -284,9 +258,7 @@ export function createBacklogPageDeps(client: ApiClient): BacklogPageDeps {
         if (failure) {
           return err(failure)
         }
-        throw new Error(
-          `Unrecognized backlog issues response: ${issues.response.status}`,
-        )
+        throw new Error(`Unrecognized backlog issues response: ${issues.response.status}`)
       }
       return ok({
         attributes: attributeData.attributes,

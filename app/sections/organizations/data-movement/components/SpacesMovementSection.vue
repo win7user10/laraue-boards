@@ -88,10 +88,7 @@ type SpacesMovementSectionProps = {
   error: null | string
   moving: boolean
   onClearError: () => void
-  onMove: (input: {
-    destinationOrganizationId: string
-    spaceIds: string[]
-  }) => void
+  onMove: (input: { destinationOrganizationId: string; spaceIds: string[] }) => void
   organizations: DataMovementPageData['spaceOrganizations']
   spaces: DataMovementPageData['spaces']
 }
@@ -103,9 +100,7 @@ import { ArrowRightLeft } from 'lucide-vue-next'
 import { SpaceIcon } from '~/constants/icons'
 
 const props = defineProps<SpacesMovementSectionProps>()
-const movableSpaces = computed(() =>
-  props.spaces.filter((space) => !space.isDefault),
-)
+const movableSpaces = computed(() => props.spaces.filter((space) => !space.isDefault))
 const state = reactive({
   ids: [] as string[],
   organizationId: '',
@@ -175,15 +170,7 @@ watch(
 }
 
 .entity-row:has(input:checked) {
-  background: color-mix(
-    in srgb,
-    var(--color-accent-soft) 55%,
-    var(--color-surface)
-  );
-  border-color: color-mix(
-    in srgb,
-    var(--color-accent) 45%,
-    var(--color-border)
-  );
+  background: color-mix(in srgb, var(--color-accent-soft) 55%, var(--color-surface));
+  border-color: color-mix(in srgb, var(--color-accent) 45%, var(--color-border));
 }
 </style>

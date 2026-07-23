@@ -7,9 +7,7 @@ import type {
 } from '~/sections/organizations/attributes/list-attributes/AttributesPage.deps'
 import { err, ok } from '~/utils/actionResult'
 
-const mapType = (
-  type: components['schemas']['AttributeType'],
-): AttributeListItem['type'] => {
+const mapType = (type: components['schemas']['AttributeType']): AttributeListItem['type'] => {
   switch (type) {
     case 0:
       return 'text'
@@ -29,9 +27,7 @@ const mapFailure = (status: number): undefined | ViewAttributesFailure => {
   }
 }
 
-export function createAttributesPageDeps(
-  client: ApiClient,
-): AttributesPageDeps {
+export function createAttributesPageDeps(client: ApiClient): AttributesPageDeps {
   return {
     async view({ signal }) {
       const response = await client.GET('/api/organizations/attributes', {
@@ -42,9 +38,7 @@ export function createAttributesPageDeps(
         if (failure) {
           return err(failure)
         }
-        throw new Error(
-          `Unrecognized attributes response: ${response.response.status}`,
-        )
+        throw new Error(`Unrecognized attributes response: ${response.response.status}`)
       }
       return ok(
         response.data.map((attribute) => {

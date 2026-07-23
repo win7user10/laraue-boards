@@ -23,9 +23,7 @@ const mapOrganizationAssignees = (members: Schemas['SpaceMember'][]) =>
     value: member.userId,
   }))
 
-const mapResourceFailure = (
-  status: number,
-): IssueResourceFailure | undefined => {
+const mapResourceFailure = (status: number): IssueResourceFailure | undefined => {
   if (status === 401 || status === 403) {
     return { type: 'accessDenied' }
   }
@@ -115,8 +113,7 @@ const mapAttachments = (
       return []
     }
     const originalId = attachment.originalFileId ?? previewId
-    const fileUrl = (id: string) =>
-      new URL(`/api/files/${encodeURIComponent(id)}`, baseUrl).href
+    const fileUrl = (id: string) => new URL(`/api/files/${encodeURIComponent(id)}`, baseUrl).href
     return [
       {
         id: attachment.id,
@@ -126,10 +123,7 @@ const mapAttachments = (
     ]
   })
 
-const mapIssue = (
-  issue: Schemas['IssueDetailDto'],
-  baseUrl: string,
-): IssuePageData => ({
+const mapIssue = (issue: Schemas['IssueDetailDto'], baseUrl: string): IssuePageData => ({
   assignee: issue.assignee,
   assigneeColor: issue.assigneeColor,
   assigneeId: issue.assigneeId,
@@ -165,9 +159,7 @@ export function createIssuePageDeps(client: ApiClient): IssuePageDeps {
       if (failure) {
         return err(failure)
       }
-      throw new Error(
-        `Unrecognized delete issue response: ${response.response.status}`,
-      )
+      throw new Error(`Unrecognized delete issue response: ${response.response.status}`)
     },
 
     async loadAssignees({ spaceId }) {
@@ -184,9 +176,7 @@ export function createIssuePageDeps(client: ApiClient): IssuePageDeps {
       if (failure) {
         return err(failure)
       }
-      throw new Error(
-        `Unrecognized assignees response: ${response.response.status}`,
-      )
+      throw new Error(`Unrecognized assignees response: ${response.response.status}`)
     },
 
     async loadMoveBoards({ spaceId }) {
@@ -208,9 +198,7 @@ export function createIssuePageDeps(client: ApiClient): IssuePageDeps {
       if (failure) {
         return err(failure)
       }
-      throw new Error(
-        `Unrecognized move boards response: ${response.response.status}`,
-      )
+      throw new Error(`Unrecognized move boards response: ${response.response.status}`)
     },
 
     async loadMoveSpaces() {
@@ -233,9 +221,7 @@ export function createIssuePageDeps(client: ApiClient): IssuePageDeps {
       if (failure?.type === 'temporarilyUnavailable') {
         return err(failure)
       }
-      throw new Error(
-        `Unrecognized move spaces response: ${response.response.status}`,
-      )
+      throw new Error(`Unrecognized move spaces response: ${response.response.status}`)
     },
 
     async loadStatuses({ boardId }) {
@@ -256,23 +242,18 @@ export function createIssuePageDeps(client: ApiClient): IssuePageDeps {
       if (failure) {
         return err(failure)
       }
-      throw new Error(
-        `Unrecognized statuses response: ${response.response.status}`,
-      )
+      throw new Error(`Unrecognized statuses response: ${response.response.status}`)
     },
 
     async moveIssue({ issueKey, statusId }) {
       if (statusId === '') {
         return err({ type: 'invalidStatus' })
       }
-      const response = await client.POST(
-        '/api/movement/issue/{key}/move-to-status/{statusId}',
-        {
-          params: {
-            path: { key: issueKey, statusId: Number(statusId) },
-          },
+      const response = await client.POST('/api/movement/issue/{key}/move-to-status/{statusId}', {
+        params: {
+          path: { key: issueKey, statusId: Number(statusId) },
         },
-      )
+      })
       if ('data' in response) {
         return ok(undefined)
       }
@@ -280,9 +261,7 @@ export function createIssuePageDeps(client: ApiClient): IssuePageDeps {
       if (failure) {
         return err(failure)
       }
-      throw new Error(
-        `Unrecognized move issue response: ${response.response.status}`,
-      )
+      throw new Error(`Unrecognized move issue response: ${response.response.status}`)
     },
 
     async updateIssue(input) {
@@ -306,9 +285,7 @@ export function createIssuePageDeps(client: ApiClient): IssuePageDeps {
       if (failure) {
         return err(failure)
       }
-      throw new Error(
-        `Unrecognized update issue response: ${response.response.status}`,
-      )
+      throw new Error(`Unrecognized update issue response: ${response.response.status}`)
     },
 
     async view({ issueKey, signal }) {
@@ -326,9 +303,7 @@ export function createIssuePageDeps(client: ApiClient): IssuePageDeps {
       if (failure) {
         return err(failure)
       }
-      throw new Error(
-        `Unrecognized view issue response: ${response.response.status}`,
-      )
+      throw new Error(`Unrecognized view issue response: ${response.response.status}`)
     },
   }
 }

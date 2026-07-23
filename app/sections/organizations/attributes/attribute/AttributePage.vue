@@ -52,8 +52,7 @@ const props = defineProps<{
 const organizationRoutes = useOrganizationRoutes()
 const query = await useAsyncData(
   () => `attribute:${props.attributeId}`,
-  (_nuxtApp, { signal }) =>
-    props.deps.view({ attributeId: props.attributeId, signal }),
+  (_nuxtApp, { signal }) => props.deps.view({ attributeId: props.attributeId, signal }),
   { watch: [() => props.attributeId] },
 )
 const getViewFailureMessage = (failure: ViewAttributeFailure): string => {
@@ -96,9 +95,7 @@ const pageState = computed(() =>
 const state = reactive({ error: null as null | string, submitting: false })
 useHead({
   title: computed(() =>
-    pageState.value.type === 'ready'
-      ? `${pageState.value.data.name} attribute`
-      : 'Attribute',
+    pageState.value.type === 'ready' ? `${pageState.value.data.name} attribute` : 'Attribute',
   ),
 })
 
@@ -112,10 +109,7 @@ async function remove(id: string): Promise<void> {
     const result = await props.deps.delete({ id })
     await matchResult(result, {
       err: (failure) => {
-        state.error = getChangeFailureMessage(
-          failure,
-          'Could not delete the attribute. Try again.',
-        )
+        state.error = getChangeFailureMessage(failure, 'Could not delete the attribute. Try again.')
       },
       ok: props.onFinished,
     })
@@ -134,10 +128,7 @@ async function update(input: UpdateAttributeInput): Promise<void> {
     const result = await props.deps.update(input)
     await matchResult(result, {
       err: (failure) => {
-        state.error = getChangeFailureMessage(
-          failure,
-          'Could not save the attribute. Try again.',
-        )
+        state.error = getChangeFailureMessage(failure, 'Could not save the attribute. Try again.')
       },
       ok: props.onFinished,
     })

@@ -44,9 +44,7 @@
             <div class="summary-title">
               <ListTodo :style="{ color: backlog.color }" />
               <strong>{{ backlog.name }}</strong>
-              <span class="muted issue-count">
-                {{ backlog.issueCount }} issues
-              </span>
+              <span class="muted issue-count">{{ backlog.issueCount }} issues</span>
             </div>
           </NuxtLink>
         </div>
@@ -67,9 +65,7 @@
               <div class="summary-title">
                 <BoardIcon :style="{ color: board.color }" />
                 <strong>{{ board.name }}</strong>
-                <span class="muted issue-count">
-                  {{ board.issueCount }} issues
-                </span>
+                <span class="muted issue-count">{{ board.issueCount }} issues</span>
               </div>
               <div class="meter">
                 <span
@@ -107,10 +103,7 @@
 import { ListTodo, Plus, Settings } from 'lucide-vue-next'
 
 import { BoardIcon, SpaceIcon } from '~/constants/icons'
-import type {
-  SpacePageDeps,
-  ViewSpaceFailure,
-} from '~/sections/spaces/space/SpacePage.deps'
+import type { SpacePageDeps, ViewSpaceFailure } from '~/sections/spaces/space/SpacePage.deps'
 import { assertNever } from '~/utils/assertNever'
 import { toAsyncResultState } from '~/utils/asyncResultState'
 
@@ -118,8 +111,7 @@ const props = defineProps<{ deps: SpacePageDeps; spaceKey: string }>()
 const organizationRoutes = useOrganizationRoutes()
 const query = await useAsyncData(
   () => `space:${props.spaceKey}`,
-  (_nuxtApp, { signal }) =>
-    props.deps.view({ signal, spaceKey: props.spaceKey }),
+  (_nuxtApp, { signal }) => props.deps.view({ signal, spaceKey: props.spaceKey }),
   { watch: [() => props.spaceKey] },
 )
 const getFailureMessage = (failure: ViewSpaceFailure): string => {
@@ -142,19 +134,11 @@ const pageState = computed(() =>
     status: query.status.value,
   }),
 )
-const boards = computed(() =>
-  pageState.value.type === 'ready' ? pageState.value.data.boards : [],
-)
-const backlog = computed(() =>
-  boards.value.find((board) => board.kind === 'backlog'),
-)
-const regularBoards = computed(() =>
-  boards.value.filter((board) => board.kind === 'board'),
-)
+const boards = computed(() => (pageState.value.type === 'ready' ? pageState.value.data.boards : []))
+const backlog = computed(() => boards.value.find((board) => board.kind === 'backlog'))
+const regularBoards = computed(() => boards.value.filter((board) => board.kind === 'board'))
 useHead({
-  title: computed(() =>
-    pageState.value.type === 'ready' ? pageState.value.data.name : 'Space',
-  ),
+  title: computed(() => (pageState.value.type === 'ready' ? pageState.value.data.name : 'Space')),
 })
 </script>
 

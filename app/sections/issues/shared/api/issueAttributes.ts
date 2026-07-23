@@ -17,9 +17,7 @@ type IssueAttribute =
       type: 'list'
     }
 
-export function mapIssueAttributes(
-  attributes: Schemas['AttributeDto'][],
-): IssueAttribute[] {
+export function mapIssueAttributes(attributes: Schemas['AttributeDto'][]): IssueAttribute[] {
   return attributes.map((attribute) => {
     if (attribute.id === undefined) {
       throw new TypeError('Attribute id is required')

@@ -45,11 +45,7 @@
               <option
                 disabled
                 value="">
-                {{
-                  data.statuses.length === 0
-                    ? 'No statuses available'
-                    : 'Select status'
-                }}
+                {{ data.statuses.length === 0 ? 'No statuses available' : 'Select status' }}
               </option>
               <option
                 v-for="status in data.statuses"
@@ -103,9 +99,7 @@
             <div class="page-actions">
               <button
                 class="primary"
-                :disabled="
-                  state.submitting || !state.statusId || !state.assigneeId
-                ">
+                :disabled="state.submitting || !state.statusId || !state.assigneeId">
                 {{ state.submitting ? 'Adding…' : 'Add issue' }}
               </button>
             </div>
@@ -154,8 +148,7 @@ const state = reactive({
 useHead({ title: 'Add backlog issue' })
 const query = await useAsyncData(
   () => `create-backlog-issue:${props.spaceKey}`,
-  (_nuxtApp, { signal }) =>
-    props.deps.view({ signal, spaceKey: props.spaceKey }),
+  (_nuxtApp, { signal }) => props.deps.view({ signal, spaceKey: props.spaceKey }),
   { watch: [() => props.spaceKey] },
 )
 const getViewFailureMessage = (failure: ViewBacklogIssueFailure): string => {
@@ -180,16 +173,10 @@ const pageState = computed(() =>
     status: query.status.value,
   }),
 )
-const page = computed(() =>
-  pageState.value.type === 'ready' ? pageState.value.data : null,
-)
-const assignee = computed(() =>
-  state.assignees.find((option) => option.value === state.assigneeId),
-)
+const page = computed(() => (pageState.value.type === 'ready' ? pageState.value.data : null))
+const assignee = computed(() => state.assignees.find((option) => option.value === state.assigneeId))
 
-const getLoadFailureMessage = (
-  failure: LoadBacklogAssigneesFailure,
-): string => {
+const getLoadFailureMessage = (failure: LoadBacklogAssigneesFailure): string => {
   switch (failure.type) {
     case 'accessDenied':
       return 'You do not have access to space members.'
@@ -202,9 +189,7 @@ const getLoadFailureMessage = (
   }
 }
 
-const getCreateFailureMessage = (
-  failure: CreateBacklogIssueFailure,
-): string => {
+const getCreateFailureMessage = (failure: CreateBacklogIssueFailure): string => {
   switch (failure.type) {
     case 'accessDenied':
       return 'You do not have permission to add this issue.'
@@ -253,10 +238,7 @@ async function submit(): Promise<void> {
   try {
     const result = await props.deps.create({
       assigneeId: state.assigneeId,
-      attributeValues: getIssueAttributeValueInput(
-        state.attributeValues,
-        current.attributes,
-      ),
+      attributeValues: getIssueAttributeValueInput(state.attributeValues, current.attributes),
       content: state.content.trim(),
       files: state.files,
       statusId: state.statusId,

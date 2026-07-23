@@ -42,15 +42,10 @@ export type ViewBoardPageFailure =
   | Failure<'boardNotFound'>
   | Failure<'temporarilyUnavailable'>
 
-export type LoadBoardIssuesFailure = Failure<
-  'accessDenied' | 'temporarilyUnavailable'
->
+export type LoadBoardIssuesFailure = Failure<'accessDenied' | 'temporarilyUnavailable'>
 
 export type MoveIssueToBacklogFailure = Failure<
-  | 'accessDenied'
-  | 'alreadyInBacklog'
-  | 'resourceNotFound'
-  | 'temporarilyUnavailable'
+  'accessDenied' | 'alreadyInBacklog' | 'resourceNotFound' | 'temporarilyUnavailable'
 >
 
 export type BoardPageDeps = {

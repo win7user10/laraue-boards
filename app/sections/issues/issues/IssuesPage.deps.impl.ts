@@ -9,10 +9,7 @@ import type {
   MoveIssuesFailure,
   ViewIssuesFailure,
 } from '~/sections/issues/issues/IssuesPage.deps'
-import {
-  mapIssueFilters,
-  mapRawIssueFilters,
-} from '~/sections/issues/shared/api/issueAttributes'
+import { mapIssueFilters, mapRawIssueFilters } from '~/sections/issues/shared/api/issueAttributes'
 import { createdAtDescending } from '~/sections/issues/shared/api/issueSorting'
 import { err, ok } from '~/utils/actionResult'
 
@@ -42,9 +39,7 @@ const mapViewFailure = (status: number): undefined | ViewIssuesFailure => {
   }
 }
 
-const mapBoardsFailure = (
-  status: number,
-): LoadMoveBoardsFailure | undefined => {
+const mapBoardsFailure = (status: number): LoadMoveBoardsFailure | undefined => {
   if (status === 401 || status === 403) {
     return { type: 'accessDenied' }
   }
@@ -56,9 +51,7 @@ const mapBoardsFailure = (
   }
 }
 
-const mapStatusesFailure = (
-  status: number,
-): LoadMoveStatusesFailure | undefined => {
+const mapStatusesFailure = (status: number): LoadMoveStatusesFailure | undefined => {
   if (status === 401 || status === 403) {
     return { type: 'accessDenied' }
   }
@@ -106,9 +99,7 @@ export function createIssuesPageDeps(client: ApiClient): IssuesPageDeps {
       if (failure) {
         return err(failure)
       }
-      throw new Error(
-        `Unrecognized move boards response: ${response.response.status}`,
-      )
+      throw new Error(`Unrecognized move boards response: ${response.response.status}`)
     },
 
     async loadMoveSpaces() {
@@ -128,9 +119,7 @@ export function createIssuesPageDeps(client: ApiClient): IssuesPageDeps {
       if (failure) {
         return err(failure)
       }
-      throw new Error(
-        `Unrecognized move spaces response: ${response.response.status}`,
-      )
+      throw new Error(`Unrecognized move spaces response: ${response.response.status}`)
     },
 
     async loadMoveStatuses({ boardId }) {
@@ -151,9 +140,7 @@ export function createIssuesPageDeps(client: ApiClient): IssuesPageDeps {
       if (failure) {
         return err(failure)
       }
-      throw new Error(
-        `Unrecognized move statuses response: ${response.response.status}`,
-      )
+      throw new Error(`Unrecognized move statuses response: ${response.response.status}`)
     },
 
     async moveIssues({ issueKeys, statusId }) {
@@ -177,9 +164,7 @@ export function createIssuesPageDeps(client: ApiClient): IssuesPageDeps {
         if (failure) {
           return err(failure)
         }
-        throw new Error(
-          `Unrecognized move issue response: ${response.response.status}`,
-        )
+        throw new Error(`Unrecognized move issue response: ${response.response.status}`)
       }
       return ok(undefined)
     },
@@ -208,9 +193,7 @@ export function createIssuesPageDeps(client: ApiClient): IssuesPageDeps {
       if (failure) {
         return err(failure)
       }
-      throw new Error(
-        `Unrecognized issues search response: ${response.response.status}`,
-      )
+      throw new Error(`Unrecognized issues search response: ${response.response.status}`)
     },
 
     async view({ attributeQuery, page, search, signal, spaceIds }) {
@@ -222,9 +205,7 @@ export function createIssuesPageDeps(client: ApiClient): IssuesPageDeps {
         if (failure) {
           return err(failure)
         }
-        throw new Error(
-          `Unrecognized attributes response: ${attributes.response.status}`,
-        )
+        throw new Error(`Unrecognized attributes response: ${attributes.response.status}`)
       }
       if (attributes.data === undefined) {
         return err({ type: 'temporarilyUnavailable' })
@@ -249,18 +230,14 @@ export function createIssuesPageDeps(client: ApiClient): IssuesPageDeps {
         if (failure) {
           return err(failure)
         }
-        throw new Error(
-          `Unrecognized issues response: ${issues.response.status}`,
-        )
+        throw new Error(`Unrecognized issues response: ${issues.response.status}`)
       }
       if ('error' in spaces) {
         const failure = mapViewFailure(spaces.response.status)
         if (failure) {
           return err(failure)
         }
-        throw new Error(
-          `Unrecognized spaces response: ${spaces.response.status}`,
-        )
+        throw new Error(`Unrecognized spaces response: ${spaces.response.status}`)
       }
       if (issues.data === undefined || spaces.data === undefined) {
         return err({ type: 'temporarilyUnavailable' })
@@ -270,9 +247,7 @@ export function createIssuesPageDeps(client: ApiClient): IssuesPageDeps {
         hasNextPage: issues.data.hasNextPage,
         issues: issues.data.data.map(mapIssue),
         spaces: spaces.data.flatMap((space) =>
-          space.id === undefined
-            ? []
-            : [{ label: space.name, value: String(space.id) }],
+          space.id === undefined ? [] : [{ label: space.name, value: String(space.id) }],
         ),
       })
     },

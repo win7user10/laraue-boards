@@ -87,8 +87,7 @@ const props = defineProps<{
 const formId = useId()
 const query = await useAsyncData(
   () => `issue:${props.issueKey}`,
-  (_nuxtApp, { signal }) =>
-    props.deps.view({ issueKey: props.issueKey, signal }),
+  (_nuxtApp, { signal }) => props.deps.view({ issueKey: props.issueKey, signal }),
   { watch: [() => props.issueKey] },
 )
 const getViewFailureMessage = (failure: IssueResourceFailure): string => {
@@ -317,10 +316,7 @@ async function save(input: IssueDetailsSaveInput) {
   state.error = null
   const updateResult = await props.deps.updateIssue({
     assigneeId: input.assigneeId,
-    attributeValues: getIssueAttributeValueInput(
-      input.attributeValues,
-      current.data.attributes,
-    ),
+    attributeValues: getIssueAttributeValueInput(input.attributeValues, current.data.attributes),
     content: input.content,
     files: input.files,
     issueKey: props.issueKey,

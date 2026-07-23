@@ -7,9 +7,7 @@ export type AttributeListItem = {
   type: 'list' | 'text'
 }
 
-export type ViewAttributesFailure =
-  | { type: 'accessDenied' }
-  | { type: 'temporarilyUnavailable' }
+export type ViewAttributesFailure = { type: 'accessDenied' } | { type: 'temporarilyUnavailable' }
 
 export type AttributesPageDeps = {
   view: (input: {

@@ -81,11 +81,7 @@ import BoardColumnSetting from '~/sections/boards/board-settings/components/Boar
 const props = defineProps<{
   error: null | string
   onDelete: () => void
-  onUpdate: (input: {
-    color: string
-    columns: BoardSettingsColumnDraft[]
-    name: string
-  }) => void
+  onUpdate: (input: { color: string; columns: BoardSettingsColumnDraft[]; name: string }) => void
   submitting: boolean
   viewModel: BoardSettingsPageData
 }>()

@@ -24,8 +24,8 @@ NUXT_PUBLIC_BOT_NAME=msgboard_bot
 NUXT_PUBLIC_TEST_USER_TOKEN=
 ```
 
-The browser calls the backend directly. The API base URL must therefore be the
-backend origin without a trailing `/api` path.
+The browser calls the backend directly. The API base URL must therefore be the backend origin
+without a trailing `/api` path.
 
 Start the backend on port `5200`, then start the frontend:
 
@@ -39,17 +39,16 @@ The frontend is available at `http://localhost:3000`.
 
 ### Local development with test Mini App data
 
-For local development, set `NUXT_PUBLIC_TEST_USER_TOKEN` to valid Telegram Mini
-App `initData` for a test user:
+For local development, set `NUXT_PUBLIC_TEST_USER_TOKEN` to valid Telegram Mini App `initData` for a
+test user:
 
 ```env
 NUXT_PUBLIC_TEST_USER_TOKEN=<telegram-mini-app-init-data>
 ```
 
-Despite its name, this value is not a bearer token. In development mode the
-frontend sends it to the backend Mini App authentication endpoint and stores the
-bearer token returned by the backend. See the backend repository for how to
-obtain valid test `initData`.
+Despite its name, this value is not a bearer token. In development mode the frontend sends it to the
+backend Mini App authentication endpoint and stores the bearer token returned by the backend. See
+the backend repository for how to obtain valid test `initData`.
 
 ### Authorization through a real Telegram Mini App
 
@@ -83,16 +82,12 @@ ngrok displays a separate public URL for each tunnel. Keep both values:
 
 #### 2. Configure the application
 
-Allow the frontend URL in the backend development CORS configuration. For
-example:
+Allow the frontend URL in the backend development CORS configuration. For example:
 
 ```json
 {
   "Cors": {
-    "Hosts": [
-      "http://localhost:3000",
-      "https://<frontend-tunnel>.ngrok-free.app"
-    ]
+    "Hosts": ["http://localhost:3000", "https://<frontend-tunnel>.ngrok-free.app"]
   }
 }
 ```
@@ -108,17 +103,17 @@ Restart the frontend after changing `.env`.
 
 #### 3. Configure the Telegram bot
 
-In @BotFather, open the bot's Mini App settings and set the Main App URL to the
-frontend tunnel URL, for example: `https://<frontend-tunnel>.ngrok-free.app/`.
+In @BotFather, open the bot's Mini App settings and set the Main App URL to the frontend tunnel URL,
+for example: `https://<frontend-tunnel>.ngrok-free.app/`.
 
-Open the Mini App from Telegram. After successful authentication, the app opens
-the organization selection page. Check the browser console, the backend logs,
-and the ngrok request log if authentication fails.
+Open the Mini App from Telegram. After successful authentication, the app opens the organization
+selection page. Check the browser console, the backend logs, and the ngrok request log if
+authentication fails.
 
 #### Optional: browser console inside Telegram
 
-For temporary debugging, add these entries to the existing `app.head.script`
-array in `nuxt.config.ts`:
+For temporary debugging, add these entries to the existing `app.head.script` array in
+`nuxt.config.ts`:
 
 ```ts
 { src: 'https://cdn.jsdelivr.net/npm/eruda' },
@@ -133,9 +128,8 @@ Remove them after debugging.
 2. Allow the frontend tunnel URL in backend CORS.
 3. Set `NUXT_PUBLIC_BOARDS_API_BASE_URL` to the backend tunnel URL and clear
    `NUXT_PUBLIC_TEST_USER_TOKEN`.
-4. Send `/setdomain` to @BotFather, select the bot, and send the frontend tunnel
-   hostname without the protocol, for example
-   `<frontend-tunnel>.ngrok-free.app`.
+4. Send `/setdomain` to @BotFather, select the bot, and send the frontend tunnel hostname without
+   the protocol, for example `<frontend-tunnel>.ngrok-free.app`.
 5. Set the bot name without `@` in `.env`:
 
    ```env

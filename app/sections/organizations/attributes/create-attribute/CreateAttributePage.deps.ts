@@ -12,7 +12,5 @@ export type CreateAttributeFailure =
   | { type: 'temporarilyUnavailable' }
 
 export type CreateAttributePageDeps = {
-  create: (
-    input: CreateAttributeInput,
-  ) => Promise<Result<{ id: string }, CreateAttributeFailure>>
+  create: (input: CreateAttributeInput) => Promise<Result<{ id: string }, CreateAttributeFailure>>
 }

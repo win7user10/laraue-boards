@@ -6,10 +6,7 @@ import type {
 } from '~/sections/spaces/create-space/CreateSpacePage.deps'
 import { err, ok } from '~/utils/actionResult'
 
-const mapFailure = (
-  status: number,
-  error: unknown,
-): CreateSpaceFailure | undefined => {
+const mapFailure = (status: number, error: unknown): CreateSpaceFailure | undefined => {
   if (status === 400) {
     return {
       message: getInvalidInputError(error).message,
@@ -27,9 +24,7 @@ const mapFailure = (
   }
 }
 
-export function createCreateSpacePageDeps(
-  client: ApiClient,
-): CreateSpacePageDeps {
+export function createCreateSpacePageDeps(client: ApiClient): CreateSpacePageDeps {
   return {
     async create(input) {
       const response = await client.POST('/api/spaces', {
@@ -43,9 +38,7 @@ export function createCreateSpacePageDeps(
       if (failure) {
         return err(failure)
       }
-      throw new Error(
-        `Unrecognized create space response: ${response.response.status}`,
-      )
+      throw new Error(`Unrecognized create space response: ${response.response.status}`)
     },
   }
 }

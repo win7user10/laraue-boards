@@ -16,9 +16,7 @@ export type DataMovementPageData = {
   }>
 }
 
-export type ViewDataMovementFailure =
-  | { type: 'accessDenied' }
-  | { type: 'temporarilyUnavailable' }
+export type ViewDataMovementFailure = { type: 'accessDenied' } | { type: 'temporarilyUnavailable' }
 
 export type LoadDestinationSpacesFailure =
   | { type: 'accessDenied' }

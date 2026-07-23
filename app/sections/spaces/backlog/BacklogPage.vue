@@ -97,8 +97,7 @@ const organizationRoutes = useOrganizationRoutes()
 const request = computed(() => ({
   attributeQuery: readIssueAttributeQuery(props.routeQuery),
   page: Math.max(1, Number(props.routeQuery.page) || 1),
-  search:
-    typeof props.routeQuery.search === 'string' ? props.routeQuery.search : '',
+  search: typeof props.routeQuery.search === 'string' ? props.routeQuery.search : '',
 }))
 const query = await useAsyncData(
   () => `backlog:${props.spaceKey}`,
@@ -134,10 +133,7 @@ const attributes = computed(() =>
   pageState.value.type === 'ready' ? pageState.value.data.attributes : [],
 )
 const attributeFilters = computed(() =>
-  normalizeIssueAttributeFilters(
-    request.value.attributeQuery,
-    attributes.value,
-  ),
+  normalizeIssueAttributeFilters(request.value.attributeQuery, attributes.value),
 )
 const filterValue = computed<FilterValue>(() => ({
   attributes: attributeFilters.value,
@@ -160,11 +156,7 @@ const scheduleSearch = debounce(searchIssues, 300)
 
 function updateFilters(value: FilterValue) {
   void props.onUpdateQuery(
-    withIssueAttributeFilters(
-      props.routeQuery,
-      value.attributes,
-      attributes.value,
-    ),
+    withIssueAttributeFilters(props.routeQuery, value.attributes, attributes.value),
   )
 }
 
@@ -203,10 +195,7 @@ async function searchIssues() {
         request: () =>
           props.deps.search({
             backlogBoardId: data.backlogBoardId,
-            filters: getIssueAttributeFilterInput(
-              attributeFilters.value,
-              attributes.value,
-            ),
+            filters: getIssueAttributeFilterInput(attributeFilters.value, attributes.value),
             page: request.value.page,
             search: request.value.search,
           }),
@@ -294,9 +283,7 @@ async function loadMoveBoards(spaceId: string) {
   })
 }
 
-const getStatusesFailureMessage = (
-  failure: LoadMoveStatusesFailure,
-): string => {
+const getStatusesFailureMessage = (failure: LoadMoveStatusesFailure): string => {
   switch (failure.type) {
     case 'accessDenied':
       return 'You do not have access to this board.'
@@ -339,10 +326,7 @@ const getMoveFailureMessage = (failure: MoveIssuesFailure): string => {
   }
 }
 
-async function moveIssues(input: {
-  issueKeys: string[]
-  statusId: string
-}): Promise<boolean> {
+async function moveIssues(input: { issueKeys: string[]; statusId: string }): Promise<boolean> {
   state.move.error = null
   state.move.moving = true
   const result = await props.deps.moveIssues(input)

@@ -63,9 +63,8 @@ import { toAsyncResultState } from '~/utils/asyncResultState'
 const props = defineProps<{ deps: AttributesPageDeps }>()
 const organizationRoutes = useOrganizationRoutes()
 useHead({ title: 'Attributes' })
-const query = await useAsyncData(
-  'organization-attributes',
-  (_nuxtApp, { signal }) => props.deps.view({ signal }),
+const query = await useAsyncData('organization-attributes', (_nuxtApp, { signal }) =>
+  props.deps.view({ signal }),
 )
 const getFailureMessage = (failure: ViewAttributesFailure): string => {
   switch (failure.type) {

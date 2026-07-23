@@ -19,9 +19,7 @@ export type SelectOrganizationFailure =
   | { type: 'temporarilyUnavailable' }
 
 export type OrganizationPickerPageDeps = {
-  select: (input: {
-    organizationId: string
-  }) => Promise<Result<null, SelectOrganizationFailure>>
+  select: (input: { organizationId: string }) => Promise<Result<null, SelectOrganizationFailure>>
   view: (input: {
     signal?: AbortSignal
   }) => Promise<Result<OrganizationPickerItem[], ViewOrganizationPickerFailure>>

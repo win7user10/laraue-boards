@@ -81,14 +81,10 @@ const pageState = computed(() =>
     status: query.status.value,
   }),
 )
-const page = computed(() =>
-  pageState.value.type === 'ready' ? pageState.value.data : null,
-)
+const page = computed(() => (pageState.value.type === 'ready' ? pageState.value.data : null))
 
 useHead({
-  title: computed(() =>
-    page.value ? `${page.value.name} settings` : 'Board settings',
-  ),
+  title: computed(() => (page.value ? `${page.value.name} settings` : 'Board settings')),
 })
 
 const getChangeFailureMessage = (
@@ -99,9 +95,7 @@ const getChangeFailureMessage = (
     case 'accessDenied':
       return `You do not have permission to ${operation} this board.`
     case 'boardNotFound':
-      return operation === 'delete'
-        ? 'This board no longer exists.'
-        : 'The board was not found.'
+      return operation === 'delete' ? 'This board no longer exists.' : 'The board was not found.'
     case 'temporarilyUnavailable':
       return `Could not ${operation} board. Try again.`
     default:

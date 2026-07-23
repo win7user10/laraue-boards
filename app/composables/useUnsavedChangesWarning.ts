@@ -7,9 +7,7 @@ export const useUnsavedChangesWarning = (dirty: Readonly<Ref<boolean>>) => {
 
   onBeforeRouteLeave(confirmUnsavedChanges)
   onMounted(() => window.addEventListener('beforeunload', warnBeforeUnload))
-  onBeforeUnmount(() =>
-    window.removeEventListener('beforeunload', warnBeforeUnload),
-  )
+  onBeforeUnmount(() => window.removeEventListener('beforeunload', warnBeforeUnload))
 
   function warnBeforeUnload(event: BeforeUnloadEvent) {
     if (dirty.value) {

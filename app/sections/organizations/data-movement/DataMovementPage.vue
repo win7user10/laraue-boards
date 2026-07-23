@@ -58,9 +58,8 @@ import { toAsyncResultState } from '~/utils/asyncResultState'
 const props = defineProps<{ deps: DataMovementPageDeps }>()
 useHead({ title: 'Data movement' })
 
-const query = await useAsyncData(
-  'organization-data-movement',
-  (_nuxtApp, { signal }) => props.deps.view({ signal }),
+const query = await useAsyncData('organization-data-movement', (_nuxtApp, { signal }) =>
+  props.deps.view({ signal }),
 )
 
 const getViewFailureMessage = (failure: ViewDataMovementFailure): string => {
@@ -101,9 +100,7 @@ function changeOrganization() {
   state.destinationSpaces = []
 }
 
-const getLoadSpacesFailureMessage = (
-  failure: LoadDestinationSpacesFailure,
-): string => {
+const getLoadSpacesFailureMessage = (failure: LoadDestinationSpacesFailure): string => {
   switch (failure.type) {
     case 'accessDenied':
       return 'You cannot create boards in this organization.'
@@ -149,10 +146,7 @@ async function loadSpaces(organizationId: string): Promise<void> {
   }
 }
 
-const getMoveFailureMessage = (
-  failure: MoveDataFailure,
-  resource: 'boards' | 'spaces',
-): string => {
+const getMoveFailureMessage = (failure: MoveDataFailure, resource: 'boards' | 'spaces'): string => {
   switch (failure.type) {
     case 'accessDenied':
       return `You do not have permission to move some ${resource}.`

@@ -118,10 +118,7 @@ type IssueFilterAttribute = {
   color: string
   id: string
   name: string
-} & (
-  | { options: Array<{ label: string; value: string }>; type: 'list' }
-  | { type: 'text' }
-)
+} & ({ options: Array<{ label: string; value: string }>; type: 'list' } | { type: 'text' })
 type IssueFiltersValue = {
   attributes: Record<string, string | string[]>
   spaceIds?: string[]
@@ -146,17 +143,13 @@ const emit = defineEmits<{
 }>()
 const idPrefix = useId()
 const SPACE_FILTER = '__space__'
-const activeFilterId = ref(
-  props.spaces.length ? SPACE_FILTER : (props.attributes[0]?.id ?? ''),
-)
+const activeFilterId = ref(props.spaces.length ? SPACE_FILTER : (props.attributes[0]?.id ?? ''))
 const activeAttribute = computed(() =>
   props.attributes.find((attribute) => attribute.id === activeFilterId.value),
 )
 const selectedSpaces = computed(() => props.modelValue.spaceIds ?? [])
 const activeCount = computed(
-  () =>
-    Object.keys(props.modelValue.attributes).length +
-    selectedSpaces.value.length,
+  () => Object.keys(props.modelValue.attributes).length + selectedSpaces.value.length,
 )
 const selected = (id: string) => {
   const value = props.modelValue.attributes[id]

@@ -86,14 +86,10 @@ const mapMemberPermissions = (
   }
 }
 
-const mapMemberPermissionsRequest = (
-  permissions: MemberPermissions,
-): ApiUserPermissions => ({
+const mapMemberPermissionsRequest = (permissions: MemberPermissions): ApiUserPermissions => ({
   admin: Object.entries(adminFlags).reduce(
     (result, [key, flag]) =>
-      permissions.admin[key as keyof MemberPermissions['admin']]
-        ? result | flag
-        : result,
+      permissions.admin[key as keyof MemberPermissions['admin']] ? result | flag : result,
     0,
   ),
   direct: Object.fromEntries(
@@ -128,9 +124,7 @@ const mapMemberPermissionsRequest = (
   },
 })
 
-const mapViewFailure = (
-  status: number,
-): undefined | ViewMemberPermissionsFailure => {
+const mapViewFailure = (status: number): undefined | ViewMemberPermissionsFailure => {
   if (status === 401 || status === 403) {
     return { type: 'accessDenied' }
   }
@@ -163,20 +157,15 @@ const mapUpdateFailure = (
   }
 }
 
-export function createMemberPermissionsPageDeps(
-  client: ApiClient,
-): MemberPermissionsPageDeps {
+export function createMemberPermissionsPageDeps(client: ApiClient): MemberPermissionsPageDeps {
   return {
     async update(input) {
-      const response = await client.POST(
-        '/api/organizations/permissions/{organizationUserId}',
-        {
-          body: {
-            userPermissions: mapMemberPermissionsRequest(input.permissions),
-          },
-          params: { path: { organizationUserId: Number(input.memberId) } },
+      const response = await client.POST('/api/organizations/permissions/{organizationUserId}', {
+        body: {
+          userPermissions: mapMemberPermissionsRequest(input.permissions),
         },
-      )
+        params: { path: { organizationUserId: Number(input.memberId) } },
+      })
       if ('data' in response) {
         return ok(undefined)
       }
@@ -184,9 +173,7 @@ export function createMemberPermissionsPageDeps(
       if (failure) {
         return err(failure)
       }
-      throw new Error(
-        `Unrecognized update permissions response: ${response.response.status}`,
-      )
+      throw new Error(`Unrecognized update permissions response: ${response.response.status}`)
     },
 
     async view({ memberId, signal }) {
@@ -208,9 +195,7 @@ export function createMemberPermissionsPageDeps(
         if (failure) {
           return err(failure)
         }
-        throw new Error(
-          `Unrecognized member permissions response: ${response.response.status}`,
-        )
+        throw new Error(`Unrecognized member permissions response: ${response.response.status}`)
       }
 
       if (

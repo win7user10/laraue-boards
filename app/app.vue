@@ -11,7 +11,6 @@
 <script setup lang="ts">
 useHead({
   link: [{ href: '/favicon.svg', rel: 'icon', type: 'image/svg+xml' }],
-  titleTemplate: (title) =>
-    title ? `${title} · Laraue Boards` : 'Laraue Boards',
+  titleTemplate: (title) => (title ? `${title} · Laraue Boards` : 'Laraue Boards'),
 })
 </script>

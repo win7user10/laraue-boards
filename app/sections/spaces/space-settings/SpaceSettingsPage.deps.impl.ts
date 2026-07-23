@@ -9,9 +9,7 @@ import type {
 } from '~/sections/spaces/space-settings/SpaceSettingsPage.deps'
 import { err, ok } from '~/utils/actionResult'
 
-const mapViewFailure = (
-  status: number,
-): undefined | ViewSpaceSettingsFailure => {
+const mapViewFailure = (status: number): undefined | ViewSpaceSettingsFailure => {
   if (status === 401 || status === 403) {
     return { type: 'accessDenied' }
   }
@@ -23,20 +21,14 @@ const mapViewFailure = (
   }
 }
 
-const mapChangeFailure = (status: number): ChangeSpaceFailure | undefined =>
-  mapViewFailure(status)
+const mapChangeFailure = (status: number): ChangeSpaceFailure | undefined => mapViewFailure(status)
 
-const mapUpdateFailure = (
-  status: number,
-  error: unknown,
-): undefined | UpdateSpaceFailure =>
+const mapUpdateFailure = (status: number, error: unknown): undefined | UpdateSpaceFailure =>
   status === 400
     ? { message: getInvalidInputError(error).message, type: 'invalidInput' }
     : mapChangeFailure(status)
 
-export function createSpaceSettingsPageDeps(
-  client: ApiClient,
-): SpaceSettingsPageDeps {
+export function createSpaceSettingsPageDeps(client: ApiClient): SpaceSettingsPageDeps {
   return {
     async delete({ spaceId }) {
       const response = await client.DELETE('/api/spaces/{id}', {
@@ -49,9 +41,7 @@ export function createSpaceSettingsPageDeps(
       if (failure) {
         return err(failure)
       }
-      throw new Error(
-        `Unrecognized delete space response: ${response.response.status}`,
-      )
+      throw new Error(`Unrecognized delete space response: ${response.response.status}`)
     },
 
     async update(input) {
@@ -71,9 +61,7 @@ export function createSpaceSettingsPageDeps(
       if (failure) {
         return err(failure)
       }
-      throw new Error(
-        `Unrecognized update space response: ${response.response.status}`,
-      )
+      throw new Error(`Unrecognized update space response: ${response.response.status}`)
     },
 
     async view({ signal, spaceKey }) {
@@ -83,9 +71,7 @@ export function createSpaceSettingsPageDeps(
         if (failure) {
           return err(failure)
         }
-        throw new Error(
-          `Unrecognized spaces response: ${spaces.response.status}`,
-        )
+        throw new Error(`Unrecognized spaces response: ${spaces.response.status}`)
       }
       const space = findSpaceByKey(spaces.data, spaceKey)
       if (!space) {
@@ -101,9 +87,7 @@ export function createSpaceSettingsPageDeps(
         if (failure) {
           return err(failure)
         }
-        throw new Error(
-          `Unrecognized space details response: ${details.response.status}`,
-        )
+        throw new Error(`Unrecognized space details response: ${details.response.status}`)
       }
       return ok({
         canDelete: details.data.canDelete,

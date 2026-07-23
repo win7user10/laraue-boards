@@ -19,14 +19,10 @@ export type ChangeSpaceFailure =
   | { type: 'spaceNotFound' }
   | { type: 'temporarilyUnavailable' }
 
-export type UpdateSpaceFailure =
-  | ChangeSpaceFailure
-  | { message: string; type: 'invalidInput' }
+export type UpdateSpaceFailure = ChangeSpaceFailure | { message: string; type: 'invalidInput' }
 
 export type SpaceSettingsPageDeps = {
-  delete: (input: {
-    spaceId: string
-  }) => Promise<Result<null, ChangeSpaceFailure>>
+  delete: (input: { spaceId: string }) => Promise<Result<null, ChangeSpaceFailure>>
   update: (input: {
     color: string
     key: string

@@ -31,9 +31,7 @@ type IssueAttributeValueInput =
   | { attributeId: string; type: 'list'; valueId: string }
   | { attributeId: string; type: 'text'; value: string }
 
-export type ViewCreateIssueFailure =
-  | { type: 'accessDenied' }
-  | { type: 'temporarilyUnavailable' }
+export type ViewCreateIssueFailure = { type: 'accessDenied' } | { type: 'temporarilyUnavailable' }
 
 export type LoadSpaceDataFailure =
   | { type: 'accessDenied' }
@@ -64,12 +62,7 @@ export type CreateIssuePageDeps = {
   }) => Promise<Result<CreateIssueAssignee[], LoadSpaceDataFailure>>
   loadBoards: (input: {
     spaceId: string
-  }) => Promise<
-    Result<
-      { boardId: string; boards: CreateIssueOption[] },
-      LoadSpaceDataFailure
-    >
-  >
+  }) => Promise<Result<{ boardId: string; boards: CreateIssueOption[] }, LoadSpaceDataFailure>>
   loadStatuses: (input: {
     boardId: string
   }) => Promise<Result<CreateIssueOption[], LoadStatusesFailure>>

@@ -5,32 +5,23 @@ type Failure<Type extends string> = Type extends string ? { type: Type } : never
 
 export type IssueDialogViewModel = IssueDetailsViewModel
 
-export type IssueFailure = Failure<
-  'accessDenied' | 'issueNotFound' | 'temporarilyUnavailable'
->
+export type IssueFailure = Failure<'accessDenied' | 'issueNotFound' | 'temporarilyUnavailable'>
 
 export type SpaceLookupFailure = Failure<
   'accessDenied' | 'spaceNotFound' | 'temporarilyUnavailable'
 >
 
-export type MoveSpacesFailure = Failure<
-  'accessDenied' | 'temporarilyUnavailable'
->
+export type MoveSpacesFailure = Failure<'accessDenied' | 'temporarilyUnavailable'>
 
 export type BoardLookupFailure = Failure<
   'accessDenied' | 'boardNotFound' | 'temporarilyUnavailable'
 >
 
 export type MoveIssueFailure = Failure<
-  | 'accessDenied'
-  | 'invalidStatus'
-  | 'resourceNotFound'
-  | 'temporarilyUnavailable'
+  'accessDenied' | 'invalidStatus' | 'resourceNotFound' | 'temporarilyUnavailable'
 >
 
-export type UpdateIssueFailure =
-  | IssueFailure
-  | { message: string; type: 'invalidInput' }
+export type UpdateIssueFailure = IssueFailure | { message: string; type: 'invalidInput' }
 
 export type MoveIssue = (input: {
   issueKey: string
@@ -38,9 +29,7 @@ export type MoveIssue = (input: {
 }) => Promise<Result<null, MoveIssueFailure>>
 
 export type IssueDialogDeps = {
-  deleteIssue: (input: {
-    issueKey: string
-  }) => Promise<Result<null, IssueFailure>>
+  deleteIssue: (input: { issueKey: string }) => Promise<Result<null, IssueFailure>>
   issueDetails: {
     loadAssignees: (input: { spaceId: string }) => Promise<
       Result<
@@ -57,26 +46,13 @@ export type IssueDialogDeps = {
     >
     loadMoveBoards: (input: {
       spaceId: string
-    }) => Promise<
-      Result<
-        { boards: Array<{ label: string; value: string }> },
-        SpaceLookupFailure
-      >
-    >
+    }) => Promise<Result<{ boards: Array<{ label: string; value: string }> }, SpaceLookupFailure>>
     loadMoveSpaces: () => Promise<
-      Result<
-        { spaces: Array<{ label: string; value: string }> },
-        MoveSpacesFailure
-      >
+      Result<{ spaces: Array<{ label: string; value: string }> }, MoveSpacesFailure>
     >
     loadStatuses: (input: {
       boardId: string
-    }) => Promise<
-      Result<
-        { statuses: Array<{ id: string; name: string }> },
-        BoardLookupFailure
-      >
-    >
+    }) => Promise<Result<{ statuses: Array<{ id: string; name: string }> }, BoardLookupFailure>>
   }
   loadIssue: (input: {
     issueKey: string

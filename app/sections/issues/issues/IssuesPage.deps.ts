@@ -36,18 +36,14 @@ type IssuesFilter =
   | { attributeId: string; searchString: string; type: 'text' }
   | { attributeId: string; type: 'list'; valueIds: string[] }
 
-export type ViewIssuesFailure =
-  | { type: 'accessDenied' }
-  | { type: 'temporarilyUnavailable' }
+export type ViewIssuesFailure = { type: 'accessDenied' } | { type: 'temporarilyUnavailable' }
 
 export type LoadMoveBoardsFailure =
   | { type: 'accessDenied' }
   | { type: 'spaceNotFound' }
   | { type: 'temporarilyUnavailable' }
 
-type LoadMoveSpacesFailure =
-  | { type: 'accessDenied' }
-  | { type: 'temporarilyUnavailable' }
+type LoadMoveSpacesFailure = { type: 'accessDenied' } | { type: 'temporarilyUnavailable' }
 
 export type LoadMoveStatusesFailure =
   | { type: 'accessDenied' }
@@ -63,26 +59,13 @@ export type MoveIssuesFailure =
 export type IssuesPageDeps = {
   loadMoveBoards: (input: {
     spaceId: string
-  }) => Promise<
-    Result<
-      { boards: Array<{ label: string; value: string }> },
-      LoadMoveBoardsFailure
-    >
-  >
+  }) => Promise<Result<{ boards: Array<{ label: string; value: string }> }, LoadMoveBoardsFailure>>
   loadMoveSpaces: () => Promise<
-    Result<
-      { spaces: Array<{ label: string; value: string }> },
-      LoadMoveSpacesFailure
-    >
+    Result<{ spaces: Array<{ label: string; value: string }> }, LoadMoveSpacesFailure>
   >
   loadMoveStatuses: (input: {
     boardId: string
-  }) => Promise<
-    Result<
-      { statuses: Array<{ id: string; name: string }> },
-      LoadMoveStatusesFailure
-    >
-  >
+  }) => Promise<Result<{ statuses: Array<{ id: string; name: string }> }, LoadMoveStatusesFailure>>
   moveIssues: (input: {
     issueKeys: string[]
     statusId: string
@@ -92,12 +75,7 @@ export type IssuesPageDeps = {
     page: number
     search: string
     spaceIds: string[]
-  }) => Promise<
-    Result<
-      { hasNextPage: boolean; issues: IssuesPageIssue[] },
-      ViewIssuesFailure
-    >
-  >
+  }) => Promise<Result<{ hasNextPage: boolean; issues: IssuesPageIssue[] }, ViewIssuesFailure>>
   view: (input: {
     attributeQuery: Record<string, string[]>
     page: number

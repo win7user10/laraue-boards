@@ -10,13 +10,9 @@ export type TelegramUser = {
   username?: string
 }
 
-export type LoginFailure =
-  | { type: 'invalidTelegramData' }
-  | { type: 'temporarilyUnavailable' }
+export type LoginFailure = { type: 'invalidTelegramData' } | { type: 'temporarilyUnavailable' }
 
 export type LoginPageDeps = {
   loginViaTelegramMiniApp: () => Promise<Result<boolean, LoginFailure>>
-  loginViaTelegramWidget: (
-    input: TelegramUser,
-  ) => Promise<Result<void, LoginFailure>>
+  loginViaTelegramWidget: (input: TelegramUser) => Promise<Result<void, LoginFailure>>
 }

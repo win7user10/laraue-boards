@@ -12,9 +12,7 @@
           :aria-label="`Open attachment ${index + 1}`"
           class="issue-attachment-open"
           type="button"
-          @click="
-            openLightbox(attachment.originalUrl, `Attachment ${index + 1}`)
-          ">
+          @click="openLightbox(attachment.originalUrl, `Attachment ${index + 1}`)">
           <img
             :alt="`Attachment ${index + 1}`"
             :src="attachment.previewUrl" />
@@ -86,9 +84,7 @@
         @click="clearFiles">
         Clear
       </button>
-      <span class="muted issue-attachment-paste-hint">
-        or paste PNG/JPG with Ctrl+V
-      </span>
+      <span class="muted issue-attachment-paste-hint">or paste PNG/JPG with Ctrl+V</span>
     </div>
     <span
       v-if="attachmentError"
@@ -150,9 +146,7 @@ const lightboxEl = ref<HTMLDialogElement>()
 const pendingPreviews = ref<Array<{ file: File; url: string }>>([])
 const supportedImageTypes = new Set(['image/jpeg', 'image/png'])
 const visibleAttachments = computed(() =>
-  props.attachments.filter(
-    (attachment) => !props.removedAttachmentIds?.includes(attachment.id),
-  ),
+  props.attachments.filter((attachment) => !props.removedAttachmentIds?.includes(attachment.id)),
 )
 
 watch(
@@ -198,9 +192,7 @@ function pasteFiles(event: ClipboardEvent) {
 }
 
 function getSupportedImages(files: File[] | FileList) {
-  const images = Array.from(files).filter((file) =>
-    supportedImageTypes.has(file.type),
-  )
+  const images = Array.from(files).filter((file) => supportedImageTypes.has(file.type))
   attachmentError.value = images.some((file) => file.size > MAX_IMAGE_SIZE)
     ? 'Each image must be 3 MB or smaller.'
     : ''
@@ -354,8 +346,7 @@ function closeLightboxFromBackdrop(event: MouseEvent) {
   pointer-events: none;
 }
 
-.issue-attachments:has(.issue-attachment-input:focus-visible)
-  .issue-attachment-picker {
+.issue-attachments:has(.issue-attachment-input:focus-visible) .issue-attachment-picker {
   border-color: var(--color-accent);
   box-shadow: var(--shadow-focus);
 }

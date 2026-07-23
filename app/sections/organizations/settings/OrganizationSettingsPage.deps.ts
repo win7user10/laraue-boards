@@ -30,7 +30,5 @@ export type OrganizationSettingsPageDeps = {
   ) => Promise<Result<void, UpdateOrganizationFailure>>
   view: (input: {
     signal?: AbortSignal
-  }) => Promise<
-    Result<OrganizationSettingsPageData, ViewOrganizationSettingsFailure>
-  >
+  }) => Promise<Result<OrganizationSettingsPageData, ViewOrganizationSettingsFailure>>
 }

@@ -10,10 +10,7 @@
       </div>
       <div class="auth-copy">
         <h1>Turn messages into work.</h1>
-        <p>
-          Send Telegram messages to organized boards and keep every important
-          request moving.
-        </p>
+        <p>Send Telegram messages to organized boards and keep every important request moving.</p>
         <div class="auth-flow">
           <span class="auth-flow-step">
             <MessageCircle aria-hidden="true" />
@@ -67,12 +64,7 @@
 </template>
 
 <script setup lang="ts">
-import {
-  ArrowRight,
-  CircleCheck,
-  MessageCircle,
-  SquareKanban,
-} from 'lucide-vue-next'
+import { ArrowRight, CircleCheck, MessageCircle, SquareKanban } from 'lucide-vue-next'
 
 import type {
   LoginFailure,
@@ -172,8 +164,7 @@ async function loginViaTelegramWidget(input: TelegramUser) {
 }
 
 .auth-art {
-  background: #172554
-    radial-gradient(circle at 25% 25%, #3156d3, transparent 45%);
+  background: #172554 radial-gradient(circle at 25% 25%, #3156d3, transparent 45%);
   color: white;
   display: flex;
   flex-direction: column;

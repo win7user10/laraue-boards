@@ -20,9 +20,7 @@ import BoardPage from '~/sections/boards/board/BoardPage.vue'
 const route = useRoute('organizations-organizationKey-spaces-spaceKey-boardId')
 const boardId = computed(() => String(route.params.boardId))
 const spaceKey = computed(() => String(route.params.spaceKey))
-const issueKey = computed(() =>
-  typeof route.query.issue === 'string' ? route.query.issue : null,
-)
+const issueKey = computed(() => (typeof route.query.issue === 'string' ? route.query.issue : null))
 const client = useApiClient()
 const deps = createBoardPageDeps(client)
 const router = useRouter()

@@ -38,9 +38,7 @@ import { COLOR_PALETTE } from '~/constants/colors'
 defineProps<{ disabled?: boolean }>()
 const model = defineModel<string>({ required: true })
 const colorName = computed(
-  () =>
-    COLOR_PALETTE.find((color) => color.value === model.value)?.name ??
-    model.value,
+  () => COLOR_PALETTE.find((color) => color.value === model.value)?.name ?? model.value,
 )
 const select = (value: string, close: () => void) => {
   model.value = value

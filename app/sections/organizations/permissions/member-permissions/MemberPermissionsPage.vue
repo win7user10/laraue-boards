@@ -51,14 +51,11 @@ const organizationRoutes = useOrganizationRoutes()
 
 const query = await useAsyncData(
   () => `member-permissions:${props.memberId}`,
-  (_nuxtApp, { signal }) =>
-    props.deps.view({ memberId: props.memberId, signal }),
+  (_nuxtApp, { signal }) => props.deps.view({ memberId: props.memberId, signal }),
   { watch: [() => props.memberId] },
 )
 
-const getViewFailureMessage = (
-  failure: ViewMemberPermissionsFailure,
-): string => {
+const getViewFailureMessage = (failure: ViewMemberPermissionsFailure): string => {
   switch (failure.type) {
     case 'accessDenied':
       return 'You do not have permission to open this page.'
@@ -93,9 +90,7 @@ useHead({
   ),
 })
 
-const getUpdateFailureMessage = (
-  failure: UpdateMemberPermissionsFailure,
-): string => {
+const getUpdateFailureMessage = (failure: UpdateMemberPermissionsFailure): string => {
   switch (failure.type) {
     case 'accessDenied':
       return 'You do not have permission to update this member.'

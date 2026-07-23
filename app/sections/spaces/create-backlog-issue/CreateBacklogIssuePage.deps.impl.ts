@@ -44,9 +44,7 @@ const mapViewFailure = (
   }
 }
 
-const mapAccessFailure = (
-  status: number,
-): undefined | ViewBacklogIssueFailure => {
+const mapAccessFailure = (status: number): undefined | ViewBacklogIssueFailure => {
   if (status === 401 || status === 403) {
     return { type: 'accessDenied' }
   }
@@ -55,9 +53,7 @@ const mapAccessFailure = (
   }
 }
 
-const mapLoadFailure = (
-  status: number,
-): LoadBacklogAssigneesFailure | undefined => {
+const mapLoadFailure = (status: number): LoadBacklogAssigneesFailure | undefined => {
   if (status === 401 || status === 403) {
     return { type: 'accessDenied' }
   }
@@ -90,9 +86,7 @@ const mapCreateFailure = (
   }
 }
 
-export function createCreateBacklogIssuePageDeps(
-  client: ApiClient,
-): CreateBacklogIssuePageDeps {
+export function createCreateBacklogIssuePageDeps(client: ApiClient): CreateBacklogIssuePageDeps {
   return {
     async create(input) {
       const response = await client.POST('/api/issues', {
@@ -105,16 +99,11 @@ export function createCreateBacklogIssuePageDeps(
         parseAs: 'text',
       })
       if ('error' in response) {
-        const failure = mapCreateFailure(
-          response.response.status,
-          response.error,
-        )
+        const failure = mapCreateFailure(response.response.status, response.error)
         if (failure) {
           return err(failure)
         }
-        throw new Error(
-          `Unrecognized create issue response: ${response.response.status}`,
-        )
+        throw new Error(`Unrecognized create issue response: ${response.response.status}`)
       }
       return ok({ issueKey: String(response.data) })
     },
@@ -128,9 +117,7 @@ export function createCreateBacklogIssuePageDeps(
         if (failure) {
           return err(failure)
         }
-        throw new Error(
-          `Unrecognized space members response: ${response.response.status}`,
-        )
+        throw new Error(`Unrecognized space members response: ${response.response.status}`)
       }
       return ok(mapOrganizationAssignees(response.data))
     },
@@ -145,18 +132,14 @@ export function createCreateBacklogIssuePageDeps(
         if (failure) {
           return err(failure)
         }
-        throw new Error(
-          `Unrecognized spaces response: ${spaces.response.status}`,
-        )
+        throw new Error(`Unrecognized spaces response: ${spaces.response.status}`)
       }
       if ('error' in attributes) {
         const failure = mapAccessFailure(attributes.response.status)
         if (failure) {
           return err(failure)
         }
-        throw new Error(
-          `Unrecognized attributes response: ${attributes.response.status}`,
-        )
+        throw new Error(`Unrecognized attributes response: ${attributes.response.status}`)
       }
       const space = findSpaceByKey(spaces.data, spaceKey)
       if (!space) {
@@ -172,9 +155,7 @@ export function createCreateBacklogIssuePageDeps(
         if (failure) {
           return err(failure)
         }
-        throw new Error(
-          `Unrecognized boards response: ${boards.response.status}`,
-        )
+        throw new Error(`Unrecognized boards response: ${boards.response.status}`)
       }
       const backlog = boards.data.find((board) => board.isDefault)
       if (!backlog) {
@@ -190,9 +171,7 @@ export function createCreateBacklogIssuePageDeps(
         if (failure) {
           return err(failure)
         }
-        throw new Error(
-          `Unrecognized backlog response: ${board.response.status}`,
-        )
+        throw new Error(`Unrecognized backlog response: ${board.response.status}`)
       }
       if (!board.data.canCreateIssues) {
         return err({ type: 'accessDenied' })
@@ -202,9 +181,7 @@ export function createCreateBacklogIssuePageDeps(
         boardName: backlog.name,
         spaceId: String(space.id),
         statuses: (board.data.statuses ?? [])
-          .toSorted(
-            (left, right) => Number(left.sortOrder) - Number(right.sortOrder),
-          )
+          .toSorted((left, right) => Number(left.sortOrder) - Number(right.sortOrder))
           .map((status) => ({
             label: status.name,
             value: String(status.id),

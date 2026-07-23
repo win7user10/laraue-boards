@@ -10,22 +10,18 @@ test('maps Telegram login requests', async () => {
   const requests: Request[] = []
   vi.stubGlobal('err', err)
   vi.stubGlobal('ok', ok)
-  vi.stubGlobal(
-    'fetch',
-    async (input: Request | string | URL, init?: RequestInit) => {
-      const request =
-        input instanceof Request ? input : new Request(input, init)
-      requests.push(request)
-      return new Response('user-token', { status: 200 })
-    },
-  )
+  vi.stubGlobal('fetch', async (input: Request | string | URL, init?: RequestInit) => {
+    const request = input instanceof Request ? input : new Request(input, init)
+    requests.push(request)
+    return new Response('user-token', { status: 200 })
+  })
   vi.stubGlobal('Telegram', { WebApp: { initData: '' } })
 
   const client = createApiClient({ baseUrl: 'https://api.example' })
-  assert.deepEqual(
-    await createLoginPageDeps(client).loginViaTelegramMiniApp(),
-    { ok: true, value: false },
-  )
+  assert.deepEqual(await createLoginPageDeps(client).loginViaTelegramMiniApp(), {
+    ok: true,
+    value: false,
+  })
 
   const deps = createLoginPageDeps(client, 'dev-init-data')
   assert.deepEqual(await deps.loginViaTelegramMiniApp(), {

@@ -13,9 +13,7 @@ test('saves board and column changes', async () => {
       ? Response.json(9)
       : new Response(null, { status: 200 })
   })
-  const deps = createBoardSettingsPageDeps(
-    createApiClient({ baseUrl: 'https://api.test', fetch }),
-  )
+  const deps = createBoardSettingsPageDeps(createApiClient({ baseUrl: 'https://api.test', fetch }))
 
   const result = await deps.save({
     boardId: '7',

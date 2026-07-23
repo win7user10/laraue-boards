@@ -39,8 +39,6 @@ export function updateIssueFormData(input: {
   const formData = new FormData()
   appendIssueFields(formData, input)
   input.files.forEach((file) => formData.append('AddFiles', file))
-  input.removeAttachmentIds.forEach((id) =>
-    formData.append('RemoveAttachmentIds', id),
-  )
+  input.removeAttachmentIds.forEach((id) => formData.append('RemoveAttachmentIds', id))
   return formData
 }

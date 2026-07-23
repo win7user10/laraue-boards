@@ -37,9 +37,7 @@ const mapFailure = (status: number): undefined | ViewPermissionsFailure => {
   }
 }
 
-export function createPermissionsPageDeps(
-  client: ApiClient,
-): PermissionsPageDeps {
+export function createPermissionsPageDeps(client: ApiClient): PermissionsPageDeps {
   return {
     async view({ signal }) {
       const response = await client.GET('/api/organizations/members', {
@@ -50,9 +48,7 @@ export function createPermissionsPageDeps(
         if (failure) {
           return err(failure)
         }
-        throw new Error(
-          `Unrecognized permissions response: ${response.response.status}`,
-        )
+        throw new Error(`Unrecognized permissions response: ${response.response.status}`)
       }
       return ok(mapOrganizationMembers(response.data))
     },

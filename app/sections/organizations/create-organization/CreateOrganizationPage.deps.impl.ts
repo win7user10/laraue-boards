@@ -6,10 +6,7 @@ import type {
 } from '~/sections/organizations/create-organization/CreateOrganizationPage.deps'
 import { err, ok } from '~/utils/actionResult'
 
-const mapFailure = (
-  status: number,
-  error: unknown,
-): CreateOrganizationFailure | undefined => {
+const mapFailure = (status: number, error: unknown): CreateOrganizationFailure | undefined => {
   if (status === 400) {
     return {
       message: getInvalidInputError(error).message,
@@ -24,9 +21,7 @@ const mapFailure = (
   }
 }
 
-export function createCreateOrganizationPageDeps(
-  client: ApiClient,
-): CreateOrganizationPageDeps {
+export function createCreateOrganizationPageDeps(client: ApiClient): CreateOrganizationPageDeps {
   return {
     async create(input) {
       const response = await client.POST('/api/organizations', { body: input })
@@ -35,9 +30,7 @@ export function createCreateOrganizationPageDeps(
         if (failure) {
           return err(failure)
         }
-        throw new Error(
-          `Unrecognized create organization response: ${response.response.status}`,
-        )
+        throw new Error(`Unrecognized create organization response: ${response.response.status}`)
       }
       if (response.data.id === undefined) {
         throw new Error('Create organization response has no id')

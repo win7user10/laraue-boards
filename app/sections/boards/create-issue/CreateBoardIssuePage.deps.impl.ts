@@ -41,9 +41,7 @@ const mapViewFailure = (status: number): undefined | ViewBoardIssueFailure => {
   }
 }
 
-const mapAccessFailure = (
-  status: number,
-): undefined | ViewBoardIssueFailure => {
+const mapAccessFailure = (status: number): undefined | ViewBoardIssueFailure => {
   if (status === 401 || status === 403) {
     return { type: 'accessDenied' }
   }
@@ -52,9 +50,7 @@ const mapAccessFailure = (
   }
 }
 
-const mapLoadFailure = (
-  status: number,
-): LoadBoardAssigneesFailure | undefined => {
+const mapLoadFailure = (status: number): LoadBoardAssigneesFailure | undefined => {
   if (status === 401 || status === 403) {
     return { type: 'accessDenied' }
   }
@@ -66,10 +62,7 @@ const mapLoadFailure = (
   }
 }
 
-const mapCreateFailure = (
-  status: number,
-  error: unknown,
-): CreateBoardIssueFailure | undefined => {
+const mapCreateFailure = (status: number, error: unknown): CreateBoardIssueFailure | undefined => {
   if (status === 400) {
     return {
       message: getInvalidInputError(error).message,
@@ -87,9 +80,7 @@ const mapCreateFailure = (
   }
 }
 
-export function createCreateBoardIssuePageDeps(
-  client: ApiClient,
-): CreateBoardIssuePageDeps {
+export function createCreateBoardIssuePageDeps(client: ApiClient): CreateBoardIssuePageDeps {
   return {
     async create(input) {
       const response = await client.POST('/api/issues', {
@@ -102,16 +93,11 @@ export function createCreateBoardIssuePageDeps(
         parseAs: 'text',
       })
       if ('error' in response) {
-        const failure = mapCreateFailure(
-          response.response.status,
-          response.error,
-        )
+        const failure = mapCreateFailure(response.response.status, response.error)
         if (failure) {
           return err(failure)
         }
-        throw new Error(
-          `Unrecognized create issue response: ${response.response.status}`,
-        )
+        throw new Error(`Unrecognized create issue response: ${response.response.status}`)
       }
       return ok({ issueKey: String(response.data) })
     },
@@ -123,9 +109,7 @@ export function createCreateBoardIssuePageDeps(
         if (failure) {
           return err(failure)
         }
-        throw new Error(
-          `Unrecognized spaces response: ${spaces.response.status}`,
-        )
+        throw new Error(`Unrecognized spaces response: ${spaces.response.status}`)
       }
       const space = findSpaceByKey(spaces.data, spaceKey)
       if (!space) {
@@ -140,9 +124,7 @@ export function createCreateBoardIssuePageDeps(
         if (failure) {
           return err(failure)
         }
-        throw new Error(
-          `Unrecognized space members response: ${response.response.status}`,
-        )
+        throw new Error(`Unrecognized space members response: ${response.response.status}`)
       }
       return ok(mapOrganizationAssignees(response.data))
     },
@@ -167,9 +149,7 @@ export function createCreateBoardIssuePageDeps(
         if (failure) {
           return err(failure)
         }
-        throw new Error(
-          `Unrecognized attributes response: ${attributes.response.status}`,
-        )
+        throw new Error(`Unrecognized attributes response: ${attributes.response.status}`)
       }
       if (!board.data.canCreateIssues) {
         return err({ type: 'accessDenied' })
@@ -179,9 +159,7 @@ export function createCreateBoardIssuePageDeps(
         attributes: mapIssueAttributes(attributes.data),
         boardName: board.data.name,
         statuses: statuses
-          .toSorted(
-            (left, right) => Number(left.sortOrder) - Number(right.sortOrder),
-          )
+          .toSorted((left, right) => Number(left.sortOrder) - Number(right.sortOrder))
           .map((status) => ({
             label: status.name,
             value: String(status.id),

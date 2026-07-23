@@ -11,9 +11,7 @@
 import { createBoardSettingsPageDeps } from '~/sections/boards/board-settings/BoardSettingsPage.deps.impl'
 import BoardSettingsPage from '~/sections/boards/board-settings/BoardSettingsPage.vue'
 
-const route = useRoute(
-  'organizations-organizationKey-spaces-spaceKey-boardId-settings',
-)
+const route = useRoute('organizations-organizationKey-spaces-spaceKey-boardId-settings')
 const boardId = computed(() => String(route.params.boardId))
 const spaceKey = computed(() => String(route.params.spaceKey))
 const organizationRoutes = useOrganizationRoutes()

@@ -89,8 +89,7 @@ const organizationRoutes = useOrganizationRoutes()
 
 const query = await useAsyncData(
   () => `space-settings:${props.spaceKey}`,
-  (_nuxtApp, { signal }) =>
-    props.deps.view({ signal, spaceKey: props.spaceKey }),
+  (_nuxtApp, { signal }) => props.deps.view({ signal, spaceKey: props.spaceKey }),
   { watch: [() => props.spaceKey] },
 )
 const getViewFailureMessage = (failure: ViewSpaceSettingsFailure): string => {
@@ -113,9 +112,7 @@ const pageState = computed(() =>
     status: query.status.value,
   }),
 )
-const page = computed(() =>
-  pageState.value.type === 'ready' ? pageState.value.data : null,
-)
+const page = computed(() => (pageState.value.type === 'ready' ? pageState.value.data : null))
 
 watch(
   page,
@@ -131,9 +128,7 @@ watch(
 )
 
 useHead({
-  title: computed(() =>
-    page.value ? `${page.value.name} settings` : 'Space settings',
-  ),
+  title: computed(() => (page.value ? `${page.value.name} settings` : 'Space settings')),
 })
 
 const getChangeFailureMessage = (
@@ -144,9 +139,7 @@ const getChangeFailureMessage = (
     case 'accessDenied':
       return `You do not have permission to ${operation} this space.`
     case 'spaceNotFound':
-      return operation === 'delete'
-        ? 'This space no longer exists.'
-        : 'The space was not found.'
+      return operation === 'delete' ? 'This space no longer exists.' : 'The space was not found.'
     case 'temporarilyUnavailable':
       return `Could not ${operation === 'delete' ? 'delete' : 'save'} space. Try again.`
     default:
@@ -155,9 +148,7 @@ const getChangeFailureMessage = (
 }
 
 const getUpdateFailureMessage = (failure: UpdateSpaceFailure): string =>
-  failure.type === 'invalidInput'
-    ? failure.message
-    : getChangeFailureMessage(failure, 'update')
+  failure.type === 'invalidInput' ? failure.message : getChangeFailureMessage(failure, 'update')
 
 async function update(): Promise<void> {
   const current = page.value

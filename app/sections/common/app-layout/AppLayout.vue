@@ -8,8 +8,7 @@
   <PageLoadState
     v-else-if="
       pageState.type === 'pending' ||
-      (pageState.type === 'error' &&
-        pageState.error.type === 'organizationSwitchRequired')
+      (pageState.type === 'error' && pageState.error.type === 'organizationSwitchRequired')
     "
     error-text=""
     :loading="true"
@@ -58,8 +57,7 @@ const state = reactive({ loggingOut: false })
 
 const query = await useAsyncData(
   appLayoutDataKey,
-  (_nuxtApp, { signal }) =>
-    props.deps.view({ organizationKey: props.organizationKey, signal }),
+  (_nuxtApp, { signal }) => props.deps.view({ organizationKey: props.organizationKey, signal }),
   { watch: [() => props.organizationKey] },
 )
 const getFailureMessage = (failure: ViewAppLayoutFailure): string => {

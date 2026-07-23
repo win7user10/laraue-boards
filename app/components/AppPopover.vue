@@ -50,10 +50,7 @@ function updatePosition() {
 
   const triggerRect = root.value.getBoundingClientRect()
   const contentRect = content.value.getBoundingClientRect()
-  const gap =
-    Number.parseFloat(
-      getComputedStyle(root.value).getPropertyValue('--space-2'),
-    ) || 8
+  const gap = Number.parseFloat(getComputedStyle(root.value).getPropertyValue('--space-2')) || 8
   const maxLeft = Math.max(
     props.viewportPadding,
     window.innerWidth - props.viewportPadding - contentRect.width,
@@ -61,10 +58,7 @@ function updatePosition() {
   const below = triggerRect.bottom + gap
   const above = triggerRect.top - gap - contentRect.height
 
-  const left = Math.min(
-    Math.max(triggerRect.left, props.viewportPadding),
-    maxLeft,
-  )
+  const left = Math.min(Math.max(triggerRect.left, props.viewportPadding), maxLeft)
   const top =
     below + contentRect.height <= window.innerHeight - props.viewportPadding
       ? below
@@ -79,11 +73,7 @@ function updatePosition() {
 }
 
 function closeOnOutsideClick(event: MouseEvent) {
-  if (
-    event.button === 0 &&
-    root.value &&
-    !root.value.contains(event.target as Node)
-  ) {
+  if (event.button === 0 && root.value && !root.value.contains(event.target as Node)) {
     close()
   }
 }

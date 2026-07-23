@@ -133,9 +133,7 @@ function submit() {
       ? {
           color: value.color,
           data: {
-            listValues: value.data.listValues.map((option) =>
-              option.name.trim(),
-            ),
+            listValues: value.data.listValues.map((option) => option.name.trim()),
             type: value.data.type,
           },
           name: value.name.trim(),

@@ -16,10 +16,7 @@ const mapSpacesFailure = (status: number): CreateBoardFailure | undefined => {
   }
 }
 
-const mapCreateFailure = (
-  status: number,
-  error: unknown,
-): CreateBoardFailure | undefined => {
+const mapCreateFailure = (status: number, error: unknown): CreateBoardFailure | undefined => {
   if (status === 400) {
     return {
       message: getInvalidInputError(error).message,
@@ -37,9 +34,7 @@ const mapCreateFailure = (
   }
 }
 
-export function createCreateBoardPageDeps(
-  client: ApiClient,
-): CreateBoardPageDeps {
+export function createCreateBoardPageDeps(client: ApiClient): CreateBoardPageDeps {
   return {
     async create(input) {
       const spaces = await client.GET('/api/spaces')
@@ -56,16 +51,11 @@ export function createCreateBoardPageDeps(
         if ('data' in response) {
           return ok({ boardId: String(response.data) })
         }
-        const failure = mapCreateFailure(
-          response.response.status,
-          response.error,
-        )
+        const failure = mapCreateFailure(response.response.status, response.error)
         if (failure) {
           return err(failure)
         }
-        throw new Error(
-          `Unrecognized create board response: ${response.response.status}`,
-        )
+        throw new Error(`Unrecognized create board response: ${response.response.status}`)
       }
       const failure = mapSpacesFailure(spaces.response.status)
       if (failure) {

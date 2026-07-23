@@ -75,8 +75,7 @@ export function createAppLayoutDeps(client: ApiClient): AppLayoutDeps {
         client.GET('/api/organizations/current', { signal }),
         client.GET('/api/organizations', { signal }),
       ])
-      const organizationsData =
-        'data' in organizations ? organizations.data : undefined
+      const organizationsData = 'data' in organizations ? organizations.data : undefined
       if (organizationsData === undefined) {
         return err(getFailure(organizations.response.status, 'organizations'))
       }
@@ -87,13 +86,10 @@ export function createAppLayoutDeps(client: ApiClient): AppLayoutDeps {
         return err({ type: 'workspaceNotFound' })
       }
 
-      let organizationData =
-        'data' in organization ? organization.data : undefined
+      let organizationData = 'data' in organization ? organization.data : undefined
       if (organizationData === undefined) {
         if (organization.response.status !== 404) {
-          return err(
-            getFailure(organization.response.status, 'current organization'),
-          )
+          return err(getFailure(organization.response.status, 'current organization'))
         }
       }
 
@@ -112,15 +108,12 @@ export function createAppLayoutDeps(client: ApiClient): AppLayoutDeps {
           organization = await client.GET('/api/organizations/current', {
             signal,
           })
-          organizationData =
-            'data' in organization ? organization.data : undefined
+          organizationData = 'data' in organization ? organization.data : undefined
         } else {
           if (selection.response.status === 404) {
             return err({ type: 'workspaceNotFound' })
           }
-          return err(
-            getFailure(selection.response.status, 'organization selection'),
-          )
+          return err(getFailure(selection.response.status, 'organization selection'))
         }
       }
 
@@ -128,9 +121,7 @@ export function createAppLayoutDeps(client: ApiClient): AppLayoutDeps {
         if (organization.response.status === 404) {
           return err({ type: 'workspaceNotFound' })
         }
-        return err(
-          getFailure(organization.response.status, 'current organization'),
-        )
+        return err(getFailure(organization.response.status, 'current organization'))
       }
       if (String(organizationData.id) !== String(organizationMembership.id)) {
         return err({ type: 'workspaceNotFound' })
@@ -155,14 +146,7 @@ export function createAppLayoutDeps(client: ApiClient): AppLayoutDeps {
         return err(getFailure(spaces.response.status, 'spaces'))
       }
 
-      return ok(
-        mapAppLayoutData(
-          organizationData,
-          organizationMembership,
-          spacesData,
-          userData,
-        ),
-      )
+      return ok(mapAppLayoutData(organizationData, organizationMembership, spacesData, userData))
     },
   }
 }

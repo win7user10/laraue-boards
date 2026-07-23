@@ -10,10 +10,7 @@ export type CreateApiClientOptions = {
 
 export const createApiClient = (options: CreateApiClientOptions | string) => {
   const baseUrl = typeof options === 'string' ? options : options.baseUrl
-  const fetch =
-    typeof options === 'string'
-      ? globalThis.fetch
-      : (options.fetch ?? globalThis.fetch)
+  const fetch = typeof options === 'string' ? globalThis.fetch : (options.fetch ?? globalThis.fetch)
   const headers =
     typeof options === 'string'
       ? import.meta.server

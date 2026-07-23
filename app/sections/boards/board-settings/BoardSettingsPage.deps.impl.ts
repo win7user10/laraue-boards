@@ -11,9 +11,7 @@ import type {
 } from '~/sections/boards/board-settings/BoardSettingsPage.deps'
 import { err, ok } from '~/utils/actionResult'
 
-const mapViewFailure = (
-  status: number,
-): undefined | ViewBoardSettingsFailure => {
+const mapViewFailure = (status: number): undefined | ViewBoardSettingsFailure => {
   if (status === 401 || status === 403) {
     return { type: 'accessDenied' }
   }
@@ -25,8 +23,7 @@ const mapViewFailure = (
   }
 }
 
-const mapChangeFailure = (status: number): ChangeBoardFailure | undefined =>
-  mapViewFailure(status)
+const mapChangeFailure = (status: number): ChangeBoardFailure | undefined => mapViewFailure(status)
 
 const mapSaveFailure = (
   status: number,
@@ -54,9 +51,7 @@ const getColumnChanges = (
   originalColumns: BoardSettingsColumn[],
   columns: BoardSettingsColumnDraft[],
 ) => {
-  const currentIds = new Set(
-    columns.flatMap((column) => (column.id === null ? [] : [column.id])),
-  )
+  const currentIds = new Set(columns.flatMap((column) => (column.id === null ? [] : [column.id])))
   return {
     created: columns.filter((column) => column.id === null),
     deleted: originalColumns.filter((column) => !currentIds.has(column.id)),
@@ -73,9 +68,7 @@ const getColumnChanges = (
 const getColumnSortOrders = (columnIds: string[]) =>
   Object.fromEntries(columnIds.map((id, index) => [id, index + 1]))
 
-export function createBoardSettingsPageDeps(
-  client: ApiClient,
-): BoardSettingsPageDeps {
+export function createBoardSettingsPageDeps(client: ApiClient): BoardSettingsPageDeps {
   const saveRequest = async (
     request: Promise<Awaited<ReturnType<typeof client.PUT>>>,
     column = false,
@@ -84,17 +77,11 @@ export function createBoardSettingsPageDeps(
     if ('data' in response) {
       return null
     }
-    const failure = mapSaveFailure(
-      response.response.status,
-      response.error,
-      column,
-    )
+    const failure = mapSaveFailure(response.response.status, response.error, column)
     if (failure) {
       return failure
     }
-    throw new Error(
-      `Unrecognized save board response: ${response.response.status}`,
-    )
+    throw new Error(`Unrecognized save board response: ${response.response.status}`)
   }
 
   return {
@@ -109,9 +96,7 @@ export function createBoardSettingsPageDeps(
       if (failure) {
         return err(failure)
       }
-      throw new Error(
-        `Unrecognized delete board response: ${response.response.status}`,
-      )
+      throw new Error(`Unrecognized delete board response: ${response.response.status}`)
     },
 
     async save(input) {
@@ -147,9 +132,7 @@ export function createBoardSettingsPageDeps(
         if (failure) {
           return err(failure)
         }
-        throw new Error(
-          `Unrecognized create board column response: ${response.response.status}`,
-        )
+        throw new Error(`Unrecognized create board column response: ${response.response.status}`)
       }
 
       for (const column of changes.updated) {
@@ -172,17 +155,11 @@ export function createBoardSettingsPageDeps(
         if ('data' in response) {
           continue
         }
-        const failure = mapSaveFailure(
-          response.response.status,
-          response.error,
-          true,
-        )
+        const failure = mapSaveFailure(response.response.status, response.error, true)
         if (failure) {
           return err(failure)
         }
-        throw new Error(
-          `Unrecognized delete board column response: ${response.response.status}`,
-        )
+        throw new Error(`Unrecognized delete board column response: ${response.response.status}`)
       }
 
       let createdIndex = 0
@@ -202,17 +179,11 @@ export function createBoardSettingsPageDeps(
         if ('data' in response) {
           return ok(null)
         }
-        const failure = mapSaveFailure(
-          response.response.status,
-          response.error,
-          false,
-        )
+        const failure = mapSaveFailure(response.response.status, response.error, false)
         if (failure) {
           return err(failure)
         }
-        throw new Error(
-          `Unrecognized reorder board columns response: ${response.response.status}`,
-        )
+        throw new Error(`Unrecognized reorder board columns response: ${response.response.status}`)
       }
       return ok(null)
     },
@@ -228,9 +199,7 @@ export function createBoardSettingsPageDeps(
           canUpdate: response.data.canUpdate ?? false,
           color: response.data.color ?? DEFAULT_COLOR,
           columns: (response.data.statuses ?? [])
-            .toSorted(
-              (left, right) => Number(left.sortOrder) - Number(right.sortOrder),
-            )
+            .toSorted((left, right) => Number(left.sortOrder) - Number(right.sortOrder))
             .map((status) => ({
               color: status.color ?? DEFAULT_COLOR,
               id: String(status.id),
@@ -243,9 +212,7 @@ export function createBoardSettingsPageDeps(
       if (failure) {
         return err(failure)
       }
-      throw new Error(
-        `Unrecognized board settings response: ${response.response.status}`,
-      )
+      throw new Error(`Unrecognized board settings response: ${response.response.status}`)
     },
   }
 }

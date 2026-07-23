@@ -8,9 +8,7 @@ import type {
 import { err, ok } from '~/utils/actionResult'
 import { getOrganizationKey } from '~/utils/organizationKey'
 
-const mapViewFailure = (
-  status: number,
-): undefined | ViewOrganizationPickerFailure => {
+const mapViewFailure = (status: number): undefined | ViewOrganizationPickerFailure => {
   if (status === 401 || status === 403) {
     return { type: 'accessDenied' }
   }
@@ -19,9 +17,7 @@ const mapViewFailure = (
   }
 }
 
-const mapSelectFailure = (
-  status: number,
-): SelectOrganizationFailure | undefined => {
+const mapSelectFailure = (status: number): SelectOrganizationFailure | undefined => {
   if (status === 401 || status === 403) {
     return { type: 'accessDenied' }
   }
@@ -33,9 +29,7 @@ const mapSelectFailure = (
   }
 }
 
-export function createOrganizationPickerPageDeps(
-  client: ApiClient,
-): OrganizationPickerPageDeps {
+export function createOrganizationPickerPageDeps(client: ApiClient): OrganizationPickerPageDeps {
   return {
     async select({ organizationId }) {
       const response = await client.POST('/api/organizations/login', {
@@ -49,9 +43,7 @@ export function createOrganizationPickerPageDeps(
       if (failure) {
         return err(failure)
       }
-      throw new Error(
-        `Unrecognized select organization response: ${response.response.status}`,
-      )
+      throw new Error(`Unrecognized select organization response: ${response.response.status}`)
     },
 
     async view({ signal }) {
@@ -61,9 +53,7 @@ export function createOrganizationPickerPageDeps(
         if (failure) {
           return err(failure)
         }
-        throw new Error(
-          `Unrecognized organizations response: ${response.response.status}`,
-        )
+        throw new Error(`Unrecognized organizations response: ${response.response.status}`)
       }
       return ok(
         response.data.map((organization) => {
@@ -72,9 +62,7 @@ export function createOrganizationPickerPageDeps(
           }
           return {
             color: organization.color ?? DEFAULT_COLOR,
-            description: organization.isPersonal
-              ? 'Personal organization'
-              : 'Team organization',
+            description: organization.isPersonal ? 'Personal organization' : 'Team organization',
             id: String(organization.id),
             initial: organization.name[0] ?? '?',
             key: getOrganizationKey(organization),

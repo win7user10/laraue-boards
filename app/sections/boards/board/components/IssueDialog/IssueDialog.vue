@@ -9,8 +9,7 @@
     open
     tabindex="-1"
     @cancel.self="handleCancel">
-    <IssueDialogSkeleton
-      v-if="!state.hydrated || status === 'idle' || status === 'pending'" />
+    <IssueDialogSkeleton v-if="!state.hydrated || status === 'idle' || status === 'pending'" />
     <div
       v-else-if="viewModel"
       class="issue-details--dialog">
@@ -282,10 +281,10 @@ const {
   data: issueOutcome,
   refresh,
   status,
-} = await useLazyAsyncData(
-  () => props.deps.loadIssue({ issueKey: props.issueKey }),
-  { server: false, watch: [() => props.issueKey] },
-)
+} = await useLazyAsyncData(() => props.deps.loadIssue({ issueKey: props.issueKey }), {
+  server: false,
+  watch: [() => props.issueKey],
+})
 
 const viewModel = computed(() => {
   const result = issueOutcome.value
@@ -308,9 +307,7 @@ const loadErrorText = computed(() => {
   })
 })
 const issueRoute = computed(() => organizationRoutes.issue(props.issueKey))
-const { confirmUnsavedChanges } = useUnsavedChangesWarning(
-  toRef(state, 'dirty'),
-)
+const { confirmUnsavedChanges } = useUnsavedChangesWarning(toRef(state, 'dirty'))
 
 useHead({
   title: computed(() => viewModel.value?.issueKey ?? 'Issue'),
@@ -322,9 +319,7 @@ onMounted(() => {
 })
 
 onBeforeRouteUpdate(
-  (to) =>
-    (to.path === route.path && to.query.issue === props.issueKey) ||
-    confirmUnsavedChanges(),
+  (to) => (to.path === route.path && to.query.issue === props.issueKey) || confirmUnsavedChanges(),
 )
 
 watch(
@@ -466,10 +461,7 @@ async function saveIssue(input: IssueDetailsSaveInput) {
   state.error = null
   const updateResult = await props.deps.updateIssue({
     assigneeId: input.assigneeId,
-    attributeValues: getIssueAttributeValueInput(
-      input.attributeValues,
-      originalIssue.attributes,
-    ),
+    attributeValues: getIssueAttributeValueInput(input.attributeValues, originalIssue.attributes),
     content: input.content,
     files: input.files,
     issueKey: props.issueKey,
@@ -549,10 +541,7 @@ async function deleteIssue() {
 }
 
 async function copyIssueLink() {
-  const url = new URL(
-    router.resolve(issueRoute.value).href,
-    window.location.origin,
-  ).href
+  const url = new URL(router.resolve(issueRoute.value).href, window.location.origin).href
   try {
     await navigator.clipboard.writeText(url)
   } catch {
@@ -575,10 +564,7 @@ async function copyIssueLink() {
 }
 
 .issue-dialog {
-  --issue-dialog-min-height: min(
-    836px,
-    calc(100dvh - var(--space-8) - var(--space-8))
-  );
+  --issue-dialog-min-height: min(836px, calc(100dvh - var(--space-8) - var(--space-8)));
   --issue-dialog-padding-block: var(--space-6);
 
   inset: var(--space-8) 0 auto;
@@ -610,9 +596,7 @@ async function copyIssueLink() {
   display: grid;
   gap: 0;
   grid-template-rows: auto minmax(0, 1fr) auto;
-  max-height: calc(
-    100dvh - var(--space-8) - var(--space-8) - var(--space-6) - var(--space-6)
-  );
+  max-height: calc(100dvh - var(--space-8) - var(--space-8) - var(--space-6) - var(--space-6));
 }
 
 .issue-details-form {

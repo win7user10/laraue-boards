@@ -7,9 +7,7 @@ import {
 
 const input = {
   assigneeId: '00000000-0000-0000-0000-000000000001',
-  attributeValues: [
-    { $type: 'string' as const, attributeId: '1', value: 'value' },
-  ],
+  attributeValues: [{ $type: 'string' as const, attributeId: '1', value: 'value' }],
   content: ' Issue ',
   files: [new File(['image'], 'image.png', { type: 'image/png' })],
   removeAttachmentIds: ['00000000-0000-0000-0000-000000000002'],

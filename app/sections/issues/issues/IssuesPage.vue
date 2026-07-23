@@ -99,8 +99,7 @@ const organizationRoutes = useOrganizationRoutes()
 const request = computed(() => ({
   attributeQuery: readIssueAttributeQuery(props.routeQuery),
   page: Math.max(1, Number(props.routeQuery.page) || 1),
-  search:
-    typeof props.routeQuery.search === 'string' ? props.routeQuery.search : '',
+  search: typeof props.routeQuery.search === 'string' ? props.routeQuery.search : '',
   spaceIds: readIssueSpaceQuery(props.routeQuery.space),
 }))
 const query = await useAsyncData(
@@ -130,10 +129,7 @@ const attributes = computed(() =>
   pageState.value.type === 'ready' ? pageState.value.data.attributes : [],
 )
 const attributeFilters = computed(() =>
-  normalizeIssueAttributeFilters(
-    request.value.attributeQuery,
-    attributes.value,
-  ),
+  normalizeIssueAttributeFilters(request.value.attributeQuery, attributes.value),
 )
 const filterValue = computed<FilterValue>(() => ({
   attributes: attributeFilters.value,
@@ -156,11 +152,7 @@ const runSearch = createLatestRequest()
 const scheduleSearch = debounce(searchIssues, 300)
 
 function updateFilters(value: FilterValue) {
-  const nextQuery = withIssueAttributeFilters(
-    props.routeQuery,
-    value.attributes,
-    attributes.value,
-  )
+  const nextQuery = withIssueAttributeFilters(props.routeQuery, value.attributes, attributes.value)
   if (value.spaceIds.length) {
     nextQuery.space = value.spaceIds
   } else {
@@ -203,10 +195,7 @@ async function searchIssues() {
       const result = await runSearch({
         request: () =>
           props.deps.search({
-            filters: getIssueAttributeFilterInput(
-              attributeFilters.value,
-              attributes.value,
-            ),
+            filters: getIssueAttributeFilterInput(attributeFilters.value, attributes.value),
             page: request.value.page,
             search: request.value.search,
             spaceIds: request.value.spaceIds,
@@ -288,9 +277,7 @@ async function loadMoveBoards(spaceId: string) {
   })
 }
 
-const getStatusesFailureMessage = (
-  failure: LoadMoveStatusesFailure,
-): string => {
+const getStatusesFailureMessage = (failure: LoadMoveStatusesFailure): string => {
   switch (failure.type) {
     case 'accessDenied':
       return 'You do not have access to this board.'
@@ -333,10 +320,7 @@ const getMoveFailureMessage = (failure: MoveIssuesFailure): string => {
   }
 }
 
-async function moveIssues(input: {
-  issueKeys: string[]
-  statusId: string
-}): Promise<boolean> {
+async function moveIssues(input: { issueKeys: string[]; statusId: string }): Promise<boolean> {
   state.move.error = null
   state.move.moving = true
   const result = await props.deps.moveIssues(input)

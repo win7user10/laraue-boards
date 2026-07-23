@@ -13,16 +13,12 @@
       :id="`${idPrefix}-${attribute.id}`"
       type="text"
       :value="modelValue[attribute.id] ?? ''"
-      @input="
-        update(attribute.id, ($event.target as HTMLInputElement).value)
-      " />
+      @input="update(attribute.id, ($event.target as HTMLInputElement).value)" />
     <select
       v-else
       :id="`${idPrefix}-${attribute.id}`"
       :value="modelValue[attribute.id] ?? ''"
-      @change="
-        update(attribute.id, ($event.target as HTMLSelectElement).value)
-      ">
+      @change="update(attribute.id, ($event.target as HTMLSelectElement).value)">
       <option value="">None</option>
       <option
         v-for="option in attribute.options"

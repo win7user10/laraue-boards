@@ -1,8 +1,5 @@
 import type { ApiClient } from '#infrastructure/api/client'
-import type {
-  LoginFailure,
-  LoginPageDeps,
-} from '~/sections/auth/login/LoginPage.deps'
+import type { LoginFailure, LoginPageDeps } from '~/sections/auth/login/LoginPage.deps'
 import { err, ok } from '~/utils/actionResult'
 
 type TelegramWindow = typeof globalThis & {
@@ -26,15 +23,10 @@ const failureFrom = (status: number): LoginFailure => {
   throw new Error(`Unrecognized login response: ${status}`)
 }
 
-export function createLoginPageDeps(
-  client: ApiClient,
-  testInitData?: string,
-): LoginPageDeps {
+export function createLoginPageDeps(client: ApiClient, testInitData?: string): LoginPageDeps {
   return {
     async loginViaTelegramMiniApp() {
-      const initData =
-        (globalThis as TelegramWindow).Telegram?.WebApp?.initData ||
-        testInitData
+      const initData = (globalThis as TelegramWindow).Telegram?.WebApp?.initData || testInitData
       if (!initData) {
         return ok(false)
       }
@@ -43,9 +35,7 @@ export function createLoginPageDeps(
         body: { initData },
         parseAs: 'text',
       })
-      return 'data' in response
-        ? ok(true)
-        : err(failureFrom(response.response.status))
+      return 'data' in response ? ok(true) : err(failureFrom(response.response.status))
     },
 
     async loginViaTelegramWidget(input) {
@@ -53,9 +43,7 @@ export function createLoginPageDeps(
         body: input,
         parseAs: 'text',
       })
-      return 'data' in response
-        ? ok(undefined)
-        : err(failureFrom(response.response.status))
+      return 'data' in response ? ok(undefined) : err(failureFrom(response.response.status))
     },
   }
 }

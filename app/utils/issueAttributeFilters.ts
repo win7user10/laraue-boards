@@ -68,11 +68,7 @@ export function getIssueAttributeFilterInput(
   const result: AttributeFilterInput[] = []
   for (const attribute of attributes) {
     const value = values[attribute.id]
-    if (
-      attribute.type === 'text' &&
-      typeof value === 'string' &&
-      value.trim()
-    ) {
+    if (attribute.type === 'text' && typeof value === 'string' && value.trim()) {
       result.push({
         attributeId: attribute.id,
         searchString: value.trim(),
@@ -91,24 +87,14 @@ export function withIssueAttributeFilters(
   values: AttributeFilterValues,
   attributes: IssueAttribute[],
 ): LocationQueryRaw {
-  const next = Object.fromEntries(
-    Object.entries(query).filter(([key]) => !key.startsWith(prefix)),
-  )
+  const next = Object.fromEntries(Object.entries(query).filter(([key]) => !key.startsWith(prefix)))
   delete next.page
   delete next.filters
   for (const attribute of attributes) {
     const value = values[attribute.id]
-    if (
-      attribute.type === 'text' &&
-      typeof value === 'string' &&
-      value.trim()
-    ) {
+    if (attribute.type === 'text' && typeof value === 'string' && value.trim()) {
       next[`${prefix}${attribute.id}`] = value.trim()
-    } else if (
-      attribute.type === 'list' &&
-      Array.isArray(value) &&
-      value.length
-    ) {
+    } else if (attribute.type === 'list' && Array.isArray(value) && value.length) {
       next[`${prefix}${attribute.id}`] = value
     }
   }

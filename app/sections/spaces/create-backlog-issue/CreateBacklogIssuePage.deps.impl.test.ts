@@ -8,9 +8,7 @@ test('maps backlog issue page data', async () => {
     createApiClient({
       baseUrl: 'https://api.test',
       fetch: async (input) => {
-        const path = new URL(
-          input instanceof Request ? input.url : String(input),
-        ).pathname
+        const path = new URL(input instanceof Request ? input.url : String(input)).pathname
         if (path === '/api/spaces') {
           return Response.json([
             {

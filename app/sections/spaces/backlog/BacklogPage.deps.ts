@@ -47,9 +47,7 @@ export type LoadMoveBoardsFailure =
   | { type: 'spaceNotFound' }
   | { type: 'temporarilyUnavailable' }
 
-type LoadMoveSpacesFailure =
-  | { type: 'accessDenied' }
-  | { type: 'temporarilyUnavailable' }
+type LoadMoveSpacesFailure = { type: 'accessDenied' } | { type: 'temporarilyUnavailable' }
 
 export type LoadMoveStatusesFailure =
   | { type: 'accessDenied' }
@@ -66,26 +64,13 @@ export type BacklogPageDeps = {
   loadMoveBoards: (input: {
     sourceBoardId: string
     spaceId: string
-  }) => Promise<
-    Result<
-      { boards: Array<{ label: string; value: string }> },
-      LoadMoveBoardsFailure
-    >
-  >
+  }) => Promise<Result<{ boards: Array<{ label: string; value: string }> }, LoadMoveBoardsFailure>>
   loadMoveSpaces: () => Promise<
-    Result<
-      { spaces: Array<{ label: string; value: string }> },
-      LoadMoveSpacesFailure
-    >
+    Result<{ spaces: Array<{ label: string; value: string }> }, LoadMoveSpacesFailure>
   >
   loadMoveStatuses: (input: {
     boardId: string
-  }) => Promise<
-    Result<
-      { statuses: Array<{ id: string; name: string }> },
-      LoadMoveStatusesFailure
-    >
-  >
+  }) => Promise<Result<{ statuses: Array<{ id: string; name: string }> }, LoadMoveStatusesFailure>>
   moveIssues: (input: {
     issueKeys: string[]
     statusId: string
@@ -95,9 +80,7 @@ export type BacklogPageDeps = {
     filters: BacklogFilter[]
     page: number
     search: string
-  }) => Promise<
-    Result<{ hasNextPage: boolean; issues: BacklogIssue[] }, ViewBacklogFailure>
-  >
+  }) => Promise<Result<{ hasNextPage: boolean; issues: BacklogIssue[] }, ViewBacklogFailure>>
   view: (input: {
     attributeQuery: Record<string, string[]>
     page: number

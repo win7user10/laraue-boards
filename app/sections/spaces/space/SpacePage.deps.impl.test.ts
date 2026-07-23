@@ -9,13 +9,9 @@ test('maps the space and its board summaries', async () => {
     createApiClient({
       baseUrl: 'https://api.test',
       fetch: async (input) => {
-        const path = new URL(
-          input instanceof Request ? input.url : String(input),
-        ).pathname
+        const path = new URL(input instanceof Request ? input.url : String(input)).pathname
         if (path === '/api/spaces') {
-          return Response.json([
-            { color: COLORS.blue, id: 2, key: 'WEB', name: 'Web' },
-          ])
+          return Response.json([{ color: COLORS.blue, id: 2, key: 'WEB', name: 'Web' }])
         }
         if (path === '/api/spaces/2') {
           return Response.json({

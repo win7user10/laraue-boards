@@ -9,9 +9,7 @@
     </p>
     <fieldset :disabled="viewModel.member.isOwner">
       <legend>Administration</legend>
-      <p class="muted section-description">
-        Controls organization-level management tools.
-      </p>
+      <p class="muted section-description">Controls organization-level management tools.</p>
       <div class="permission-grid">
         <label
           v-for="permission in adminPermissionOptions"
@@ -27,9 +25,7 @@
 
     <fieldset :disabled="viewModel.member.isOwner">
       <legend>Organization access</legend>
-      <p class="muted section-description">
-        These permissions apply to every space.
-      </p>
+      <p class="muted section-description">These permissions apply to every space.</p>
       <div class="read-permission">
         <strong>Read</strong>
         <label class="permission-option">
@@ -39,9 +35,7 @@
             :disabled="globalReadInherited"
             :title="globalReadInherited ? 'Inherited' : undefined"
             type="checkbox"
-            @change="
-              state.draft.global.canRead = !state.draft.global.canRead
-            " />
+            @change="state.draft.global.canRead = !state.draft.global.canRead" />
           <span>Read organization</span>
         </label>
       </div>
@@ -71,9 +65,7 @@
                 :disabled="cell.inherited"
                 :title="cell.inherited ? 'Inherited' : undefined"
                 type="checkbox"
-                @change="
-                  state.draft.global[cell.key] = !state.draft.global[cell.key]
-                " />
+                @change="state.draft.global[cell.key] = !state.draft.global[cell.key]" />
             </td>
           </tr>
         </tbody>
@@ -82,9 +74,7 @@
 
     <fieldset :disabled="viewModel.member.isOwner">
       <legend>Direct space access</legend>
-      <p class="muted section-description">
-        Adds permissions for individual spaces.
-      </p>
+      <p class="muted section-description">Adds permissions for individual spaces.</p>
       <details
         v-for="space in viewModel.spaces"
         :key="space.id"
@@ -110,15 +100,10 @@
                   directPermissionTables[space.id]!.readInherited
                 "
                 :disabled="directPermissionTables[space.id]!.readInherited"
-                :title="
-                  directPermissionTables[space.id]!.readInherited
-                    ? 'Inherited'
-                    : undefined
-                "
+                :title="directPermissionTables[space.id]!.readInherited ? 'Inherited' : undefined"
                 type="checkbox"
                 @change="
-                  state.draft.direct[space.id]!.canRead =
-                    !state.draft.direct[space.id]!.canRead
+                  state.draft.direct[space.id]!.canRead = !state.draft.direct[space.id]!.canRead
                 " />
               <span>Read space</span>
             </label>
@@ -154,11 +139,7 @@
                     :checked="cell.checked"
                     :disabled="cell.unavailable || cell.inherited"
                     :title="
-                      cell.unavailable
-                        ? 'Not allowed'
-                        : cell.inherited
-                          ? 'Inherited'
-                          : undefined
+                      cell.unavailable ? 'Not allowed' : cell.inherited ? 'Inherited' : undefined
                     "
                     type="checkbox"
                     @change="
@@ -275,9 +256,7 @@ const globalPermissionRows = computed(() => {
   }))
 })
 const globalReadInherited = computed(() =>
-  globalPermissionRows.value.some((row) =>
-    row.cells.some((cell) => cell.checked),
-  ),
+  globalPermissionRows.value.some((row) => row.cells.some((cell) => cell.checked)),
 )
 const directPermissionTables = computed(() =>
   Object.fromEntries(
@@ -290,14 +269,12 @@ const directPermissionTables = computed(() =>
           }
           const cell = {
             inherited:
-              globalPermissionRows.value[rowIndex]!.cells[index]!.checked ||
-              inherited[index]!,
+              globalPermissionRows.value[rowIndex]!.cells[index]!.checked || inherited[index]!,
             key,
             unavailable: space.isDefault && key === 'canDelete',
           }
           const checked =
-            !cell.unavailable &&
-            (state.draft.direct[space.id]![key] || cell.inherited)
+            !cell.unavailable && (state.draft.direct[space.id]![key] || cell.inherited)
           inherited[index] = checked
           return { ...cell, checked }
         }),
@@ -309,9 +286,7 @@ const directPermissionTables = computed(() =>
           readInherited:
             state.draft.global.canRead ||
             globalReadInherited.value ||
-            rows.some((row) =>
-              row.cells.some((cell) => cell?.checked ?? false),
-            ),
+            rows.some((row) => row.cells.some((cell) => cell?.checked ?? false)),
           rows,
         },
       ]

@@ -33,9 +33,7 @@ export type SaveBoardFailure =
   | { type: 'boardColumnNotFound' }
 
 export type BoardSettingsPageDeps = {
-  remove: (input: {
-    boardId: string
-  }) => Promise<Result<null, ChangeBoardFailure>>
+  remove: (input: { boardId: string }) => Promise<Result<null, ChangeBoardFailure>>
   save: (input: {
     boardId: string
     color: string

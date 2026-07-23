@@ -29,9 +29,7 @@ const mapOrganizationAssignees = (
     value: member.userId,
   }))
 
-const mapAccessFailure = (
-  status: number,
-): undefined | ViewCreateIssueFailure => {
+const mapAccessFailure = (status: number): undefined | ViewCreateIssueFailure => {
   if (status === 401 || status === 403) {
     return { type: 'accessDenied' }
   }
@@ -64,10 +62,7 @@ const mapStatusFailure = (status: number): LoadStatusesFailure | undefined => {
   }
 }
 
-const mapCreateFailure = (
-  status: number,
-  error: unknown,
-): CreateIssueFailure | undefined => {
+const mapCreateFailure = (status: number, error: unknown): CreateIssueFailure | undefined => {
   if (status === 400) {
     return {
       message: getInvalidInputError(error).message,
@@ -85,9 +80,7 @@ const mapCreateFailure = (
   }
 }
 
-export function createCreateIssuePageDeps(
-  client: ApiClient,
-): CreateIssuePageDeps {
+export function createCreateIssuePageDeps(client: ApiClient): CreateIssuePageDeps {
   return {
     async create(input) {
       const response = await client.POST('/api/issues', {
@@ -100,16 +93,11 @@ export function createCreateIssuePageDeps(
         parseAs: 'text',
       })
       if ('error' in response) {
-        const failure = mapCreateFailure(
-          response.response.status,
-          response.error,
-        )
+        const failure = mapCreateFailure(response.response.status, response.error)
         if (failure) {
           return err(failure)
         }
-        throw new Error(
-          `Unrecognized create issue response: ${response.response.status}`,
-        )
+        throw new Error(`Unrecognized create issue response: ${response.response.status}`)
       }
       return ok({ issueKey: String(response.data) })
     },
@@ -123,9 +111,7 @@ export function createCreateIssuePageDeps(
         if (failure) {
           return err(failure)
         }
-        throw new Error(
-          `Unrecognized space members response: ${response.response.status}`,
-        )
+        throw new Error(`Unrecognized space members response: ${response.response.status}`)
       }
       return ok(mapOrganizationAssignees(response.data))
     },
@@ -139,15 +125,11 @@ export function createCreateIssuePageDeps(
         if (failure) {
           return err(failure)
         }
-        throw new Error(
-          `Unrecognized space boards response: ${response.response.status}`,
-        )
+        throw new Error(`Unrecognized space boards response: ${response.response.status}`)
       }
       return ok({
         boardId: String(
-          response.data.find((board) => board.isDefault)?.id ??
-            response.data[0]?.id ??
-            '',
+          response.data.find((board) => board.isDefault)?.id ?? response.data[0]?.id ?? '',
         ),
         boards: response.data.map((board) => ({
           label: board.name,
@@ -165,18 +147,14 @@ export function createCreateIssuePageDeps(
         if (failure) {
           return err(failure)
         }
-        throw new Error(
-          `Unrecognized board response: ${response.response.status}`,
-        )
+        throw new Error(`Unrecognized board response: ${response.response.status}`)
       }
       if (!response.data.canCreateIssues) {
         return err({ type: 'accessDenied' })
       }
       return ok(
         (response.data.statuses ?? [])
-          .toSorted(
-            (left, right) => Number(left.sortOrder) - Number(right.sortOrder),
-          )
+          .toSorted((left, right) => Number(left.sortOrder) - Number(right.sortOrder))
           .map((status) => ({
             label: status.name,
             value: String(status.id),
@@ -194,18 +172,14 @@ export function createCreateIssuePageDeps(
         if (failure) {
           return err(failure)
         }
-        throw new Error(
-          `Unrecognized create issue page response: ${spaces.response.status}`,
-        )
+        throw new Error(`Unrecognized create issue page response: ${spaces.response.status}`)
       }
       if ('error' in attributes) {
         const failure = mapAccessFailure(attributes.response.status)
         if (failure) {
           return err(failure)
         }
-        throw new Error(
-          `Unrecognized create issue page response: ${attributes.response.status}`,
-        )
+        throw new Error(`Unrecognized create issue page response: ${attributes.response.status}`)
       }
       const spaceOptions = spaces.data.map((space) => {
         if (space.id === undefined) {

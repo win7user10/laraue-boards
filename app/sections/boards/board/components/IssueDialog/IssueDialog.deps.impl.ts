@@ -58,8 +58,7 @@ const mapDialogAttachments = (
       return []
     }
     const originalId = attachment.originalFileId ?? previewId
-    const fileUrl = (id: string) =>
-      new URL(`/api/files/${encodeURIComponent(id)}`, baseUrl).href
+    const fileUrl = (id: string) => new URL(`/api/files/${encodeURIComponent(id)}`, baseUrl).href
     return [
       {
         id: attachment.id,
@@ -96,19 +95,13 @@ const mapIssueDialog = (
 })
 
 export function createIssueDialogDeps(client: ApiClient): IssueDialogDeps {
-  const moveIssue: IssueDialogDeps['moveIssue'] = async ({
-    issueKey,
-    statusId,
-  }) => {
+  const moveIssue: IssueDialogDeps['moveIssue'] = async ({ issueKey, statusId }) => {
     if (!statusId) {
       return err({ type: 'invalidStatus' })
     }
-    const response = await client.POST(
-      '/api/movement/issue/{key}/move-to-status/{statusId}',
-      {
-        params: { path: { key: issueKey, statusId: Number(statusId) } },
-      },
-    )
+    const response = await client.POST('/api/movement/issue/{key}/move-to-status/{statusId}', {
+      params: { path: { key: issueKey, statusId: Number(statusId) } },
+    })
     switch (response.response.status) {
       case 200:
         return ok(null)
@@ -212,9 +205,7 @@ export function createIssueDialogDeps(client: ApiClient): IssueDialogDeps {
             return response.data
               ? ok({
                   statuses: (response.data.statuses ?? [])
-                    .toSorted(
-                      (a, b) => Number(a.sortOrder) - Number(b.sortOrder),
-                    )
+                    .toSorted((a, b) => Number(a.sortOrder) - Number(b.sortOrder))
                     .map((status) => ({
                       id: String(status.id),
                       name: status.name,

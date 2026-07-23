@@ -75,14 +75,11 @@ const props = defineProps<{
   onUpdated: () => Promise<void> | void
 }>()
 
-const query = await useAsyncData(
-  'organization-settings',
-  (_nuxtApp, { signal }) => props.deps.view({ signal }),
+const query = await useAsyncData('organization-settings', (_nuxtApp, { signal }) =>
+  props.deps.view({ signal }),
 )
 
-const getViewFailureMessage = (
-  failure: ViewOrganizationSettingsFailure,
-): string => {
+const getViewFailureMessage = (failure: ViewOrganizationSettingsFailure): string => {
   switch (failure.type) {
     case 'accessDenied':
       return 'You do not have access to this organization.'
@@ -128,9 +125,7 @@ watch(
   { immediate: true },
 )
 
-const getUpdateFailureMessage = (
-  failure: UpdateOrganizationFailure,
-): string => {
+const getUpdateFailureMessage = (failure: UpdateOrganizationFailure): string => {
   switch (failure.type) {
     case 'accessDenied':
       return 'You do not have permission to update this organization.'

@@ -7,8 +7,7 @@ import { ok } from '~/utils/actionResult'
 
 test('maps movable spaces, boards, and organizations', async () => {
   const fetch = vi.fn<typeof globalThis.fetch>(async (input) => {
-    const path = new URL(input instanceof Request ? input.url : String(input))
-      .pathname
+    const path = new URL(input instanceof Request ? input.url : String(input)).pathname
     const body = path.endsWith('/organizations/current')
       ? { canMassMove: true, id: 1 }
       : path.endsWith('/organizations')
@@ -48,9 +47,7 @@ test('maps movable spaces, boards, and organizations', async () => {
       status: 200,
     })
   })
-  const deps = createDataMovementPageDeps(
-    createApiClient({ baseUrl: 'https://api.test', fetch }),
-  )
+  const deps = createDataMovementPageDeps(createApiClient({ baseUrl: 'https://api.test', fetch }))
 
   const result = await deps.view({})
 

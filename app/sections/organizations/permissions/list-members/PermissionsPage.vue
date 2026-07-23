@@ -29,9 +29,7 @@
             <span class="member-name">
               <strong>{{ member.name }}</strong>
               <small class="muted">
-                {{
-                  member.isOwner ? 'Owner' : member.isAdmin ? 'Admin' : 'Member'
-                }}
+                {{ member.isOwner ? 'Owner' : member.isAdmin ? 'Admin' : 'Member' }}
               </small>
             </span>
             <ChevronRight />
@@ -60,9 +58,8 @@ import { toAsyncResultState } from '~/utils/asyncResultState'
 const props = defineProps<{ deps: PermissionsPageDeps }>()
 const organizationRoutes = useOrganizationRoutes()
 useHead({ title: 'Permissions' })
-const query = await useAsyncData(
-  'organization-permissions',
-  (_nuxtApp, { signal }) => props.deps.view({ signal }),
+const query = await useAsyncData('organization-permissions', (_nuxtApp, { signal }) =>
+  props.deps.view({ signal }),
 )
 const getFailureMessage = (failure: ViewPermissionsFailure): string => {
   switch (failure.type) {

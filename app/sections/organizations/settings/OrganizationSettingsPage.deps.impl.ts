@@ -8,9 +8,7 @@ import type {
 } from '~/sections/organizations/settings/OrganizationSettingsPage.deps'
 import { err, ok } from '~/utils/actionResult'
 
-const mapViewFailure = (
-  status: number,
-): undefined | ViewOrganizationSettingsFailure => {
+const mapViewFailure = (status: number): undefined | ViewOrganizationSettingsFailure => {
   if (status === 401 || status === 403) {
     return { type: 'accessDenied' }
   }
@@ -74,10 +72,7 @@ export function createOrganizationSettingsPageDeps(
         if (failure) {
           return err(failure)
         }
-        return unrecognizedResponse(
-          'view organization settings',
-          current.response.status,
-        )
+        return unrecognizedResponse('view organization settings', current.response.status)
       }
       if ('error' in organizations) {
         const response = organizations
@@ -85,10 +80,7 @@ export function createOrganizationSettingsPageDeps(
         if (failure) {
           return err(failure)
         }
-        return unrecognizedResponse(
-          'view organization settings',
-          response.response.status,
-        )
+        return unrecognizedResponse('view organization settings', response.response.status)
       }
 
       const organization = organizations.data.find(

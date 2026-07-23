@@ -9,9 +9,7 @@ import type {
 } from '~/sections/organizations/attributes/attribute/AttributePage.deps'
 import { err, ok } from '~/utils/actionResult'
 
-const mapAttribute = (
-  value: components['schemas']['AttributeDto'],
-): Attribute => {
+const mapAttribute = (value: components['schemas']['AttributeDto']): Attribute => {
   if (value.id === undefined) {
     throw new TypeError('Attribute id is required')
   }
@@ -52,10 +50,7 @@ const mapViewFailure = (status: number): undefined | ViewAttributeFailure => {
     return { type: 'temporarilyUnavailable' }
   }
 }
-const mapChangeFailure = (
-  status: number,
-  error: unknown,
-): ChangeAttributeFailure | undefined =>
+const mapChangeFailure = (status: number, error: unknown): ChangeAttributeFailure | undefined =>
   status === 400
     ? { message: getInvalidInputError(error).message, type: 'invalidInput' }
     : mapViewFailure(status)
@@ -63,10 +58,9 @@ const mapChangeFailure = (
 export function createAttributePageDeps(client: ApiClient): AttributePageDeps {
   return {
     async delete({ id }) {
-      const response = await client.DELETE(
-        '/api/organizations/attributes/{id}',
-        { params: { path: { id: Number(id) } } },
-      )
+      const response = await client.DELETE('/api/organizations/attributes/{id}', {
+        params: { path: { id: Number(id) } },
+      })
       if ('data' in response) {
         return ok(undefined)
       }
@@ -74,9 +68,7 @@ export function createAttributePageDeps(client: ApiClient): AttributePageDeps {
       if (failure) {
         return err(failure)
       }
-      throw new Error(
-        `Unrecognized delete attribute response: ${response.response.status}`,
-      )
+      throw new Error(`Unrecognized delete attribute response: ${response.response.status}`)
     },
     async update(input) {
       const response = await client.PUT('/api/organizations/attributes/{id}', {
@@ -101,9 +93,7 @@ export function createAttributePageDeps(client: ApiClient): AttributePageDeps {
       if (failure) {
         return err(failure)
       }
-      throw new Error(
-        `Unrecognized update attribute response: ${response.response.status}`,
-      )
+      throw new Error(`Unrecognized update attribute response: ${response.response.status}`)
     },
     async view({ attributeId, signal }) {
       const response = await client.GET('/api/organizations/attributes', {
@@ -114,16 +104,10 @@ export function createAttributePageDeps(client: ApiClient): AttributePageDeps {
         if (failure) {
           return err(failure)
         }
-        throw new Error(
-          `Unrecognized attribute response: ${response.response.status}`,
-        )
+        throw new Error(`Unrecognized attribute response: ${response.response.status}`)
       }
-      const attribute = response.data.find(
-        (item) => String(item.id) === attributeId,
-      )
-      return attribute
-        ? ok(mapAttribute(attribute))
-        : err({ type: 'attributeNotFound' })
+      const attribute = response.data.find((item) => String(item.id) === attributeId)
+      return attribute ? ok(mapAttribute(attribute)) : err({ type: 'attributeNotFound' })
     },
   }
 }

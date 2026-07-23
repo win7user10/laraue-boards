@@ -86,13 +86,10 @@ const props = defineProps<{
 }>()
 const state = reactive({ error: null as null | string, selecting: false })
 useHead({ title: 'Organizations' })
-const query = await useAsyncData(
-  'organization-picker',
-  (_nuxtApp, { signal }) => props.deps.view({ signal }),
+const query = await useAsyncData('organization-picker', (_nuxtApp, { signal }) =>
+  props.deps.view({ signal }),
 )
-const getViewFailureMessage = (
-  failure: ViewOrganizationPickerFailure,
-): string => {
+const getViewFailureMessage = (failure: ViewOrganizationPickerFailure): string => {
   switch (failure.type) {
     case 'accessDenied':
       return 'Your session is missing or has expired.'
@@ -110,9 +107,7 @@ const pageState = computed(() =>
     status: query.status.value,
   }),
 )
-const getSelectFailureMessage = (
-  failure: SelectOrganizationFailure,
-): string => {
+const getSelectFailureMessage = (failure: SelectOrganizationFailure): string => {
   switch (failure.type) {
     case 'accessDenied':
       return 'Your session has expired. Sign in again.'
@@ -125,10 +120,7 @@ const getSelectFailureMessage = (
   }
 }
 
-async function select(
-  organizationId: string,
-  organizationKey: string,
-): Promise<void> {
+async function select(organizationId: string, organizationKey: string): Promise<void> {
   if (state.selecting) {
     return
   }

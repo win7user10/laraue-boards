@@ -20,10 +20,7 @@ const mapPage = (
   boards: boards.map((board) => ({
     color: board.color ?? (board.isDefault ? space.color : COLORS.gray),
     id: String(board.id),
-    issueCount: board.columns.reduce(
-      (sum, column) => sum + Number(column.count),
-      0,
-    ),
+    issueCount: board.columns.reduce((sum, column) => sum + Number(column.count), 0),
     kind: board.isDefault ? 'backlog' : 'board',
     name: board.isDefault ? 'Backlog' : board.name,
     statuses: board.columns.map((column) => ({
@@ -40,10 +37,7 @@ const mapPage = (
   name: space.name,
 })
 
-const mapFailure = (
-  status: number,
-  notFound = false,
-): undefined | ViewSpaceFailure => {
+const mapFailure = (status: number, notFound = false): undefined | ViewSpaceFailure => {
   if (status === 401 || status === 403) {
     return { type: 'accessDenied' }
   }
@@ -64,9 +58,7 @@ export function createSpacePageDeps(client: ApiClient): SpacePageDeps {
         if (failure) {
           return err(failure)
         }
-        throw new Error(
-          `Unrecognized spaces response: ${spaces.response.status}`,
-        )
+        throw new Error(`Unrecognized spaces response: ${spaces.response.status}`)
       }
       const space = findSpaceByKey(spaces.data, spaceKey)
       if (!space) {
@@ -89,18 +81,14 @@ export function createSpacePageDeps(client: ApiClient): SpacePageDeps {
         if (failure) {
           return err(failure)
         }
-        throw new Error(
-          `Unrecognized space details response: ${details.response.status}`,
-        )
+        throw new Error(`Unrecognized space details response: ${details.response.status}`)
       }
       if ('error' in summaries) {
         const failure = mapFailure(summaries.response.status, true)
         if (failure) {
           return err(failure)
         }
-        throw new Error(
-          `Unrecognized issue summaries response: ${summaries.response.status}`,
-        )
+        throw new Error(`Unrecognized issue summaries response: ${summaries.response.status}`)
       }
       return ok(mapPage(spaceId, space, details.data, summaries.data))
     },

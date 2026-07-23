@@ -6,10 +6,7 @@ import type {
 } from '~/sections/organizations/attributes/create-attribute/CreateAttributePage.deps'
 import { err, ok } from '~/utils/actionResult'
 
-const mapFailure = (
-  status: number,
-  error: unknown,
-): CreateAttributeFailure | undefined => {
+const mapFailure = (status: number, error: unknown): CreateAttributeFailure | undefined => {
   if (status === 400) {
     return {
       message: getInvalidInputError(error).message,
@@ -24,9 +21,7 @@ const mapFailure = (
   }
 }
 
-export function createCreateAttributePageDeps(
-  client: ApiClient,
-): CreateAttributePageDeps {
+export function createCreateAttributePageDeps(client: ApiClient): CreateAttributePageDeps {
   return {
     async create(input) {
       const response = await client.POST('/api/organizations/attributes', {
@@ -45,9 +40,7 @@ export function createCreateAttributePageDeps(
         if (failure) {
           return err(failure)
         }
-        throw new Error(
-          `Unrecognized create attribute response: ${response.response.status}`,
-        )
+        throw new Error(`Unrecognized create attribute response: ${response.response.status}`)
       }
       return ok({ id: String(response.data) })
     },

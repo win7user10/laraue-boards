@@ -94,9 +94,7 @@
           Loading statuses…
         </option>
         <option
-          v-if="
-            state.boardId === viewModel.boardId && lookup.statuses.length === 0
-          "
+          v-if="state.boardId === viewModel.boardId && lookup.statuses.length === 0"
           :value="viewModel.statusId">
           {{ viewModel.statusLabel || 'Current status' }}
         </option>
@@ -302,10 +300,7 @@ const props = defineProps<IssueDetailsProps>()
 const state = reactive({
   assigneeId: props.viewModel.assigneeId,
   attributeValues: Object.fromEntries(
-    props.viewModel.attributes.map((attribute) => [
-      attribute.id,
-      attribute.value,
-    ]),
+    props.viewModel.attributes.map((attribute) => [attribute.id, attribute.value]),
   ),
   boardId: props.viewModel.boardId,
   boardLabel: props.viewModel.boardLabel,
@@ -317,30 +312,23 @@ const state = reactive({
   statusId: props.viewModel.statusId,
 })
 const spaceOptions = computed(() =>
-  props.lookup.spaces.filter(
-    (space) => space.value !== props.viewModel.spaceId,
-  ),
+  props.lookup.spaces.filter((space) => space.value !== props.viewModel.spaceId),
 )
 const boardOptions = computed(() =>
   props.lookup.boards.filter(
     (board) =>
-      state.pickedSpaceId !== props.viewModel.spaceId ||
-      board.value !== props.viewModel.boardId,
+      state.pickedSpaceId !== props.viewModel.spaceId || board.value !== props.viewModel.boardId,
   ),
 )
 const selectedAssignee = computed(
   () =>
-    props.lookup.assignees.find(
-      (assignee) => assignee.value === state.assigneeId,
-    ) ?? {
+    props.lookup.assignees.find((assignee) => assignee.value === state.assigneeId) ?? {
       color: props.viewModel.assigneeColor,
       initials: props.viewModel.assigneeInitial,
     },
 )
 const hasCurrentAssignee = computed(() =>
-  props.lookup.assignees.some(
-    (assignee) => assignee.value === props.viewModel.assigneeId,
-  ),
+  props.lookup.assignees.some((assignee) => assignee.value === props.viewModel.assigneeId),
 )
 const canSave = computed(
   () =>
@@ -374,10 +362,7 @@ watch(
     Object.assign(state, {
       assigneeId: viewModel.assigneeId,
       attributeValues: Object.fromEntries(
-        viewModel.attributes.map((attribute) => [
-          attribute.id,
-          attribute.value,
-        ]),
+        viewModel.attributes.map((attribute) => [attribute.id, attribute.value]),
       ),
       boardId: viewModel.boardId,
       boardLabel: viewModel.boardLabel,
@@ -392,11 +377,7 @@ watch(
 )
 
 async function loadAssignees(spaceId: string) {
-  if (
-    !spaceId ||
-    props.lookup.loadingAssignees ||
-    props.lookup.assignees.length
-  ) {
+  if (!spaceId || props.lookup.loadingAssignees || props.lookup.assignees.length) {
     return
   }
   await props.onLoadAssignees(spaceId)
@@ -411,8 +392,8 @@ async function loadMoveSpaces() {
 
 function selectMoveSpace() {
   state.spaceLabel =
-    props.lookup.spaces.find((space) => space.value === state.pickedSpaceId)
-      ?.label ?? state.spaceLabel
+    props.lookup.spaces.find((space) => space.value === state.pickedSpaceId)?.label ??
+    state.spaceLabel
   state.boardId = ''
   state.boardLabel = ''
   state.statusId = ''
@@ -421,22 +402,14 @@ function selectMoveSpace() {
 }
 
 async function loadMoveBoards() {
-  if (
-    !state.pickedSpaceId ||
-    props.lookup.loadingMoveBoards ||
-    props.lookup.boards.length
-  ) {
+  if (!state.pickedSpaceId || props.lookup.loadingMoveBoards || props.lookup.boards.length) {
     return
   }
   await props.onLoadMoveBoards(state.pickedSpaceId)
 }
 
 async function loadStatuses() {
-  if (
-    props.lookup.loadingStatuses ||
-    props.lookup.statuses.length ||
-    !state.boardId
-  ) {
+  if (props.lookup.loadingStatuses || props.lookup.statuses.length || !state.boardId) {
     return
   }
   await props.onLoadStatuses(state.boardId)

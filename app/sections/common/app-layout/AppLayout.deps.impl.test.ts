@@ -5,8 +5,7 @@ import { createAppLayoutDeps } from '~/sections/common/app-layout/AppLayout.deps
 
 test('loads the requested organization layout', async () => {
   const fetch = vi.fn<typeof globalThis.fetch>(async (input) => {
-    const path = new URL(input instanceof Request ? input.url : String(input))
-      .pathname
+    const path = new URL(input instanceof Request ? input.url : String(input)).pathname
     switch (path) {
       case '/api/organizations/current':
         return Response.json({
@@ -36,16 +35,12 @@ test('loads the requested organization layout', async () => {
           lastName: 'Lovelace',
         })
       case '/api/spaces':
-        return Response.json([
-          { color: '#789', id: 2, key: 'DEV', name: 'Development' },
-        ])
+        return Response.json([{ color: '#789', id: 2, key: 'DEV', name: 'Development' }])
       default:
         return new Response(null, { status: 404 })
     }
   })
-  const deps = createAppLayoutDeps(
-    createApiClient({ baseUrl: 'https://api.test', fetch }),
-  )
+  const deps = createAppLayoutDeps(createApiClient({ baseUrl: 'https://api.test', fetch }))
 
   assert.deepEqual(await deps.view({ organizationKey: 'acme-AB12' }), {
     ok: true,

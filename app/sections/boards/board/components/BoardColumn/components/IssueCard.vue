@@ -17,9 +17,7 @@
           {{ viewModel.assigneeInitial }}
         </span>
         <strong>{{ viewModel.assigneeName }}</strong>
-        <time :datetime="viewModel.time">
-          · {{ formatTime(viewModel.time) }}
-        </time>
+        <time :datetime="viewModel.time">· {{ formatTime(viewModel.time) }}</time>
         <Transition
           mode="out-in"
           name="icon-pop">
