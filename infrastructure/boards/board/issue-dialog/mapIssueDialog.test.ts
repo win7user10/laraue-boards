@@ -8,6 +8,7 @@ const issue: Parameters<typeof mapIssueDialog>[0] = {
   assigneeColor: COLORS.blue,
   assigneeId: '11111111-1111-1111-1111-111111111111',
   assigneeInitial: 'AU',
+  attachments: [],
   attributeValues: [
     {
       color: COLORS.amber,
@@ -25,7 +26,6 @@ const issue: Parameters<typeof mapIssueDialog>[0] = {
   epicName: 'Board',
   id: 5,
   key: 'DEV-1',
-  media: [],
   ownerColor: COLORS.purple,
   ownerDisplayName: 'User',
   ownerInitials: 'U',
