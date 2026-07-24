@@ -1,3 +1,4 @@
+import type { IssueListDeps } from '~/components/issue-list/deps'
 import type { Result } from '~/utils/actionResult'
 
 export type BacklogIssue = {
@@ -42,39 +43,8 @@ export type ViewBacklogFailure =
   | { type: 'spaceNotFound' }
   | { type: 'temporarilyUnavailable' }
 
-export type LoadMoveBoardsFailure =
-  | { type: 'accessDenied' }
-  | { type: 'spaceNotFound' }
-  | { type: 'temporarilyUnavailable' }
-
-type LoadMoveSpacesFailure = { type: 'accessDenied' } | { type: 'temporarilyUnavailable' }
-
-export type LoadMoveStatusesFailure =
-  | { type: 'accessDenied' }
-  | { type: 'boardNotFound' }
-  | { type: 'temporarilyUnavailable' }
-
-export type MoveIssuesFailure =
-  | { type: 'accessDenied' }
-  | { type: 'invalidStatus' }
-  | { type: 'resourceNotFound' }
-  | { type: 'temporarilyUnavailable' }
-
 export type BacklogPageDeps = {
-  loadMoveBoards: (input: {
-    sourceBoardId: string
-    spaceId: string
-  }) => Promise<Result<{ boards: Array<{ label: string; value: string }> }, LoadMoveBoardsFailure>>
-  loadMoveSpaces: () => Promise<
-    Result<{ spaces: Array<{ label: string; value: string }> }, LoadMoveSpacesFailure>
-  >
-  loadMoveStatuses: (input: {
-    boardId: string
-  }) => Promise<Result<{ statuses: Array<{ id: string; name: string }> }, LoadMoveStatusesFailure>>
-  moveIssues: (input: {
-    issueKeys: string[]
-    statusId: string
-  }) => Promise<Result<void, MoveIssuesFailure>>
+  issueList: IssueListDeps
   search: (input: {
     backlogBoardId: string
     filters: BacklogFilter[]

@@ -1,14 +1,12 @@
 import type { ApiClient } from '#infrastructure/api/client'
 import type { components } from '#infrastructure/api/generated'
+import { createIssueListDeps } from '~/components/issue-list/deps/impl'
 import { COLORS } from '~/constants/colors'
 import { mapIssueFilters, mapRawIssueFilters } from '~/sections/issues/shared/api/issueAttributes'
 import { createdAtDescending } from '~/sections/issues/shared/api/issueSorting'
 import type {
   BacklogIssue,
   BacklogPageDeps,
-  LoadMoveBoardsFailure,
-  LoadMoveStatusesFailure,
-  MoveIssuesFailure,
   ViewBacklogFailure,
 } from '~/sections/spaces/backlog/BacklogPage.deps'
 import { findSpaceByKey } from '~/sections/spaces/shared/findSpaceByKey'
@@ -41,234 +39,100 @@ const mapViewFailure = (status: number, notFound = false): undefined | ViewBackl
   }
 }
 
-const mapBoardsFailure = (status: number): LoadMoveBoardsFailure | undefined => {
-  if (status === 401 || status === 403) {
-    return { type: 'accessDenied' }
-  }
-  if (status === 404) {
-    return { type: 'spaceNotFound' }
-  }
-  if (status >= 500) {
-    return { type: 'temporarilyUnavailable' }
-  }
-}
-
-const mapStatusesFailure = (status: number): LoadMoveStatusesFailure | undefined => {
-  if (status === 401 || status === 403) {
-    return { type: 'accessDenied' }
-  }
-  if (status === 404) {
-    return { type: 'boardNotFound' }
-  }
-  if (status >= 500) {
-    return { type: 'temporarilyUnavailable' }
-  }
-}
-
-const mapMoveFailure = (status: number): MoveIssuesFailure | undefined => {
-  if (status === 400) {
-    return { type: 'invalidStatus' }
-  }
-  if (status === 401 || status === 403) {
-    return { type: 'accessDenied' }
-  }
-  if (status === 404) {
-    return { type: 'resourceNotFound' }
-  }
-  if (status >= 500) {
-    return { type: 'temporarilyUnavailable' }
-  }
-}
-
-export function createBacklogPageDeps(client: ApiClient): BacklogPageDeps {
-  return {
-    async loadMoveBoards({ sourceBoardId, spaceId }) {
-      const response = await client.GET('/api/spaces/{id}/epics', {
-        params: { path: { id: Number(spaceId) } },
-      })
-      if ('data' in response && response.data !== undefined) {
-        return ok({
-          boards: response.data
-            .filter((board) => String(board.id) !== sourceBoardId)
-            .map((board) => ({
-              label: board.name,
-              value: String(board.id),
-            })),
-        })
-      }
-      if ('data' in response) {
-        return err({ type: 'temporarilyUnavailable' })
-      }
-      const failure = mapBoardsFailure(response.response.status)
-      if (failure) {
-        return err(failure)
-      }
-      throw new Error(`Unrecognized move boards response: ${response.response.status}`)
-    },
-
-    async loadMoveSpaces() {
-      const response = await client.GET('/api/spaces')
-      if ('data' in response && response.data !== undefined) {
-        return ok({
-          spaces: response.data.map((space) => ({
-            label: space.name,
-            value: String(space.id),
-          })),
-        })
-      }
-      if ('data' in response) {
-        return err({ type: 'temporarilyUnavailable' })
-      }
-      const failure = mapViewFailure(response.response.status)
-      if (failure?.type === 'accessDenied') {
-        return err(failure)
-      }
-      if (failure?.type === 'temporarilyUnavailable') {
-        return err(failure)
-      }
-      throw new Error(`Unrecognized move spaces response: ${response.response.status}`)
-    },
-
-    async loadMoveStatuses({ boardId }) {
-      const response = await client.GET('/api/epics/{id}', {
-        params: { path: { id: Number(boardId) } },
-      })
-      if ('data' in response && response.data !== undefined) {
-        return ok({
-          statuses: (response.data.statuses ?? [])
-            .toSorted((a, b) => Number(a.sortOrder) - Number(b.sortOrder))
-            .map((status) => ({ id: String(status.id), name: status.name })),
-        })
-      }
-      if ('data' in response) {
-        return err({ type: 'temporarilyUnavailable' })
-      }
-      const failure = mapStatusesFailure(response.response.status)
-      if (failure) {
-        return err(failure)
-      }
-      throw new Error(`Unrecognized move statuses response: ${response.response.status}`)
-    },
-
-    async moveIssues({ issueKeys, statusId }) {
-      if (issueKeys.length === 0 || statusId === '') {
-        return err({ type: 'invalidStatus' })
-      }
-      const responses = await Promise.all(
-        issueKeys.map((issueKey) =>
-          client.POST('/api/movement/issue/{key}/move-to-status/{statusId}', {
-            params: {
-              path: { key: issueKey, statusId: Number(statusId) },
-            },
-          }),
-        ),
-      )
-      for (const response of responses) {
-        if ('data' in response) {
-          continue
-        }
-        const failure = mapMoveFailure(response.response.status)
-        if (failure) {
-          return err(failure)
-        }
-        throw new Error(`Unrecognized move issue response: ${response.response.status}`)
-      }
-      return ok(undefined)
-    },
-
-    async search({ backlogBoardId, filters, page, search }) {
-      const response = await client.POST('/api/issues/search', {
-        body: {
-          epicIds: [backlogBoardId],
-          filters: mapIssueFilters(filters),
-          page: page - 1,
-          perPage: 10,
-          searchString: search || undefined,
-          sorting: createdAtDescending,
-        },
-      })
-      if ('data' in response && response.data !== undefined) {
-        return ok({
-          hasNextPage: response.data.hasNextPage,
-          issues: response.data.data.map(mapIssue),
-        })
-      }
-      if ('data' in response) {
-        return err({ type: 'temporarilyUnavailable' })
-      }
-      const failure = mapViewFailure(response.response.status, true)
-      if (failure) {
-        return err(failure)
-      }
-      throw new Error(`Unrecognized backlog search response: ${response.response.status}`)
-    },
-
-    async view({ attributeQuery, page, search, signal, spaceKey }) {
-      const [spaces, attributes] = await Promise.all([
-        client.GET('/api/spaces', { signal }),
-        client.GET('/api/organizations/attributes', { signal }),
-      ])
-      if ('error' in spaces) {
-        const failure = mapViewFailure(spaces.response.status)
-        if (failure) {
-          return err(failure)
-        }
-        throw new Error(`Unrecognized spaces response: ${spaces.response.status}`)
-      }
-      if ('error' in attributes) {
-        const failure = mapViewFailure(attributes.response.status)
-        if (failure) {
-          return err(failure)
-        }
-        throw new Error(`Unrecognized attributes response: ${attributes.response.status}`)
-      }
-      const space = findSpaceByKey(spaces.data, spaceKey)
-      if (!space) {
-        return err({ type: 'spaceNotFound' })
-      }
-      const attributeData = mapRawIssueFilters(attributeQuery, attributes.data)
-      const boards = await client.GET('/api/spaces/{id}/epics', {
-        params: { path: { id: Number(space.id) } },
-        signal,
-      })
-      if ('error' in boards) {
-        const failure = mapViewFailure(boards.response.status, true)
-        if (failure) {
-          return err(failure)
-        }
-        throw new Error(`Unrecognized backlog boards response: ${boards.response.status}`)
-      }
-      const backlog = boards.data.find((board) => board.isDefault)
-      if (!backlog) {
-        return err({ type: 'spaceNotFound' })
-      }
-      const issues = await client.POST('/api/issues/search', {
-        body: {
-          epicIds: [backlog.id],
-          filters: attributeData.filters,
-          page: page - 1,
-          perPage: 10,
-          searchString: search || undefined,
-          sorting: createdAtDescending,
-        },
-        signal,
-      })
-      if ('error' in issues) {
-        const failure = mapViewFailure(issues.response.status)
-        if (failure) {
-          return err(failure)
-        }
-        throw new Error(`Unrecognized backlog issues response: ${issues.response.status}`)
-      }
+export const createBacklogPageDeps = (client: ApiClient): BacklogPageDeps => ({
+  issueList: createIssueListDeps(client),
+  async search({ backlogBoardId, filters, page, search }) {
+    const response = await client.POST('/api/issues/search', {
+      body: {
+        epicIds: [backlogBoardId],
+        filters: mapIssueFilters(filters),
+        page: page - 1,
+        perPage: 10,
+        searchString: search || undefined,
+        sorting: createdAtDescending,
+      },
+    })
+    if ('data' in response && response.data !== undefined) {
       return ok({
-        attributes: attributeData.attributes,
-        backlogBoardId: String(backlog.id),
-        color: space.color,
-        hasNextPage: issues.data.hasNextPage,
-        issues: issues.data.data.map(mapIssue),
-        spaceKey,
-        title: backlog.name,
+        hasNextPage: response.data.hasNextPage,
+        issues: response.data.data.map(mapIssue),
       })
-    },
-  }
-}
+    }
+    if ('data' in response) {
+      return err({ type: 'temporarilyUnavailable' })
+    }
+    const failure = mapViewFailure(response.response.status, true)
+    if (failure) {
+      return err(failure)
+    }
+    throw new Error(`Unrecognized backlog search response: ${response.response.status}`)
+  },
+
+  async view({ attributeQuery, page, search, signal, spaceKey }) {
+    const [spaces, attributes] = await Promise.all([
+      client.GET('/api/spaces', { signal }),
+      client.GET('/api/organizations/attributes', { signal }),
+    ])
+    if ('error' in spaces) {
+      const failure = mapViewFailure(spaces.response.status)
+      if (failure) {
+        return err(failure)
+      }
+      throw new Error(`Unrecognized spaces response: ${spaces.response.status}`)
+    }
+    if ('error' in attributes) {
+      const failure = mapViewFailure(attributes.response.status)
+      if (failure) {
+        return err(failure)
+      }
+      throw new Error(`Unrecognized attributes response: ${attributes.response.status}`)
+    }
+    const space = findSpaceByKey(spaces.data, spaceKey)
+    if (!space) {
+      return err({ type: 'spaceNotFound' })
+    }
+    const attributeData = mapRawIssueFilters(attributeQuery, attributes.data)
+    const boards = await client.GET('/api/spaces/{id}/epics', {
+      params: { path: { id: Number(space.id) } },
+      signal,
+    })
+    if ('error' in boards) {
+      const failure = mapViewFailure(boards.response.status, true)
+      if (failure) {
+        return err(failure)
+      }
+      throw new Error(`Unrecognized backlog boards response: ${boards.response.status}`)
+    }
+    const backlog = boards.data.find((board) => board.isDefault)
+    if (!backlog) {
+      return err({ type: 'spaceNotFound' })
+    }
+    const issues = await client.POST('/api/issues/search', {
+      body: {
+        epicIds: [backlog.id],
+        filters: attributeData.filters,
+        page: page - 1,
+        perPage: 10,
+        searchString: search || undefined,
+        sorting: createdAtDescending,
+      },
+      signal,
+    })
+    if ('error' in issues) {
+      const failure = mapViewFailure(issues.response.status)
+      if (failure) {
+        return err(failure)
+      }
+      throw new Error(`Unrecognized backlog issues response: ${issues.response.status}`)
+    }
+    return ok({
+      attributes: attributeData.attributes,
+      backlogBoardId: String(backlog.id),
+      color: space.color,
+      hasNextPage: issues.data.hasNextPage,
+      issues: issues.data.data.map(mapIssue),
+      spaceKey,
+      title: backlog.name,
+    })
+  },
+})

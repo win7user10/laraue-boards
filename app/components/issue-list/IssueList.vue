@@ -39,71 +39,29 @@
     @update:page="props.onUpdatePage" />
   <MoveIssuesDialog
     ref="moveDialog"
-    :boards="move.boards"
-    :error="move.error"
-    :loading-boards="move.loadingBoards"
-    :loading-spaces="move.loadingSpaces"
-    :loading-statuses="move.loadingStatuses"
-    :moving="move.moving"
-    :on-change-board="props.onChangeMoveBoard"
-    :on-change-space="props.onChangeMoveSpace"
-    :on-load-boards="props.onLoadMoveBoards"
-    :on-load-spaces="props.onLoadMoveSpaces"
-    :on-load-statuses="props.onLoadMoveStatuses"
-    :on-move="moveIssues"
-    :spaces="move.spaces"
-    :statuses="move.statuses" />
+    :deps="deps.moveIssuesDialog"
+    :excluded-board-id="excludedMoveBoardId"
+    :on-moved="handleMoved" />
 </template>
-
-<script lang="ts">
-type IssueListItemViewModel = {
-  assignee: string
-  assigneeColor: string
-  assigneeInitial: string
-  boardColor: string
-  boardName: string
-  canMove: boolean
-  content: string
-  issueKey: string
-  spaceColor?: string
-  spaceName?: string
-  status: string
-  statusColor: string
-}
-
-type IssueListProps = {
-  emptyText: string
-  filtering: boolean
-  hasNextPage: boolean
-  issues: IssueListItemViewModel[]
-  move: IssueListMoveState
-  onChangeMoveBoard: () => void
-  onChangeMoveSpace: () => void
-  onLoadMoveBoards: (spaceId: string) => Promise<void> | void
-  onLoadMoveSpaces: () => Promise<void> | void
-  onLoadMoveStatuses: (boardId: string) => Promise<void> | void
-  onMove: (input: { issueKeys: string[]; statusId: string }) => Promise<boolean>
-  onUpdatePage: (value: number) => void
-  page: number
-}
-
-type IssueListMoveState = {
-  boards: Array<{ label: string; value: string }>
-  error: null | string
-  loadingBoards: boolean
-  loadingSpaces: boolean
-  loadingStatuses: boolean
-  moving: boolean
-  spaces: Array<{ label: string; value: string }>
-  statuses: Array<{ id: string; name: string }>
-}
-</script>
 
 <script setup lang="ts">
 import IssueListRow from '~/components/issue-list/components/IssueListRow.vue'
-import MoveIssuesDialog from '~/components/issue-list/components/MoveIssuesDialog.vue'
+import MoveIssuesDialog from '~/components/issue-list/components/move-issues-dialog/MoveIssuesDialog.vue'
+import type { IssueListDeps } from '~/components/issue-list/deps'
 
-const props = defineProps<IssueListProps>()
+import type { IssueListItem } from './IssueList.types'
+
+const props = defineProps<{
+  deps: IssueListDeps
+  emptyText: string
+  excludedMoveBoardId?: string
+  filtering: boolean
+  hasNextPage: boolean
+  issues: IssueListItem[]
+  onMoved: () => Promise<void> | void
+  onUpdatePage: (value: number) => void
+  page: number
+}>()
 
 const organizationRoutes = useOrganizationRoutes()
 const moveDialog = ref<{ open: (ids: string[]) => void }>()
@@ -112,7 +70,7 @@ const state = reactive({
 })
 const selected = computed(() => state.selected)
 
-function toggleSelection(issueKey: string) {
+const toggleSelection = (issueKey: string) => {
   if (selected.value.has(issueKey)) {
     selected.value.delete(issueKey)
   } else {
@@ -120,14 +78,13 @@ function toggleSelection(issueKey: string) {
   }
 }
 
-function openMoveDialog(ids: string[]) {
+const openMoveDialog = (ids: string[]) => {
   moveDialog.value?.open(ids)
 }
 
-async function moveIssues(input: { issueKeys: string[]; statusId: string }) {
-  if (await props.onMove(input)) {
-    selected.value.clear()
-  }
+const handleMoved = async () => {
+  selected.value.clear()
+  await props.onMoved()
 }
 </script>
 

@@ -43,12 +43,14 @@ const props = withDefaults(
   defineProps<{
     deps: BoardSelectDeps
     disabled?: boolean
+    excludedValue?: string
     initialOption?: BoardSelectOption
     placeholder?: string
     spaceId: string
   }>(),
   {
     disabled: false,
+    excludedValue: undefined,
     initialOption: undefined,
     placeholder: 'Select board',
   },
@@ -71,11 +73,15 @@ let loadRequest = 0
 
 const visibleOptions = computed(() => {
   const initial = props.initialOption
+  const options = props.excludedValue
+    ? state.options.filter((option) => option.value !== props.excludedValue)
+    : state.options
   return initial &&
     initial.value === model.value &&
-    !state.options.some((option) => option.value === initial.value)
-    ? [initial, ...state.options]
-    : state.options
+    initial.value !== props.excludedValue &&
+    !options.some((option) => option.value === initial.value)
+    ? [initial, ...options]
+    : options
 })
 
 const load = async () => {

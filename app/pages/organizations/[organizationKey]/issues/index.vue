@@ -9,7 +9,7 @@
 <script setup lang="ts">
 import type { LocationQueryRaw } from 'vue-router'
 
-import { createIssuesPageDeps } from '~/sections/issues/issues/IssuesPage.deps.impl'
+import { createIssuesPageDeps } from '~/sections/issues/issues/deps/impl'
 import IssuesPage from '~/sections/issues/issues/IssuesPage.vue'
 
 const route = useRoute('organizations-organizationKey-issues')

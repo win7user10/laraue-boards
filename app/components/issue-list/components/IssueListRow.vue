@@ -64,10 +64,13 @@
   </NuxtLink>
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
+import { ArrowRightLeft } from 'lucide-vue-next'
 import type { RouteLocationRaw } from 'vue-router'
 
-type IssueListRowProps = {
+import { BoardIcon, SpaceIcon } from '~/constants/icons'
+
+const props = defineProps<{
   assignee: string
   assigneeColor: string
   assigneeInitial: string
@@ -84,15 +87,7 @@ type IssueListRowProps = {
   status: string
   statusColor: string
   to: RouteLocationRaw
-}
-</script>
-
-<script setup lang="ts">
-import { ArrowRightLeft } from 'lucide-vue-next'
-
-import { BoardIcon, SpaceIcon } from '~/constants/icons'
-
-const props = defineProps<IssueListRowProps>()
+}>()
 </script>
 
 <style scoped>

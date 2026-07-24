@@ -41,17 +41,13 @@
             @update:model-value="updateFilters" />
         </div>
         <IssueList
+          :deps="deps.issueList"
           empty-text="The backlog is empty."
+          :excluded-move-board-id="data.backlogBoardId"
           :filtering="state.filtering"
           :has-next-page="data.hasNextPage"
           :issues="data.issues"
-          :move="state.move"
-          :on-change-move-board="changeMoveBoard"
-          :on-change-move-space="changeMoveSpace"
-          :on-load-move-boards="loadMoveBoards"
-          :on-load-move-spaces="loadMoveSpaces"
-          :on-load-move-statuses="loadMoveStatuses"
-          :on-move="moveIssues"
+          :on-moved="searchIssues"
           :on-update-page="updatePage"
           :page="request.page" />
       </section>
@@ -68,9 +64,6 @@ import IssueList from '~/components/issue-list/IssueList.vue'
 import IssueFilters from '~/components/IssueFilters.vue'
 import type {
   BacklogPageDeps,
-  LoadMoveBoardsFailure,
-  LoadMoveStatusesFailure,
-  MoveIssuesFailure,
   ViewBacklogFailure,
 } from '~/sections/spaces/backlog/BacklogPage.deps'
 import { err, matchResult, ok } from '~/utils/actionResult'
@@ -140,16 +133,6 @@ const filterValue = computed<FilterValue>(() => ({
 }))
 const state = reactive({
   filtering: false,
-  move: {
-    boards: [] as Array<{ label: string; value: string }>,
-    error: null as null | string,
-    loadingBoards: false,
-    loadingSpaces: false,
-    loadingStatuses: false,
-    moving: false,
-    spaces: [] as Array<{ label: string; value: string }>,
-    statuses: [] as Array<{ id: string; name: string }>,
-  },
 })
 const runSearch = createLatestRequest()
 const scheduleSearch = debounce(searchIssues, 300)
@@ -214,134 +197,6 @@ async function searchIssues() {
       })
     },
   })
-}
-
-function changeMoveSpace() {
-  state.move.error = null
-  state.move.loadingBoards = false
-  state.move.loadingStatuses = false
-  state.move.boards = []
-  state.move.statuses = []
-}
-
-function changeMoveBoard() {
-  state.move.error = null
-  state.move.loadingStatuses = false
-  state.move.statuses = []
-}
-
-async function loadMoveSpaces() {
-  state.move.error = null
-  state.move.loadingSpaces = true
-  const result = await props.deps.loadMoveSpaces()
-  state.move.loadingSpaces = false
-  matchResult(result, {
-    err: (failure) => {
-      state.move.error =
-        failure.type === 'accessDenied'
-          ? 'You do not have access to available spaces.'
-          : 'Could not load available spaces.'
-    },
-    ok: ({ spaces }) => {
-      state.move.spaces = spaces
-    },
-  })
-}
-
-const getBoardsFailureMessage = (failure: LoadMoveBoardsFailure): string => {
-  switch (failure.type) {
-    case 'accessDenied':
-      return 'You do not have access to this space.'
-    case 'spaceNotFound':
-      return 'This space no longer exists.'
-    case 'temporarilyUnavailable':
-      return 'Could not load space boards.'
-    default:
-      return assertNever(failure)
-  }
-}
-
-async function loadMoveBoards(spaceId: string) {
-  const current = pageState.value
-  if (current.type !== 'ready') {
-    return
-  }
-  state.move.error = null
-  state.move.loadingBoards = true
-  const result = await props.deps.loadMoveBoards({
-    sourceBoardId: current.data.backlogBoardId,
-    spaceId,
-  })
-  state.move.loadingBoards = false
-  matchResult(result, {
-    err: (failure) => {
-      state.move.error = getBoardsFailureMessage(failure)
-    },
-    ok: ({ boards }) => {
-      state.move.boards = boards
-    },
-  })
-}
-
-const getStatusesFailureMessage = (failure: LoadMoveStatusesFailure): string => {
-  switch (failure.type) {
-    case 'accessDenied':
-      return 'You do not have access to this board.'
-    case 'boardNotFound':
-      return 'This board no longer exists.'
-    case 'temporarilyUnavailable':
-      return 'Could not load board columns.'
-    default:
-      return assertNever(failure)
-  }
-}
-
-async function loadMoveStatuses(boardId: string) {
-  state.move.error = null
-  state.move.loadingStatuses = true
-  const result = await props.deps.loadMoveStatuses({ boardId })
-  state.move.loadingStatuses = false
-  matchResult(result, {
-    err: (failure) => {
-      state.move.error = getStatusesFailureMessage(failure)
-    },
-    ok: ({ statuses }) => {
-      state.move.statuses = statuses
-    },
-  })
-}
-
-const getMoveFailureMessage = (failure: MoveIssuesFailure): string => {
-  switch (failure.type) {
-    case 'accessDenied':
-      return 'You do not have permission to move some issues.'
-    case 'invalidStatus':
-      return 'Select a valid board column.'
-    case 'resourceNotFound':
-      return 'An issue or board column was not found.'
-    case 'temporarilyUnavailable':
-      return 'Could not move some issues. Try again.'
-    default:
-      return assertNever(failure)
-  }
-}
-
-async function moveIssues(input: { issueKeys: string[]; statusId: string }): Promise<boolean> {
-  state.move.error = null
-  state.move.moving = true
-  const result = await props.deps.moveIssues(input)
-  const moved = await matchResult(result, {
-    err: (failure) => {
-      state.move.error = getMoveFailureMessage(failure)
-      return false
-    },
-    ok: async () => {
-      await searchIssues()
-      return true
-    },
-  })
-  state.move.moving = false
-  return moved
 }
 
 watch(
