@@ -76,7 +76,7 @@
           :style="{ background: viewModel.ownerColor }">
           {{ viewModel.ownerInitial }}
         </span>
-        <strong>{{ viewModel.owner }}</strong>
+        <span>{{ viewModel.owner }}</span>
       </div>
       <IssueAttributeFields
         v-if="viewModel.attributes.length"
